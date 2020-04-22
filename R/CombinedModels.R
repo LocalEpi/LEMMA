@@ -15,38 +15,35 @@ AsInteger <- function(x) {
 #end.date scalar Date
 #params data.table (num.param.sets x num.params)
 SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
+  stopifnot(is.null(params$use.hosp.rate)) #use.hosp.rate removed, assumed TRUE
   if (is.numeric(initial.conditions)) {
     initial.conditions <- data.table(date = start.date, S = initial.conditions, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
   }
-  num.param.sets <- nrow(params)
+  num.param.sets <- nrow(params) 
   if (is.null(initial.new.exposures)) {
     num.init.exp <- 1
   } else {
     stopifnot(nrow(initial.new.exposures) == num.param.sets)
     num.init.exp <- ncol(initial.new.exposures)
   }
-
-
+  
   p <- params #for readability
-
+  
   sigma <- 1 / p$latent.period
   psi <- 1 / p$hosp.length.of.stay
   gamma.r <- 1 / p$illness.length.given.nonhosp
   gamma.h <- 1 / (p$exposed.to.hospital - p$latent.period) #infected.to.hospital = exposed.to.hospital - latent.period
   stopifnot(p$exposed.to.hospital > p$latent.period) #otherwise gamma.h is nonsense
-
-  exposed.to.hospital <- AsInteger(p$exposed.to.hospital) #these are used for indexing, avoids any problems with truncation
-  exposed.to.dischage <- AsInteger(p$exposed.to.hospital + p$hosp.length.of.stay)
-
-  has.E <- p$latent.period > 0
-
+  
+  has.E <- p$latent.period > 0 
+  
   dates <- seq(start.date, end.date, by = "day")
   num.days <- length(dates)
   stopifnot(num.days > 1) #single day may cause problems
-
+  
   overall.gamma <- gamma.r  #TODO: figure out what this should be (weighted average of gamma.r and gamma.h?)
   beta <- GetBeta(dates, params, overall.gamma) #num.days x num.param.sets
-
+  
   # S = susceptible
   # E = exposed (but not yet infectious)
   # IR = infectious but not severe (will not be hospitalized)
@@ -54,92 +51,73 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   # HP = hospital population
   # DC = discharged (or died) from hospital
   # R = recovered (did not go to hospital)
-
+  
   base.compartment.names <- c("S", "E", "IH", "IR", "R", "HP", "DC")
   empty.compartment <- array(NA_real_, dim = c(num.days, num.param.sets, num.init.exp), dimnames = list(as.character(dates), NULL, NULL))
   q <- sapply(base.compartment.names, function (z) empty.compartment, simplify = F) # q: the base compartments
   d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments (will be num.param.sets x num.init.exp)
-
+  
   total.infected <- new.exposures <- empty.compartment
-
+  
   date.index <- GetDateIndex(initial.conditions$date, dates)
   stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
   for (i in base.compartment.names) { #TODO: improve speed here? this is taking a decent amout of time
-    q[[i]][date.index, , ] <- initial.conditions[[i]]
+    q[[i]][date.index, , ] <- initial.conditions[[i]] 
   }
   N <- sum(sapply(base.compartment.names, function (z) initial.conditions[[z]][1])) #TODO: clean this up
-
-  #TODO: can this be more readable? and/or faster?
-  #num.param.sets x num.init.exp
-  GetNewExposures <- function(day) {
-    new.exp <- matrix(NA_real_, nrow = num.param.sets, ncol = num.init.exp)
-    new.exp[day <= 0 & !is.na(day), ] <- 0
-    valid <- day > 0 & !is.na(day) #logical index, length num.param.sets
-    num.valid <- sum(valid)
-
-    array.index <- cbind(pracma::repmat(cbind(day[valid], seq_len(num.valid)), num.init.exp, 1), rep(seq_len(num.init.exp), each = num.valid))
-    new.exp[valid, ] <- new.exposures[, valid, , drop = F][array.index] #avoid indexing errors
-    return(new.exp)
-  }
-
+  
   d$E <- new.infections <- new.admits <- new.dischanges <- matrix(NA_real_, nrow = num.param.sets, ncol = num.init.exp)
-  uhr <- p$use.hosp.rate #for readability
   admit.from.day <- discharge.from.day <- rep(NA_integer_, num.param.sets)
   # run SEIR model
   for (tt in 1:num.days) { #most of this loop is 1:(num.days - 1), but we need total.infected also on num.days
     total.infected[tt, , ] <- q$IR[tt, , ] + q$IH[tt, , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , ]
+    stopifnot(!is.na(total.infected[tt, , ])) #temp
     if (tt == num.days) break
-
+    
     if (tt == 1 && !is.null(initial.new.exposures)) {
       new.exposures[tt, , ] <- initial.new.exposures
     } else {
       new.exposures[tt, , ] <- beta[tt, ] * q$S[tt, , ] * total.infected[tt, , ] / N
     }
-    new.nonhosp.recovered <- gamma.r * q$IR[tt, , ]
-
+    new.nonhosp.recovered <- gamma.r * q$IR[tt, , ] 
+    
     d$S <- -new.exposures[tt, , ]
     d$E[has.E, ] <- new.exposures[tt, has.E, ] - sigma[has.E] * q$E[tt, has.E, ]
     d$E[!has.E, ] <- 0
     new.infections[has.E] <- sigma[has.E] * q$E[tt, has.E, ]
     new.infections[!has.E] <- new.exposures[tt, !has.E, ]
-
-    #uhr is params$use.hosp.rate
-    new.admits[uhr, ] <- gamma.h[uhr] * q$IH[tt, uhr, ]
-    new.dischanges[uhr] <- psi[uhr] * q$HP[tt, uhr, ]
-
-    admit.from.day[!uhr] <- (tt - exposed.to.hospital)[!uhr]
-    discharge.from.day[!uhr] <- (tt - exposed.to.dischage)[!uhr]
-
-    new.admits[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(admit.from.day)[!uhr]
-    new.dischanges[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(discharge.from.day)[!uhr]
-
+    
+    new.admits <- gamma.h * q$IH[tt, , ]
+    new.dischanges <- psi * q$HP[tt, , ]
+    
     d$IR <- new.infections * (1 - p$prop.hospitalized) - new.nonhosp.recovered
     d$IH <- new.infections * p$prop.hospitalized - new.admits
-
+    
     d$HP <- new.admits - new.dischanges
     d$DC <- new.dischanges
     d$R <- new.nonhosp.recovered
-
+    
     total.d <- matrix(0, nrow = num.param.sets, ncol = num.init.exp) #just for error checking, could remove
     for (i in base.compartment.names) {
-      q[[i]][tt + 1, , ] <- q[[i]][tt, , ] + d[[i]]
+      q[[i]][tt + 1, , ] <- q[[i]][tt, , ] + d[[i]] 
       total.d <- total.d + d[[i]] #just for error checking, could remove
     }
-    stopifnot(abs(total.d) < 1e-8) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
+    stopifnot(abs(total.d) < 0.001) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
   }
-
-  icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
-  list.return <- c(q, list(I = total.infected,
-                           icu = icu,
-                           vent = as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu,
+  
+  icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
+  list.return <- c(q, list(I = total.infected, 
+                           icu = icu, 
+                           vent = as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu, 
                            R.total = q$R + q$DC, #R is recovered (did not go to hospital)
-                           active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious
+                           active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious 
                            total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC)) #everyone ever exposed (implicitly includes dead); same as N - S
   names(list.return)[names(list.return) == "R"] <- "R.nonhosp"
   names(list.return)[names(list.return) == "HP"] <- "hosp"
-
+  
   return(list.return) #list of num.days x num.param x num.init.exp  S E ...
 }
+
 
 #utility wrapper
 Seir <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
