@@ -88,7 +88,6 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   # run SEIR model
   for (tt in 1:num.days) { #most of this loop is 1:(num.days - 1), but we need total.infected also on num.days
     total.infected[tt, , ] <- q$IR[tt, , ] + q$IH[tt, , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , ]
-    stopifnot(!is.na(total.infected[tt, , ])) #temp
     if (tt == num.days) break
 
     if (tt == 1 && !is.null(initial.new.exposures)) {
@@ -338,7 +337,6 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
 
 
 RunSim <- function(total.population, observed.data, start.date, end.date, params, search.args) {
-  save(file = paste0("~/Dropbox/LEMMA_shared/JS code branch/bug", exists("ReadInputs", .GlobalEnv)), list = ls()) #temp!
   ff <- function(xmin, xmax) {
     #temp for debugging - plot initial.new.exposure vs badness for single param
     stopifnot(num.param.sets == 1)
