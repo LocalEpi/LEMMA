@@ -13,13 +13,13 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 
 # Installation: 
 
-1) Install RStudio 
-2) Create a folder to store your LEMMA inputs and outputs. For example, ~/Documents/MyFolder
+1) Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
+2) Create a folder to store your LEMMA inputs and outputs. For example, you created a folder "MyFolder" within Documents.
 3) Copy and paste these lines into the RStudio console, one at a time:
 ```{r}
 install.packages("remotes")  
 remotes::install_github("LocalEpi/LEMMA")
-setwd("~/Documents/MyFolder")   #replace with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
+setwd("~/Documents/MyFolder")   # replace with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
