@@ -1,4 +1,4 @@
-ReadExcel <- function(path, col_types, sheet) {
+ReadExcel <- function(path, col_types, sheet, range = NULL) {
   x <- as.data.table(readxl::read_excel(path = path, col_types = col_types, sheet = sheet))
   attr(x, "sheetname") <- sheet
   return(x)
@@ -48,7 +48,7 @@ GetParams <- function(param.dist, niter, get.best.guess) {
 }
 
 ReadInputs <- function(path) {
-  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"),
+  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H22"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
