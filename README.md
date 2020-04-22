@@ -14,7 +14,7 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 # Installation: 
 
 1) Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
-2) Create a folder to store your LEMMA inputs and outputs. For example, you created a folder "MyFolder" within Documents.
+2) Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
 3) Copy and paste these lines into the RStudio console, one at a time:
 ```{r}
 install.packages("remotes")  
