@@ -1,6 +1,6 @@
-#` @import ggplot2
-#` @import data.table
-#` @import matrixStats
+#' @import ggplot2
+#' @import data.table
+#' @import matrixStats
 
 #TODO: RunSim needs some error checking that params (or maybe other data.tables) have the right names - I had a bug at one point because I was passing intervention1_multiplier instead of intervention1.multiplier and it didn't throw an error, it just ignored intervention1.multiplier
 

@@ -1,8 +1,8 @@
-#` @import ggplot2
-#` @import data.table
-#` @import matrixStats
-#` @importFrom stats median optimize runif
-#` @importFrom graphics barplot
+#' @import ggplot2
+#' @import data.table
+#' @import matrixStats
+#' @importFrom stats median optimize runif
+#' @importFrom graphics barplot
 
 #TODO: legend on ggplot in pdf
 #TODO: show observed even if only fitting initial to some
