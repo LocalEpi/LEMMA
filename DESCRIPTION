@@ -1,4 +1,4 @@
-Package: LocalEpiLEMMA
+Package: LEMMA
 Title: Local Epidemic Modeling for Management & Action 
 Version: 0.2.0.9000
 Authors@R: 
@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "jschwab77@berkeley.edu",
            comment = c(ORCID = "0000-0002-9436-1805"))
-Description: LocalEpiLEMMA projects hospital utilization from COVID-19.
+Description: LEMMA projects hospital utilization from COVID-19.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: es

@@ -1,8 +1,8 @@
 #' Local Epidemic Modeling for Management & Action (LEMMA)
 #'
-#' LocalEpiLEMMA projects hospital utilization from COVID-19.
+#' LEMMA projects hospital utilization from COVID-19.
 #'
-#' @name LocalEpiLEMMA
+#' @name LEMMA
 #' @docType package
 #' @author Joshua Schwab
 #'
