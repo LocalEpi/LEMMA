@@ -19,7 +19,7 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 ```{r}
 install.packages("remotes")  
 remotes::install_github("LocalEpi/LEMMA")
-setwd("~/Documents/MyFolder")   # replace with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
+setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
@@ -29,7 +29,7 @@ file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork 
 library(LEMMA) 
 ```
 1) Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
-2) 
+2) Run the following code.
 ```{r}
 CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
