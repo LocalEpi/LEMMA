@@ -9,10 +9,30 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 - Joshua Schwab - UC Berkeley
 - Laura B. Balzer - UMass Amherst
 - Elvin Geng - Washington University
+- James Peng - UC San Francisco
 
 # Installation: 
 
-JOSH PLEASE PUT INSTALLATION DIRECTIONS HERE
+1) Install RStudio 
+2) Create a folder to store your LEMMA inputs and outputs. For example, ~/Documents/MyFolder
+3) Copy and paste these lines into the RStudio console, one at a time:
+```{r}
+install.packages("remotes")  
+remotes::install_github("LocalEpi/LEMMA")
+setwd("~/Documents/MyFolder")   #replace with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
+file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
+```
+
+# Running LEMMA
+0) When you first open RStudio
+```{r}
+library(LEMMA) 
+```
+1) Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
+2) 
+```{r}
+CredibilityIntervalFromExcel("MyCity.xlsx")
+```
 
 # Input:
 

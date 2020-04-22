@@ -1,5 +1,5 @@
 ReadExcel <- function(path, col_types, sheet, range = NULL) {
-  x <- as.data.table(readxl::read_excel(path = path, col_types = col_types, sheet = sheet))
+  x <- as.data.table(readxl::read_excel(path = path, col_types = col_types, sheet = sheet, range = range))
   attr(x, "sheetname") <- sheet
   return(x)
 }
