@@ -4,11 +4,9 @@
 
 #TODO: RunSim needs some error checking that params (or maybe other data.tables) have the right names - I had a bug at one point because I was passing intervention1_multiplier instead of intervention1.multiplier and it didn't throw an error, it just ignored intervention1.multiplier
 
-AsInteger <- function(x) {
-  stopifnot(abs(round(x) - x) < 0.0001)
-  as.integer(round(x))
+sweep1 <- function(x, MARGIN, STATS, FUN) {
+  sweep(X, MARGIN, as.array(STATS), FUN)
 }
-
 #initial.new.exposures (num.param.sets x num.init.exp) matrix or NULL - sets new.exposures at start.date
 #initial.conditions data.table date S E IR IH HP DC R or single number S0, makes all others 0
 #start.date scalar Date
@@ -16,9 +14,19 @@ AsInteger <- function(x) {
 #params data.table (num.param.sets x num.params)
 SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
   stopifnot(is.null(params$use.hosp.rate)) #use.hosp.rate removed, assumed TRUE
-  if (is.numeric(initial.conditions)) {
-    initial.conditions <- data.table(date = start.date, S = initial.conditions, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
-  }
+  # if (is.numeric(initial.conditions)) {
+  #   initial.conditions <- data.table(date = start.date, S = initial.conditions, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
+  # }
+  
+  base.compartment.names <- c("S", "E", "IH", "IR", "R", "HP", "DC")
+ 
+  
+  stopifnot(length(initial.conditions) == 2)
+  num.pops <- 2
+  N <- initial.conditions
+  initial.conditions <- sapply(base.compartment.names, function (z) rep(0, num.pops), simplify = F) # q: the base compartments
+  initial.conditions$S <- N #length = num.pops
+  
   num.param.sets <- nrow(params) 
   if (is.null(initial.new.exposures)) {
     num.init.exp <- 1
@@ -52,43 +60,54 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   # DC = discharged (or died) from hospital
   # R = recovered (did not go to hospital)
   
-  base.compartment.names <- c("S", "E", "IH", "IR", "R", "HP", "DC")
-  empty.compartment <- array(NA_real_, dim = c(num.days, num.param.sets, num.init.exp), dimnames = list(as.character(dates), NULL, NULL))
+  empty.compartment <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.init.exp), dimnames = list(as.character(dates), NULL, NULL, NULL))
   q <- sapply(base.compartment.names, function (z) empty.compartment, simplify = F) # q: the base compartments
-  d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments (will be num.param.sets x num.init.exp)
+  d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments 
   
   total.infected <- new.exposures <- empty.compartment
   
-  date.index <- GetDateIndex(initial.conditions$date, dates)
-  stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
+  #date.index <- GetDateIndex(initial.conditions$date, dates) 
+  #stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
+   date.index <- 1 #FIXME
+   
+   
   for (i in base.compartment.names) { #TODO: improve speed here? this is taking a decent amout of time
-    q[[i]][date.index, , ] <- initial.conditions[[i]] 
+    q[[i]][date.index, , , ] <- initial.conditions[[i]] 
   }
-  N <- sum(sapply(base.compartment.names, function (z) initial.conditions[[z]][1])) #TODO: clean this up
+  #N <- sum(sapply(base.compartment.names, function (z) initial.conditions[[z]][1])) #TODO: clean this up  #FIXME: should be num.pop x 1
   
-  d$E <- new.infections <- new.admits <- new.dischanges <- matrix(NA_real_, nrow = num.param.sets, ncol = num.init.exp)
-  admit.from.day <- discharge.from.day <- rep(NA_integer_, num.param.sets)
+  d$E <- new.infections <- new.admits <- new.dischanges <- array(NA_real_, dim = c(num.param.sets, num.pops, num.init.exp))
   # run SEIR model
   for (tt in 1:num.days) { #most of this loop is 1:(num.days - 1), but we need total.infected also on num.days
-    total.infected[tt, , ] <- q$IR[tt, , ] + q$IH[tt, , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , ]
-    stopifnot(!is.na(total.infected[tt, , ])) #temp
+    total.infected[tt, , , ] <- q$IR[tt, , , ] + q$IH[tt, , , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , , ]
+    stopifnot(!is.na(total.infected[tt, , , ])) #temp
     if (tt == num.days) break
     
     if (tt == 1 && !is.null(initial.new.exposures)) {
-      new.exposures[tt, , ] <- initial.new.exposures
+      new.exposures[tt, , , ] <- 0
+      new.exposures[tt, , 1, ] <- initial.new.exposures #initial.new.exposures is only in pop1
     } else {
-      new.exposures[tt, , ] <- beta[tt, ] * q$S[tt, , ] * total.infected[tt, , ] / N
+      #S.N <- sweep(q$S[tt, , , , drop = F], MARGIN = 3, as.array(N), "/")    #S/N, num.param.sets x num.pops xnum.init.exp
+       
+      #FIXME: super slow, just for dev
+      for (j in 1:num.param.sets) {
+        beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
+        S.N <- q$S[tt, j, , ] / N
+        new.exposures[tt, j, , ] <- S.N * (beta.mat %*% total.infected[tt, , , ])
+      }
+      new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
+      new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
     }
-    new.nonhosp.recovered <- gamma.r * q$IR[tt, , ] 
+    new.nonhosp.recovered <- gamma.r * q$IR[tt, , , ] 
     
-    d$S <- -new.exposures[tt, , ]
-    d$E[has.E, ] <- new.exposures[tt, has.E, ] - sigma[has.E] * q$E[tt, has.E, ]
-    d$E[!has.E, ] <- 0
-    new.infections[has.E] <- sigma[has.E] * q$E[tt, has.E, ]
-    new.infections[!has.E] <- new.exposures[tt, !has.E, ]
+    d$S <- -new.exposures[tt, , , ]
+    d$E[has.E, , ] <- new.exposures[tt, has.E, , ] - sigma[has.E] * q$E[tt, has.E, , ]
+    d$E[!has.E, , ] <- 0
+    new.infections[has.E, , ] <- sigma[has.E] * q$E[tt, has.E, , ]
+    new.infections[!has.E, , ] <- new.exposures[tt, !has.E, , ]
     
-    new.admits <- gamma.h * q$IH[tt, , ]
-    new.dischanges <- psi * q$HP[tt, , ]
+    new.admits <- gamma.h * q$IH[tt, , , ]
+    new.dischanges <- psi * q$HP[tt, , , ]
     
     d$IR <- new.infections * (1 - p$prop.hospitalized) - new.nonhosp.recovered
     d$IH <- new.infections * p$prop.hospitalized - new.admits
@@ -97,18 +116,26 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     d$DC <- new.dischanges
     d$R <- new.nonhosp.recovered
     
-    total.d <- matrix(0, nrow = num.param.sets, ncol = num.init.exp) #just for error checking, could remove
+     total.d <- array(0, dim = dim(q$S)[-1]) #just for error checking, could remove
     for (i in base.compartment.names) {
-      q[[i]][tt + 1, , ] <- q[[i]][tt, , ] + d[[i]] 
+      q[[i]][tt + 1, , , ] <- q[[i]][tt, , , ] + d[[i]] 
       total.d <- total.d + d[[i]] #just for error checking, could remove
     }
+     
+     
     stopifnot(abs(total.d) < 0.001) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
+    for (i in base.compartment.names) {
+      stopifnot(q[[i]][tt + 1, ,, ] >= 0)
+    }
+    
   }
   
-  icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
+  #icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
+  #vent <-  as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
+  icu <- vent <- 0 #temp
   list.return <- c(q, list(I = total.infected, 
                            icu = icu, 
-                           vent = as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu, 
+                           vent = vent,
                            R.total = q$R + q$DC, #R is recovered (did not go to hospital)
                            active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious 
                            total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC)) #everyone ever exposed (implicitly includes dead); same as N - S
@@ -215,6 +242,24 @@ CalcError <- function(simulated.data, observed.data, weights) {
 }
 
 GetBeta <- function(dates, params, overall.gamma) {
+  #num.days x num.param.sets x num.pops (in: S) x num.pops (by: I)
+  num.days <- length(dates)
+  num.param.sets <- nrow(params)
+  num.pops <- 2 #FIXME
+  prior.beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
+  prior.beta[, , 1, 1] <- matrix(params$r0.initial.11 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+  prior.beta[, , 1, 2] <- matrix(params$r0.initial.12 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+  prior.beta[, , 2, 1] <- matrix(params$r0.initial.21 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+  prior.beta[, , 2, 2] <- matrix(params$r0.initial.22 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+  
+  #FIXME: doesn't do anything with intervention yet
+  cum.multiplier <- 1
+  beta <- prior.beta * cum.multiplier
+  return(beta)
+}
+
+#sweep might help here
+GetBeta.orig <- function(dates, params, overall.gamma) {
   #scale beta by int_mult
   num.days <- length(dates)
   num.param.sets <- nrow(params)
