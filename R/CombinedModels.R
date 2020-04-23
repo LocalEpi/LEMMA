@@ -100,8 +100,8 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     d$S <- -new.exposures[tt, , ]
     d$E[has.E, ] <- new.exposures[tt, has.E, ] - sigma[has.E] * q$E[tt, has.E, ]
     d$E[!has.E, ] <- 0
-    new.infections[has.E] <- sigma[has.E] * q$E[tt, has.E, ]
-    new.infections[!has.E] <- new.exposures[tt, !has.E, ]
+    new.infections[has.E, ] <- sigma[has.E] * q$E[tt, has.E, ]
+    new.infections[!has.E, ] <- new.exposures[tt, !has.E, ]
 
     #uhr is params$use.hosp.rate
     new.admits[uhr, ] <- gamma.h[uhr] * q$IH[tt, uhr, ]
