@@ -44,6 +44,17 @@ RunSim1 <- function(params1, model.inputs, observed.data, internal.args, date.ra
   return(sim)
 }
 
+GetPlotTitle <- function(posterior.niter) {
+  if (posterior.niter < 100) {
+    warn.str <- "\nVery low number of iterations, DO NOT use for inference"
+  } else if (posterior.niter < 1000) {
+    warn.str <- "\nLow number of iterations, use with caution"
+  } else {
+    warn.str <- ""
+  }
+  paste0("Posterior Distribution, niter = ", posterior.niter, warn.str)
+}
+
 GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str) {
   output.list <- list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
   output.names <- names(output.list)
@@ -55,7 +66,8 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
     quant2 <- rowQuantiles(sim.accepted, probs = probs2)
     output <- data.table(date = date.range, quant1, bestguess = best.guess[[j]], quant2)
     output[, notes := ""]
-    output[1, notes := paste0("niter = ", sum(in.bounds), " / ", length(in.bounds), "  bestguess ", ifelse(best.guess.in.bounds, "accepted", "rejected"))]
+    output[1, notes := GetPlotTitle(posterior.niter = sum(in.bounds))]
+    output[2, notes := paste0("bestguess ", ifelse(best.guess.in.bounds, "accepted", "rejected"))]
     output.list[[j]] <- cbind(output.list[[j]], output)
   }
   output.list$all.inputs = all.inputs.str
@@ -66,6 +78,7 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
 }
 
 GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, observed.data) {
+  posterior.title <- GetPlotTitle(posterior.niter = sum(in.bounds))
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out)
   #TODO: clean up this plotting code - I think it should use melt to make a long data frame so we don't get the error about missing values
@@ -81,7 +94,8 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, observed.data) {
     geom_ribbon(aes(ymin=five, ymax=ninetyfive), alpha = 0.2) +
     geom_line(aes(y = bestguess), color = "yellow") +
     geom_line(aes(y = median), color = "red") +
-    geom_point(aes(x=date, y=hosp))
+    geom_point(aes(x=date, y=hosp)) +
+    ggtitle(posterior.title)
   suppressWarnings(print(gg)) #warnings for NA in observed data
 
   for (param.name in c("model", "currentRe", names(all.params))) {
@@ -99,7 +113,7 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, observed.data) {
     }
     param.dt <- data.table(cur.param = factor(cur.param))
     barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-    barplot(prop.table(table(param.dt[in.bounds])), main = paste0("Posterior Distribution, niter =", sum(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
+    barplot(prop.table(table(param.dt[in.bounds])), main = posterior.title, sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
   }
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")
