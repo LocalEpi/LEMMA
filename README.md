@@ -23,15 +23,13 @@ setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/f
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
+** LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day. **
+
 # Running LEMMA
-0) When you first open RStudio
-```{r}
-library(LEMMA) 
-```
 1) Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
 2) Run the following code.
 ```{r}
-CredibilityIntervalFromExcel("MyCity.xlsx")
+LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
 
 # Input:
