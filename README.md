@@ -13,13 +13,13 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 
 # Installation: 
 
-1) Install RStudio 
-2) Create a folder to store your LEMMA inputs and outputs. For example, ~/Documents/MyFolder
+1) Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
+2) Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
 3) Copy and paste these lines into the RStudio console, one at a time:
 ```{r}
 install.packages("remotes")  
 remotes::install_github("LocalEpi/LEMMA")
-setwd("~/Documents/MyFolder")   #replace with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
+setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created, or use Session > Set Working Directory > Choose Directory in RStudio
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
@@ -29,7 +29,7 @@ file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork 
 library(LEMMA) 
 ```
 1) Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
-2) 
+2) Run the following code.
 ```{r}
 CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
@@ -59,10 +59,10 @@ Provide hospital case series data. On each date, specify the a lower and upper b
 This allows for more nuanced changes including changing the file names (output.filestr), the number of iterations (main.iterations), and tolerance of projections to the observed hospital case seres (required.in.bounds). 
 
 # Output: 
-Given the above input, LEMMA runs specified number of simulations, where in each simulation the parameters are sampled from the specified prior distributions. (The default number of simulations is 10,000, but can be changed with main.iterations on the Internal tab.) The projections that are sufficiently close to the observed hospitalization case series are saved and provide a posterior distribution for the model outputs: number hospitalized, number in ICU, number on ventilators, active cases, and total cases.
+Given the above input, LEMMA runs specified number of simulations, where in each simulation the parameters are sampled from the specified prior distributions. (The default number of simulations is 10,000, but can be changed with main.iterations on the Internal tab.) The projections that are sufficiently close to the observed hospitalization case series are saved and provide a posterior distribution for the model outputs: number hospitalized, number in ICU, number on ventilators, active cases, and total cases. We recommend finding the parameterizations resulting in at least 1,000 posterior projections and urge  **CAUTION** when interpretting results with few posterior projections. 
 
 The main output is provided in pdf format. 
-- Page 1 is a graph of projected hospitalizations by date with uncertainity bounds. The yellow line is the projection under your best guess of parameters (represented by column E of the 'Parameters with Distributions' Tab). The red line is the median of the posterior projections. Uncertainity bands are represented by the shaded regions with the dark gray for 25%-75%, medium gray for 15%-85%, and light gray for 5%-95%. The black dots are the observed hospitalizations (currently assumed to be the average of the lower and upper bounds). 
+- Page 1 is a graph of projected hospitalizations by date with uncertainity bounds. The yellow line is the projection under your best guess of parameters (represented by column E of the 'Parameters with Distributions' Tab). The red line is the median of the posterior projections. Uncertainty bands are represented by the shaded regions, representing quantiles of the posterior projections. 25%-75% of the posterior distribution falls within the dark gray band, 15%-85% within the medium gray band, and 5%-95% within the light gray bands. The black dots are the observed hospitalizations (currently assumed to be the average of the lower and upper bounds). 
 - Page 2 provides the prior distribution for the models considered. These models are derived by a combination of 3 parameters where 0 denotes false and 1 true. 'hasE' indicates if there is a latent period; 'infect in hosp' indicates if patients are infectious in the hospital, and 'rate to hospital' indicates if there is a constant rate at which infectious persons are hospitalized. 
 - Page 3 provides the posterior distribution for the models considered. Importantly, at the top of this graph and all 'posterior' pages, you will see the number of simulations included in the posterior distribution (niter=#). 
 - Page 4 provides the prior distribution on the "current" effective reproductive number (currentRe). This is the reproductive number after the first two inteventions have taken place (but not the third which is assumed to be at a future date). 
