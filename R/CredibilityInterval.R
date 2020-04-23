@@ -65,7 +65,7 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
   return(output.list)
 }
 
-GetPdfOutput <- function(hosp, in.bounds, all.params, date.range, filestr, observed.data) {
+GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, observed.data) {
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out)
   #TODO: clean up this plotting code - I think it should use melt to make a long data frame so we don't get the error about missing values
@@ -137,7 +137,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
     cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
     return(NULL)
   }
-  GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, date.range, filestr, observed.data)
+  GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, observed.data)
   return(NULL)
 }
 
