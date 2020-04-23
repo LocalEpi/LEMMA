@@ -79,6 +79,8 @@ ReadInputs <- function(path) {
     internal$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }
   sheets$time.of.run <- as.character(Sys.time())
+  sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
+ 
   return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, best.guess.params = best.guess, excel.input = sheets))
 }
 
@@ -91,5 +93,7 @@ CredibilityIntervalFromExcel <- function(input.file) {
   inputs <- ReadInputs(input.file)
 
   CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
-  cat("\n\nDone")
+  cat("\nDone\n\n")
+  cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
+  cat("LEMMA is in early development. Please reinstall from github daily.\n")
 }
