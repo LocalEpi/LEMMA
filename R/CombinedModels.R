@@ -19,7 +19,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   # }
   
   base.compartment.names <- c("S", "E", "IH", "IR", "R", "HP", "DC")
- 
+  
   
   stopifnot(length(initial.conditions) == 2)
   num.pops <- 2
@@ -38,12 +38,21 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   p <- params #for readability
   
   sigma <- 1 / p$latent.period
-  psi <- 1 / p$hosp.length.of.stay
+  
   gamma.r <- 1 / p$illness.length.given.nonhosp
   gamma.h <- 1 / (p$exposed.to.hospital - p$latent.period) #infected.to.hospital = exposed.to.hospital - latent.period
   stopifnot(p$exposed.to.hospital > p$latent.period) #otherwise gamma.h is nonsense
   
   has.E <- p$latent.period > 0 
+  
+  stopifnot("prop.hospitalized1" %in% names(p), "prop.hospitalized2" %in% names(p), !("prop.hospitalized" %in% names(p)))
+  prop.hospitalized <- cbind(p$prop.hospitalized1, p$prop.hospitalized2)
+  # prop.hospitalized <- c(prop.hospitalized) #FIXME is this right?? keeping as vector avoids non-conformable arrays error in loop, but need to check that the recycling works (if so may as well be here instead of in loop?)
+  
+  stopifnot("hosp.length.of.stay1" %in% names(p), "hosp.length.of.stay2" %in% names(p), !("hosp.length.of.stay" %in% names(p)))
+  hosp.length.of.stay <- cbind(p$hosp.length.of.stay1, p$hosp.length.of.stay2)
+  psi <- 1 / hosp.length.of.stay
+  
   
   dates <- seq(start.date, end.date, by = "day")
   num.days <- length(dates)
@@ -68,11 +77,13 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   
   #date.index <- GetDateIndex(initial.conditions$date, dates) 
   #stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
-   date.index <- 1 #FIXME
-   
-   
+  date.index <- 1 #FIXME
+  
+  
   for (i in base.compartment.names) { #TODO: improve speed here? this is taking a decent amout of time
-    q[[i]][date.index, , , ] <- initial.conditions[[i]] 
+    for (k in 1:num.pops) {
+      q[[i]][date.index, , k, ] <- initial.conditions[[i]][k] 
+    }
   }
   #N <- sum(sapply(base.compartment.names, function (z) initial.conditions[[z]][1])) #TODO: clean this up  #FIXME: should be num.pop x 1
   
@@ -86,43 +97,45 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     if (tt == 1 && !is.null(initial.new.exposures)) {
       new.exposures[tt, , , ] <- 0
       new.exposures[tt, , 1, ] <- initial.new.exposures #initial.new.exposures is only in pop1
+      new.exposures[tt, , 2, ] <- initial.new.exposures; warning("temp!")
     } else {
-      #S.N <- sweep(q$S[tt, , , , drop = F], MARGIN = 3, as.array(N), "/")    #S/N, num.param.sets x num.pops xnum.init.exp
-       
       #FIXME: super slow, just for dev
       for (j in 1:num.param.sets) {
-        beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
-        S.N <- q$S[tt, j, , ] / N
-        new.exposures[tt, j, , ] <- S.N * (beta.mat %*% total.infected[tt, , , ])
+        for (k in 1:num.init.exp) {
+          beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
+          S.N <- q$S[tt, j, , k] / N
+          new.exposures[tt, j, , k] <- S.N * (beta.mat %*% total.infected[tt, j, , k])
+        }
       }
-      new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
-      new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
+      warning("temp!")
+      # new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
+      # new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
     }
-    new.nonhosp.recovered <- gamma.r * q$IR[tt, , , ] 
+    new.nonhosp.recovered <- gamma.r * adrop(q$IR[tt, , , , drop = F], 1) 
     
-    d$S <- -new.exposures[tt, , , ]
+    d$S <- adrop(-new.exposures[tt, , , , drop = F], 1)
     d$E[has.E, , ] <- new.exposures[tt, has.E, , ] - sigma[has.E] * q$E[tt, has.E, , ]
     d$E[!has.E, , ] <- 0
     new.infections[has.E, , ] <- sigma[has.E] * q$E[tt, has.E, , ]
     new.infections[!has.E, , ] <- new.exposures[tt, !has.E, , ]
     
-    new.admits <- gamma.h * q$IH[tt, , , ]
-    new.dischanges <- psi * q$HP[tt, , , ]
+    new.admits <- gamma.h * adrop(q$IH[tt, , , , drop = F], 1)
+    new.dischanges <- c(psi) * adrop(q$HP[tt, , , , drop = F], 1) #TODO: check this
     
-    d$IR <- new.infections * (1 - p$prop.hospitalized) - new.nonhosp.recovered
-    d$IH <- new.infections * p$prop.hospitalized - new.admits
+    d$IR <- new.infections * (1 - c(prop.hospitalized)) - c(new.nonhosp.recovered) #TODO: check this
+    d$IH <- new.infections * c(prop.hospitalized) - c(new.admits) #TODO: check this
     
     d$HP <- new.admits - new.dischanges
     d$DC <- new.dischanges
     d$R <- new.nonhosp.recovered
     
-     total.d <- array(0, dim = dim(q$S)[-1]) #just for error checking, could remove
+    total.d <- array(0, dim = c(num.param.sets, num.pops, num.init.exp)) #just for error checking, could remove
     for (i in base.compartment.names) {
-      q[[i]][tt + 1, , , ] <- q[[i]][tt, , , ] + d[[i]] 
-      total.d <- total.d + d[[i]] #just for error checking, could remove
+      q[[i]][tt + 1, , , ] <- adrop(q[[i]][tt, , , , drop = F], 1) + d[[i]] 
+      total.d <- total.d + c(d[[i]]) #just for error checking, could remove
     }
-     
-     
+    
+    
     stopifnot(abs(total.d) < 0.001) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
     for (i in base.compartment.names) {
       stopifnot(q[[i]][tt + 1, ,, ] >= 0)
@@ -130,9 +143,8 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     
   }
   
-  #icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
-  #vent <-  as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
-  icu <- vent <- 0 #temp
+  icu <- c(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
+  vent <-  c(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
   list.return <- c(q, list(I = total.infected, 
                            icu = icu, 
                            vent = vent,
@@ -176,25 +188,25 @@ Seir <- function(initial.new.exposures, initial.conditions, start.date, end.date
 FitSEIR <- function(initial.new.exposures, total.population, start.date, observed.data, params) {
   num.param.sets <- nrow(params)
   num.init.exp <- ncol(initial.new.exposures)
-
+  
   seir <- SEIR(initial.new.exposures, initial.conditions = total.population, start.date, end.date = max(observed.data$date), params)
-
+  
   # TODO: add weights if we're fitting data other than hospital (eg. ICU, total cases)
   # weights <- lapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col)))
   weights <- lapply(observed.data[, -"date"], function (obs.data.col) 1)
   error <- CalcError(seir, observed.data, weights)
-
+  
   #a large fixed penalty caused numeric precision problems - this relative penalty works but means badness can only be compared within one param and set of initial.new.exposures (don't compare across params or within params across calls to FitSEIR)
   penalty <- 1.01 * rowMaxs(error$sum.error.sq) #num.param.sets x 1
-
+  
   #sum.error.sq and peak.before.first.observed: num.param.sets x num.init.exp
   badness <- error$sum.error.sq + error$peak.before.first.observed * penalty #num.param.sets x num.init.exp
   #TODO: figure out if ties.method = "last" always works - theoretically there should be no ties, but there can be because of precision - consider using Rmpfr package
   best.fit.index <- max.col(-badness, ties.method = "last")
   optimal.initial.new.exposures <- rowCollapse(error$optimal.initial.new.exposures.scale * initial.new.exposures, best.fit.index)
-
+  
   best <- list(index = best.fit.index, initial.new.exposures = initial.new.exposures[cbind(seq_len(num.param.sets), best.fit.index)], optimal.initial.new.exposures = optimal.initial.new.exposures, badness = badness[cbind(seq_len(num.param.sets), best.fit.index)])
-
+  
   hosp.at.last.obs.date <- matrix(seir$hosp[nrow(seir$hosp), , ], nrow = num.param.sets, ncol = num.init.exp) #fix if dropped to vector
   #TODO: rename allz
   allz <- list(initial.new.exposures=initial.new.exposures, badness=badness, hosp=hosp.at.last.obs.date, peak=error$peak.before.first.observed) #badness and peak are just for debugging
@@ -205,7 +217,7 @@ FitSEIR <- function(initial.new.exposures, total.population, start.date, observe
 # all.dates %in% dates.to.find with error checking
 GetDateIndex <- function(dates.to.find, all.dates) {
   is.sorted <- function(x) !is.unsorted(x, strictly = T)  #x is strictly sorted
-
+  
   stopifnot(dates.to.find %in% all.dates, is.sorted(dates.to.find), is.sorted(all.dates))
   return(all.dates %in% dates.to.find)
 }
@@ -217,27 +229,27 @@ CalcError <- function(simulated.data, observed.data, weights) {
   hosp <- simulated.data$hosp # num.obs.days x num.param.sets x num.init.exp
   num.param.sets <- dim(hosp)[2]
   num.init.exp <- dim(hosp)[3]
-
+  
   sim.date <- as.Date(rownames(hosp)) #rownames are same for any element
   obs.date <- observed.data$date
   sim.data.index <- GetDateIndex(obs.date, sim.date)
-
+  
   sum.error.sq <- sum.sim.sq <- sum.sum.obs <- matrix(0, nrow = num.param.sets, ncol = num.init.exp)
   for (data.name in setdiff(names(observed.data), "date")) {
     sim.data <- simulated.data[[data.name]][sim.data.index, , , drop = F] # num.obs.days x num.param.sets x num.init.exp
     obs.data <- observed.data[[data.name]] # num.obs.days x 1
-
+    
     weight <- weights[[data.name]]
     sum.error.sq <- sum.error.sq + colSums(weight^2 * (sim.data - obs.data)^2, na.rm = T)
     sum.sim.sq <- sum.sim.sq + colSums(weight^2 * sim.data^2, na.rm = T)
     sum.sum.obs <- sum.sum.obs + colSums(weight^2 * (sim.data * obs.data), na.rm = T)
   }
   optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get best guess for optimal initial.new.exposures
-
+  
   #assumes obs.date > min(sim.date)
   peak.before.first.observed <- hosp[sim.date == obs.date[1] - 1, , ] > hosp[sim.date == obs.date[1], , ]
   dim(peak.before.first.observed) <- c(num.param.sets, num.init.exp) #in case a dim was dropped
-
+  
   return(list(sum.error.sq = sum.error.sq, peak.before.first.observed = peak.before.first.observed, optimal.initial.new.exposures.scale = optimal.initial.new.exposures.scale))
 }
 
@@ -248,6 +260,7 @@ GetBeta <- function(dates, params, overall.gamma) {
   num.pops <- 2 #FIXME
   prior.beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
   prior.beta[, , 1, 1] <- matrix(params$r0.initial.11 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+  #affects new infections in 1 caused by 2
   prior.beta[, , 1, 2] <- matrix(params$r0.initial.12 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
   prior.beta[, , 2, 1] <- matrix(params$r0.initial.21 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
   prior.beta[, , 2, 2] <- matrix(params$r0.initial.22 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
@@ -275,13 +288,13 @@ GetBeta.orig <- function(dates, params, overall.gamma) {
     intervention.smooth.days <- params[[sub("multiplier", "smooth.days", int.mult.str)]]
     intervention.date <- params[[sub("multiplier", "date", int.mult.str)]]
     stopifnot(!is.null(intervention.multiplier), !is.null(intervention.smooth.days), !is.null(intervention.date))
-
+    
     multiplier.mat <- ExpandToDays(intervention.multiplier ^ (1 / intervention.smooth.days))
     index <- date.mat >= ExpandToDays(intervention.date) & date.mat <= ExpandToDays(intervention.date + intervention.smooth.days - 1)
     multiplier[index] <- multiplier[index] * multiplier.mat[index]
   }
   cum.multiplier <- colCumprods(multiplier) #num.days x num.param.sets
-
+  
   prior.beta <- matrix(params$r0.initial * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
   beta <- prior.beta * cum.multiplier
   return(beta)
@@ -298,19 +311,19 @@ SeqAround <- function(lo, hi, est, n) {
 GetNextX <- function(fit, first.iter, expander, num.init.exp) {
   #TODO: vectorize? (I think the time saved vs complexity is not worth it)
   #TODO: make a smarter guess of x.min/x.max - inner bucket should be estimate of the width of initial.exposures needed to establish convergence, outer buckets should try to establish an interior solution
-
+  
   #if expander is too small, optimal.initial.new.exposures won't fit in x.min to x.max during (for iter > 1); if expander is too big, won't detect convergence
   #if you see a lot of "expanded max" or "opt.outside.minmax" -> make expander bigger
   #if convergence is low on iter = 2 => try expander smaller or bigger or increase num.init.exp (this is harder to say because it can detect convergence between different indexes)
-
+  
   #num.init.exp is number to use on all iterations except the initial fit (which uses one initial exposure)
   stopifnot(num.init.exp %% 2 == 1) #num.init.exp must be odd
-
+  
   num.params <- length(fit$best$index) #this is params that have not yet converged
   x.set.next <- matrix(NA_real_, nrow = num.params, ncol = num.init.exp)
   hosp.span <- rep(NA, num.params)
   num.expand.min <- num.expand.max <- num.opt.outside.minmax <- 0
-
+  
   for (j in 1:num.params) {
     if (first.iter) {
       x.set.prev <- fit$best$optimal.initial.new.exposures[j]  #TODO: make this less confusing to read - it's a bit hacky
@@ -319,7 +332,7 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
       x.set.prev <- fit$allz$initial.new.exposures[j, ]
       hosp.prev <- fit$allz$hosp[j, ]
     }
-
+    
     index <- fit$best$index[j]
     if (index == 1) {
       if (!first.iter) num.expand.min <- num.expand.min + 1
@@ -337,10 +350,10 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
       max.x <- x.set.prev[index + 1]
       max.hosp <- hosp.prev[index + 1]
     }
-
+    
     hosp.span[j] <- max.hosp - min.hosp
     #converged if interior solution and diff between hosp [-1] and hosp [+1] < 0.5
-
+    
     if (fit$best$optimal.initial.new.exposures[j] > min.x & fit$best$optimal.initial.new.exposures[j] < max.x) {
       x.set.next[j, ] <- SeqAround(min.x, max.x, fit$best$optimal.initial.new.exposures[j], num.init.exp %/% 2)
     } else {
@@ -351,8 +364,8 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
   if (num.expand.min > 0) cat("expanded min ", num.expand.min, "/", num.params, "\n")
   if (num.expand.max > 0) cat("expanded max ", num.expand.max, "/", num.params, "\n")
   if (num.opt.outside.minmax > 0) cat("opt.outside.minmax ", num.opt.outside.minmax, "/", num.params, "\n")
-
-
+  
+  
   stopifnot(!anyNA(x.set.next))
   converged.out <- abs(hosp.span) < 0.5
   return(list(x.set.next = x.set.next[!converged.out, , drop = F], converged = converged.out, hosp.span = hosp.span)) #note: x.set.next is among non-converged, others are not
@@ -369,29 +382,29 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
     plot.dt <- plot.dt[x > xmin & x < xmax]
     print(ggplot(plot.dt, aes(x, badness)) + geom_point(aes(color=factor(type))) + geom_vline(xintercept = fit$best$optimal.initial.new.exposures) + ggtitle(paste0("iter = ", iter)) + coord_cartesian(ylim=plot.dt[, range(badness)]) + scale_y_log10())
   }
-
+  
   num.param.sets <- nrow(params)
   best.dt <- data.table(converged = rep(F, num.param.sets))
   fit <- FitSEIR(matrix(1e-30, nrow = num.param.sets, ncol = 1), total.population, start.date, observed.data, params)
   for (iter in 1:search.args$max.iter) {
     cat("---------- iter = ", iter, " -------------\n")
-
+    
     #get next x.set (num.not.converged x num.init.exp) -- fit only has num.not.converged.
     next.list <- GetNextX(fit, first.iter = iter == 1, expander = search.args$expander, num.init.exp = search.args$num.init.exp)
-
+    
     best.dt[converged == F, initial.new.exposures := fit$best$initial.new.exposures]
     best.dt[converged == F, objective := fit$best$badness]
     best.dt[converged == F, hosp.span := next.list$hosp.span]
     best.dt[converged == F, converged := next.list$converged]
-
-   if (F) {
-     print(fit$best)
-     print(next.list$x.set.next)
-     print(best.dt)
-   }
+    
+    if (F) {
+      print(fit$best)
+      print(next.list$x.set.next)
+      print(best.dt)
+    }
     print(best.dt[, .(.N, mean.initial.new.exposures = mean(initial.new.exposures), mean.hosp.span = mean(hosp.span), max.hosp.span = max(hosp.span), mean.objective = mean(objective)), keyby=converged])
     if (all(best.dt$converged)) break
-
+    
     fit <- FitSEIR(next.list$x.set.next, total.population, start.date, observed.data, params[!best.dt$converged])
   }
   if (!all(best.dt$converged)) {
@@ -401,7 +414,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
       stop("failed to converge")
     }
   }
-
+  
   #TODO: return seir at best.dt$index and use as initial condition for final projection in RunSim? (saves a little time but adds complexity)
   seir <- Seir(best.dt$initial.new.exposures, initial.conditions = total.population, start.date, end.date, params)
   return(seir)
@@ -411,10 +424,10 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
 RunSim.slow <- function(total.population, observed.data, start.date, end.date, params) {
   f <- function(x, p, check.peak) {
     seir <- SEIR(matrix(x, 1, 1), initial.conditions = total.population, start.date, end.date = max(observed.data$date), p)
-
+    
     weights <- lapply(observed.data[, -"date"], function (obs.data.col) 1)
     error <- CalcError(seir, observed.data, weights)
-
+    
     badness <- error$sum.error.sq
     if (check.peak) {
       return(c(badness=badness, peak = error$peak.before.first.observed))
@@ -425,7 +438,7 @@ RunSim.slow <- function(total.population, observed.data, start.date, end.date, p
   }
   best.fit <- rep(NA_real_, nrow(params))
   for (j in 1:nrow(params)) {
-
+    
     #find upper bound
     x <- c(10^(-30:0), observed.data[1, hosp], length.out = 100)
     fx <- sapply(x, f, p = params[j], check.peak = T)
@@ -434,17 +447,17 @@ RunSim.slow <- function(total.population, observed.data, start.date, end.date, p
     }
     upper <- x[which.min(fx["badness", ]) + 1]
     stopifnot(is.finite(upper))
-
+    
     opt <- optimize(f, interval = c(0, upper), p = params[j], check.peak = F,  tol=1e-30)
     best.fit[j] <- opt$minimum
     if (opt$objective > 10) {
       print(opt)
     }
   }
-
-
+  
+  
   seir <- Seir(best.fit, initial.conditions = total.population, start.date, end.date, params)
-
+  
 }
 
 RunExample <- function() {
@@ -453,10 +466,10 @@ RunExample <- function() {
   } else {
     set.seed(2267)
   }
-
+  
   start.date <- as.Date("2020/1/23")
   hosp.date <- as.Date("2020/3/25")
-
+  
   num.params <- 20
   latent.period <- RandInt(num.params, 0, 6)
   params <- data.table(
@@ -477,33 +490,33 @@ RunExample <- function() {
     intervention2_multiplier = sample(c(.45, .3, .4, .8, 1), size = num.params, replace = T),
     r0.initial = runif(num.params, 2.5, 4.5)
   )
-
+  
   observed.data <- data.table(date = hosp.date + 0:5, hosp = c(20, 22, 26, 27, 30, 35))
   end.date <- max(observed.data$date)
-
+  
   #RunSim example
   if (T) {
     sim <- RunSim.new(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
   }
-
+  
   #Seir examples
   if (F) {
     #single params, single initial.new.exposures
     print(Seir(initial.new.exposures = 0.1, initial.conditions = 880000, start.date, end.date, params[1]))
     #multiple params, single initial.new.exposures
     print(Seir(initial.new.exposures = 5, initial.conditions = 880000, start.date, end.date, params[1]))
-
+    
     #multiple params, multiple initial.new.exposures
     print(Seir(initial.new.exposures = runif(nrow(params)), initial.conditions = 880000, start.date, end.date, params))
   }
 }
 
 FindSearchBug <- function(use.slow) {
-
-
+  
+  
   start.date <- as.Date("2020/1/23")
   hosp.date <- as.Date("2020/3/25")
-
+  
   num.params <- 20
   latent.period <- RandInt(num.params, 0, 6)
   params <- data.table(
@@ -524,21 +537,21 @@ FindSearchBug <- function(use.slow) {
     intervention1_multiplier = sample(c(.45, .3, .4, .8, 1), size = num.params, replace = T),
     r0.initial = runif(num.params, 2.5, 4.5)
   )
-
+  
   # params <- params[c(12)]
-
+  
   # observed.data <- data.table(date = hosp.date, hosp = 20)
   observed.data <- data.table(date = hosp.date + 0:5, hosp = c(20, 22, 26, 27, 30, 35))
   end.date <- max(observed.data$date)
-
+  
   if (use.slow) {
     sim <- RunSim.slow(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
   } else {
     sim <- RunSim.new(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
   }
-
+  
   cat("\n\n")
-
+  
   zz <- sim$hosp[as.character(observed.data$date), ]
   if (is.vector(zz) == 1) {
     print(summary(zz))
