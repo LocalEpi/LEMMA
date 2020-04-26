@@ -4,28 +4,80 @@
 
 #TODO: RunSim needs some error checking that params (or maybe other data.tables) have the right names - I had a bug at one point because I was passing intervention1_multiplier instead of intervention1.multiplier and it didn't throw an error, it just ignored intervention1.multiplier
 
+#adrop as written doesn't work for mpfr
+adrop <- function (x, drop = TRUE, named.vector = TRUE, one.d.array = FALSE, 
+                   ...) 
+{
+  if (is.null(dim(x))) 
+    stop("require an object with a dim attribute")
+  if (length(list(...))) 
+    if (length(names(list(...)))) 
+      stop("have unrecognized ... arguments for adrop.default: ", 
+           paste(names(list(...)), collapse = ", "))
+  else stop("have unrecognized unnamed ... arguments for adrop.default")
+  x.dim <- dim(x)
+  if (is.logical(drop)) {
+    if (length(drop) != length(x.dim)) 
+      stop("length of drop is not equal length of dim(x)")
+    drop <- which(drop)
+  }
+  else if (is.character(drop)) {
+    if (any(is.na(i <- match(drop, names(x.dim))))) 
+      stop("dimension names ", paste("'", drop[is.na(i)], 
+                                     "'", sep = "", collapse = " "), " not found in x")
+    drop <- i
+  }
+  else if (is.null(drop)) {
+    drop <- numeric(0)
+  }
+  if (!is.numeric(drop) || any(is.na(drop)) || any(drop < 1 | 
+                                                   drop > length(x.dim))) 
+    stop("drop must contain dimension numbers")
+  if (!all(x.dim[drop] == 1)) 
+    stop("dimensions to drop (", paste(drop, collapse = ", "), 
+         ") do not have length 1")
+  x.dimnames <- dimnames(x)
+  #dimnames(x) <- NULL
+  dimnames(x) <- vector("list", length(dimnames(x)))
+  dim(x) <- NULL
+  keep <- setdiff(seq(len = length(x.dim)), drop)
+  if (length(x.dim[keep]) > 1 || (length(x.dim[keep]) == 1 && 
+                                  one.d.array)) {
+    dim(x) <- x.dim[keep]
+    if (!is.null(x.dimnames)) 
+      dimnames(x) <- x.dimnames[keep]
+  }
+  else if (length(x.dim[keep]) == 1 && named.vector) {
+    names(x) <- x.dimnames[keep][[1]]
+  }
+  else {
+  }
+  x
+}
+
 sweep1 <- function(x, MARGIN, STATS, FUN) {
   sweep(X, MARGIN, as.array(STATS), FUN)
 }
 #initial.new.exposures (num.param.sets x num.init.exp) matrix or NULL - sets new.exposures at start.date
-#initial.conditions data.table date S E IR IH HP DC R or single number S0, makes all others 0
+#population num.pops x 1 - assumes this is S, all others 0
 #start.date scalar Date
 #end.date scalar Date
 #params data.table (num.param.sets x num.params)
-SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
+SEIR <- function(initial.new.exposures, population, start.date, end.date, params) {
   stopifnot(is.null(params$use.hosp.rate)) #use.hosp.rate removed, assumed TRUE
-  # if (is.numeric(initial.conditions)) {
-  #   initial.conditions <- data.table(date = start.date, S = initial.conditions, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
-  # }
-  
+
   base.compartment.names <- c("S", "E", "IH", "IR", "R", "HP", "DC")
-  
-  
-  stopifnot(length(initial.conditions) == 2)
-  num.pops <- 2
-  N <- initial.conditions
+
+  num.pops <- length(population)
+  stopifnot(num.pops == 2)
   initial.conditions <- sapply(base.compartment.names, function (z) rep(0, num.pops), simplify = F) # q: the base compartments
-  initial.conditions$S <- N #length = num.pops
+  initial.conditions$S <- population #length = num.pops
+  
+  N <- sum(population)
+  
+  #support mpfr
+  zero <- 0 * N
+  na <- NA_real_ * N
   
   num.param.sets <- nrow(params) 
   if (is.null(initial.new.exposures)) {
@@ -69,7 +121,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   # DC = discharged (or died) from hospital
   # R = recovered (did not go to hospital)
   
-  empty.compartment <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.init.exp), dimnames = list(as.character(dates), NULL, NULL, NULL))
+  empty.compartment <- array(na, dim = c(num.days, num.param.sets, num.pops, num.init.exp), dimnames = list(as.character(dates), NULL, NULL, NULL))
   q <- sapply(base.compartment.names, function (z) empty.compartment, simplify = F) # q: the base compartments
   d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments 
   
@@ -87,7 +139,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   }
   #N <- sum(sapply(base.compartment.names, function (z) initial.conditions[[z]][1])) #TODO: clean this up  #FIXME: should be num.pop x 1
   
-  d$E <- new.infections <- new.admits <- new.dischanges <- array(NA_real_, dim = c(num.param.sets, num.pops, num.init.exp))
+  d$E <- new.infections <- new.admits <- new.dischanges <- array(na, dim = c(num.param.sets, num.pops, num.init.exp))
   # run SEIR model
   for (tt in 1:num.days) { #most of this loop is 1:(num.days - 1), but we need total.infected also on num.days
     total.infected[tt, , , ] <- q$IR[tt, , , ] + q$IH[tt, , , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , , ]
@@ -95,11 +147,18 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     if (tt == num.days) break
     
     if (tt == 1 && !is.null(initial.new.exposures)) {
-      new.exposures[tt, , , ] <- 0
-      new.exposures[tt, , 1, ] <- initial.new.exposures #initial.new.exposures is only in pop1
-      new.exposures[tt, , 2, ] <- initial.new.exposures; warning("temp!")
+      #new.exposures[tt, , , ] <- 0
+      #new.exposures[tt, , 1, ] <- initial.new.exposures #initial.new.exposures is only in pop1
+      # new.exposures[tt, , 2, ] <- initial.new.exposures; warning("temp!")
+      #FIXME: super slow, just for dev
+      for (j in 1:num.param.sets) {
+        for (k in 1:num.init.exp) {
+          new.exposures[tt, j, , k] <- initial.new.exposures[j, k] * (population / N)
+        }
+      }
     } else {
       #FIXME: super slow, just for dev
+      # browser()
       for (j in 1:num.param.sets) {
         for (k in 1:num.init.exp) {
           beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
@@ -107,9 +166,14 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
           new.exposures[tt, j, , k] <- S.N * (beta.mat %*% total.infected[tt, j, , k])
         }
       }
-      warning("temp!")
-      # new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
-      # new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
+      
+      if (F) {
+        # warning("temp - truncation disabled")
+      } else {
+        new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
+        new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
+      }
+      
     }
     new.nonhosp.recovered <- gamma.r * adrop(q$IR[tt, , , , drop = F], 1) 
     
@@ -129,7 +193,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     d$DC <- new.dischanges
     d$R <- new.nonhosp.recovered
     
-    total.d <- array(0, dim = c(num.param.sets, num.pops, num.init.exp)) #just for error checking, could remove
+    total.d <- array(zero, dim = c(num.param.sets, num.pops, num.init.exp)) #just for error checking, could remove
     for (i in base.compartment.names) {
       q[[i]][tt + 1, , , ] <- adrop(q[[i]][tt, , , , drop = F], 1) + d[[i]] 
       total.d <- total.d + c(d[[i]]) #just for error checking, could remove
@@ -143,6 +207,9 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     
   }
   
+  q <- lapply(q, asNumeric) #if using mpfr
+  total.infected <- asNumeric(total.infected)
+  
   icu <- c(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
   vent <-  c(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
   list.return <- c(q, list(I = total.infected, 
@@ -150,10 +217,11 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
                            vent = vent,
                            R.total = q$R + q$DC, #R is recovered (did not go to hospital)
                            active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious 
-                           total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC)) #everyone ever exposed (implicitly includes dead); same as N - S
+                           total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC)) #everyone ever exposed (implicitly includes dead) (everyone except S)
   names(list.return)[names(list.return) == "R"] <- "R.nonhosp"
-  names(list.return)[names(list.return) == "HP"] <- "hosp"
+  list.return$hosp <- adrop(list.return$HP[, , 1, , drop = F], 3)
   
+  list.return$new.exposures <- asNumeric(new.exposures)
   return(list.return) #list of num.days x num.param x num.init.exp  S E ...
 }
 
