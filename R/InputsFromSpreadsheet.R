@@ -87,13 +87,14 @@ ReadInputs <- function(path) {
 #' Run Credibility Interval based on Excel inputs
 #'
 #' @param input.file A .xlsx file
-#' @return NULL
+#' @return list with all outputs (invisible)
 #' @export
 CredibilityIntervalFromExcel <- function(input.file) {
   inputs <- ReadInputs(input.file)
 
-  CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
+  invisible(cred.int)
 }

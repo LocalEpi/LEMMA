@@ -149,10 +149,10 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
   if (sum(in.bounds) <= 1) {
     cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
-    return(NULL)
+  } else {
+    GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, observed.data)
   }
-  GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, observed.data)
-  return(NULL)
+  return(list(output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
 
