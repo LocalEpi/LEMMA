@@ -38,14 +38,23 @@ RunSim1 <- function(params1, model.inputs, observed.data, internal.args, date.ra
   }
   if (nrow(params1) == 1) {
     sim <- sim[date %in% date.range]
+    sim$HP2 <- sim$HP.V2 
   } else {
-    sim <- lapply(sim, function (z) z[as.character(date.range), ])
+    sim <- lapply(sim, function (z) {
+      if (length(dim(z)) == 3) {
+        z[as.character(date.range), , ]
+      } else {
+        z[as.character(date.range), ] #hack for hosp
+      }
+    })
+    sim$HP2 <- sim$HP[, , 2] 
   }
+  
   return(sim)
 }
 
 GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str) {
-  output.list <- list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
+  output.list <- list(hosp=NULL, HP2=NULL) #list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
   output.names <- names(output.list)
 
   probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
@@ -89,7 +98,8 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, date.range, filestr, obser
     cex.names <- 1
 
     if (param.name == "model") {
-      cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
+      # cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
+      cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = F)])
       sub <- "(hasE  infect in hosp   rate to hosp)"
       cex.names <- 0.5
     } else if (param.name == "currentRe") {
@@ -106,7 +116,7 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, date.range, filestr, obser
 }
 
 #` Main function to calculate credibility interval
-CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.guess.params, observed.data, internal.args, extras) {
+CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, HP2.bounds, best.guess.params, observed.data, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
   sapply(grDevices::dev.list(), grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
   sapply(seq_len(sink.number()), sink, file=NULL) #same for sink
@@ -115,20 +125,21 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   rm(extras) #extra is only used to save extra information to output file
 
   date.range <- seq(observed.data[1, date], model.inputs$end.date, by = "day")
-  bounds <- merge(data.table(date = date.range), hosp.bounds, all.x = T)
+  bounds <- rbind(merge(data.table(date = date.range), hosp.bounds, all.x = T),
+                  merge(data.table(date = date.range), HP2.bounds, all.x = T))
 
   best.guess.sim <- RunSim1(params1 = best.guess.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
 
-  best.guess.in.bounds <- InBounds(best.guess.sim$hosp, bounds, required.in.bounds = internal.args$required.in.bounds)
+  best.guess.in.bounds <- InBounds(c(best.guess.sim$hosp, best.guess.sim$HP2), bounds, required.in.bounds = internal.args$required.in.bounds)
   if (!best.guess.in.bounds) {
     cat("best.guess$hosp is not compatible with bounds\n")
-    dt.print <- cbind(best.guess.sim[, .(best.guess.hosp = round(hosp, 1))], bounds)
+    dt.print <- cbind(best.guess.sim[, .(best.guess.hosp = c(round(hosp, 1), round(HP2, 1)))], bounds)
     dt.print[, OK := best.guess.hosp >= lower & best.guess.hosp <= upper]
     print(dt.print[!is.na(lower) & !is.na(upper)])
   }
 
   sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-  in.bounds <- InBounds(sim$hosp, bounds, required.in.bounds = internal.args$required.in.bounds)
+  in.bounds <- InBounds(rbind(sim$hosp, sim$HP2), bounds, required.in.bounds = internal.args$required.in.bounds)
 
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
 
