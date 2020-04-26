@@ -44,11 +44,17 @@ GetParams <- function(param.dist, niter, get.best.guess) {
   params <- as.data.table(params)
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
+  
+  params[, cross.term.mult := (1 - within.group.mixing) / within.group.mixing]
+  params[, r0.initial.12 := cross.term.mult * r0.initial.22]
+  params[, r0.initial.21 := cross.term.mult * r0.initial.11]
+  params[, intervention1.multiplier.12 := intervention1.multiplier.22]
+  params[, intervention1.multiplier.21 := intervention1.multiplier.11]
   return(params)
 }
 
 ReadInputs <- function(path) {
-  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H22"), #don't read the whole sheet - there are hidden data validation lists below
+  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H20"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
@@ -58,6 +64,8 @@ ReadInputs <- function(path) {
 
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
   model.inputs <- TableToList(sheets$`Model Inputs`)
+  model.inputs$total.population <- c(875000, 8000)
+  
   hosp.data <- sheets$`Hospitilization Data`
   internal <- TableToList(sheets$Internal)
 
@@ -71,6 +79,13 @@ ReadInputs <- function(path) {
 
   hosp.bounds <- hosp.data[, .(date = Date, lower = internal$lower.bound.multiplier * LowerBound, upper = internal$upper.bound.multiplier * UpperBound)]
 
+  # HP2 <- copy(inputs$hosp.bounds)
+  # HP2[, obs := round(lower / 20)]
+  # HP2[, lower := obs * 0.5]
+  # HP2[, upper := (obs + 2) * 2]
+  # HP2$obs <- NULL
+  # 
+  
   set.seed(internal$random.seed)
   params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
   best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T)
