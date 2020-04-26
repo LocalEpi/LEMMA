@@ -253,7 +253,7 @@ CalcError <- function(simulated.data, observed.data, weights) {
   return(list(sum.error.sq = sum.error.sq, peak.before.first.observed = peak.before.first.observed, optimal.initial.new.exposures.scale = optimal.initial.new.exposures.scale))
 }
 
-GetBeta <- function(dates, params, overall.gamma) {
+GetBeta.noint <- function(dates, params, overall.gamma) {
   #num.days x num.param.sets x num.pops (in: S) x num.pops (by: I)
   num.days <- length(dates)
   num.param.sets <- nrow(params)
@@ -271,7 +271,50 @@ GetBeta <- function(dates, params, overall.gamma) {
   return(beta)
 }
 
-#sweep might help here
+#for each parameter set, we take num.popsxnum.pops matrix of (list of initialR0, mult, date, smooth) 
+#=> output beta: num.days x num.param.sets x num.pops x num.pops
+
+GetBeta <- function(dates, params, overall.gamma) {
+  ExpandToDays <- function(param) {
+    matrix(param, nrow = num.days, ncol = num.param.sets, byrow = T)
+  }
+  GetSingleBeta <- function(pop.index1, pop.index2) {
+    num.interventions <- length(grep("^intervention[[:digit:]]+\\.date$", names(params)))
+    multiplier <- matrix(1, nrow = num.days, ncol = num.param.sets)
+    for (intervention.num in seq_len(num.interventions)) {
+      int.str <- paste0("intervention", intervention.num, ".")
+      intervention.date <- params[[paste0(int.str, "date")]]
+      intervention.smooth.days <- params[[paste0(int.str, "smooth.days")]]
+      intervention.multiplier <- params[[paste0(int.str, "multiplier.", pop.index1, pop.index2)]]
+      stopifnot(!is.null(intervention.smooth.days), !is.null(intervention.date), !is.null(intervention.multiplier))
+      
+      multiplier.mat <- ExpandToDays(intervention.multiplier ^ (1 / intervention.smooth.days))
+      index <- date.mat >= ExpandToDays(intervention.date) & date.mat <= ExpandToDays(intervention.date + intervention.smooth.days - 1)
+      multiplier[index] <- multiplier[index] * multiplier.mat[index]
+    }
+    cum.multiplier <- colCumprods(multiplier) #num.days x num.param.sets
+    r0.initial <- params[[paste0("r0.initial.", pop.index1, pop.index2)]]
+    stopifnot(!is.null(r0.initial))
+    prior.beta <- matrix(r0.initial * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
+    return(prior.beta * cum.multiplier)
+  }
+  
+  #scale beta by int_mult
+  num.days <- length(dates)
+  num.param.sets <- nrow(params)
+  date.mat <- matrix(dates, nrow = num.days, ncol = num.param.sets)
+  
+  num.pops <- 2
+  beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
+  for (pop.index1 in 1:num.pops) {
+    for (pop.index2 in 1:num.pops) {
+      beta[, , pop.index1, pop.index2] <- GetSingleBeta(pop.index1, pop.index2)
+    }
+  }
+  return(beta)
+}
+
+
 GetBeta.orig <- function(dates, params, overall.gamma) {
   #scale beta by int_mult
   num.days <- length(dates)
