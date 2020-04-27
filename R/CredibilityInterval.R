@@ -77,26 +77,27 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
   return(output.list)
 }
 
-GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, observed.data) {
+GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.multiplier) {
   posterior.title <- GetPlotTitle(posterior.niter = sum(in.bounds))
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out)
-  #TODO: clean up this plotting code - I think it should use melt to make a long data frame so we don't get the error about missing values
-  dt.plot <- hosp[, .(date, five=`5%`, fifteen=`15%`, twentyfive=`25%`,
-                                  median = `50%`, bestguess,
-                                  seventyfive=`75%`, eightyfive=`85%`, ninetyfive=`95%`)]
-
-  dt.plot <- merge(dt.plot, observed.data, all.x = T)
+  dt.plot <- merge(hosp, bounds.without.multiplier, all.x = T, by = "date")
   gg <- ggplot(dt.plot, aes(x=date)) +
+    xlab("Date") + 
     ylab("Hospitalizations") +
-    geom_ribbon(aes(ymin=twentyfive, ymax=seventyfive), alpha = 0.4) +
-    geom_ribbon(aes(ymin=fifteen, ymax=eightyfive), alpha = 0.3) +
-    geom_ribbon(aes(ymin=five, ymax=ninetyfive), alpha = 0.2) +
-    geom_line(aes(y = bestguess), color = "yellow") +
-    geom_line(aes(y = median), color = "red") +
-    geom_point(aes(x=date, y=hosp)) +
-    ggtitle(posterior.title)
-  suppressWarnings(print(gg)) #warnings for NA in observed data
+    geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%")) +
+    geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%")) +
+    geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%")) +
+    geom_line(aes(y = `50%`, color = "Median")) +
+    geom_line(aes(y = bestguess, color = "Best Guess")) +
+    geom_point(aes(y=upper, shape = "Upper Bound"), fill = "black", na.rm = T) +
+    
+    geom_point(aes(y=lower, shape = "Lower Bound"), fill = "black", na.rm = T) +
+    labs(title = posterior.title, caption = 'Upper Bound and Lower Bound are from "Hospitalization Data" sheet in Excel input') +
+    scale_color_manual("Projections", values = c("red", "yellow"), breaks = c("Median", "Best Guess")) +
+    scale_alpha_manual("Range", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
+    scale_shape_manual("Data", values = c("triangle filled", "triangle down filled"), breaks = c( "Upper Bound", "Lower Bound")) 
+  print(gg)
 
   for (param.name in c("model", "currentRe", names(all.params))) {
     sub <- NULL
@@ -129,20 +130,25 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   rm(extras) #extra is only used to save extra information to output file
 
   date.range <- seq(observed.data[1, date], model.inputs$end.date, by = "day")
-  bounds <- merge(data.table(date = date.range), hosp.bounds, all.x = T)
-
+  
+  bounds.without.multiplier <- merge(data.table(date = date.range), hosp.bounds, all.x = T)
+  bounds.with.multiplier <- copy(bounds.without.multiplier)
+  bounds.with.multiplier[, lower := internal.args$lower.bound.multiplier * lower]
+  bounds.with.multiplier[, upper := internal.args$upper.bound.multiplier * upper]
+  
+  
   best.guess.sim <- RunSim1(params1 = best.guess.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
 
-  best.guess.in.bounds <- InBounds(best.guess.sim$hosp, bounds, required.in.bounds = internal.args$required.in.bounds)
+  best.guess.in.bounds <- InBounds(best.guess.sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
   if (!best.guess.in.bounds) {
     cat("best.guess$hosp is not compatible with bounds\n")
-    dt.print <- cbind(best.guess.sim[, .(best.guess.hosp = round(hosp, 1))], bounds)
+    dt.print <- cbind(best.guess.sim[, .(best.guess.hosp = round(hosp, 1))], bounds.with.multiplier)
     dt.print[, OK := best.guess.hosp >= lower & best.guess.hosp <= upper]
     print(dt.print[!is.na(lower) & !is.na(upper)])
   }
 
   sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-  in.bounds <- InBounds(sim$hosp, bounds, required.in.bounds = internal.args$required.in.bounds)
+  in.bounds <- InBounds(sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
 
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
 
@@ -150,7 +156,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   if (sum(in.bounds) <= 1) {
     cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
   } else {
-    GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, observed.data)
+    GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier)
   }
   return(list(output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
 }

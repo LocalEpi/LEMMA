@@ -69,7 +69,7 @@ ReadInputs <- function(path) {
     observed.data <- observed.data[date <= internal$max.obs.date.to.fit]
   }
 
-  hosp.bounds <- hosp.data[, .(date = Date, lower = internal$lower.bound.multiplier * LowerBound, upper = internal$upper.bound.multiplier * UpperBound)]
+  hosp.bounds <- hosp.data[, .(date = Date, lower = LowerBound, upper = UpperBound)]
 
   set.seed(internal$random.seed)
   params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
