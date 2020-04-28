@@ -93,7 +93,7 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, date.range, filestr, obser
     geom_point(aes(x=date, y=hosp))
   suppressWarnings(print(gg)) #warnings for NA in observed data
 
-  for (param.name in c("model", "currentRe", names(all.params))) {
+  for (param.name in names(all.params)) {
     sub <- NULL
     cex.names <- 1
 

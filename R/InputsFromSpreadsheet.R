@@ -28,7 +28,7 @@ Unlist <- function(zz) {
   do.call(c, zz)
 }
 
-GetParams <- function(param.dist, niter, get.best.guess) {
+GetParams <- function(param.dist, niter, get.best.guess, N) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
 
@@ -45,9 +45,23 @@ GetParams <- function(param.dist, niter, get.best.guess) {
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
   
-  params[, cross.term.mult := (1 - within.group.mixing) / within.group.mixing]
-  params[, r0.initial.12 := cross.term.mult * r0.initial.22]
-  params[, r0.initial.21 := cross.term.mult * r0.initial.11]
+  params[, k1 := within.group.mixing]
+  params[, k2 := within.group.mixing] #assumed same for now
+
+  params[, r0.initial.11 := NA_real_]
+  params[, r0.initial.12 := NA_real_]
+  params[, r0.initial.21 := NA_real_]
+  params[, r0.initial.22 := NA_real_]
+  for (i in 1:nrow(params)) {
+    p <- params[i]
+    r.mat <- GetBetaMatrix(c(p$r0.initial.1, p$r0.initial.2), N, c(p$k1, p$k2))
+    params[i, r0.initial.11 := r.mat[1, 1]] 
+    params[i, r0.initial.12 := r.mat[1, 2]] 
+    params[i, r0.initial.21 := r.mat[2, 1]] 
+    params[i, r0.initial.22 := r.mat[2, 2]] 
+  }
+  #this is ok if k doesn't change; if there's a k multiplier, need to input intervention1.multiplier.1, intervention1.multiplier.2; intervention1.multiplier[i,j] is a function of k.i mult and beta.i mult
+  #TODO: get rid of r0.initial.ij, intervention1.multiplier.ij => inputs to GetBeta should be r0.initial.1, r0.initial.2, k.1, k.2 + multipliers of each, but maybe figure out vectors within param dt first
   params[, intervention1.multiplier.12 := intervention1.multiplier.22]
   params[, intervention1.multiplier.21 := intervention1.multiplier.11]
   return(params)
@@ -87,9 +101,8 @@ ReadInputs <- function(path) {
   # 
   
   set.seed(internal$random.seed)
-  params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
-  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T)
-
+  params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F, N = model.inputs$total.population)
+  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T, N = model.inputs$total.population)
   if (is.na(internal$output.filestr)) {
     internal$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }

@@ -4,60 +4,12 @@
 
 #TODO: RunSim needs some error checking that params (or maybe other data.tables) have the right names - I had a bug at one point because I was passing intervention1_multiplier instead of intervention1.multiplier and it didn't throw an error, it just ignored intervention1.multiplier
 
-#adrop as written doesn't work for mpfr
-adrop <- function (x, drop = TRUE, named.vector = TRUE, one.d.array = FALSE, 
-                   ...) 
-{
-  if (is.null(dim(x))) 
-    stop("require an object with a dim attribute")
-  if (length(list(...))) 
-    if (length(names(list(...)))) 
-      stop("have unrecognized ... arguments for adrop.default: ", 
-           paste(names(list(...)), collapse = ", "))
-  else stop("have unrecognized unnamed ... arguments for adrop.default")
-  x.dim <- dim(x)
-  if (is.logical(drop)) {
-    if (length(drop) != length(x.dim)) 
-      stop("length of drop is not equal length of dim(x)")
-    drop <- which(drop)
-  }
-  else if (is.character(drop)) {
-    if (any(is.na(i <- match(drop, names(x.dim))))) 
-      stop("dimension names ", paste("'", drop[is.na(i)], 
-                                     "'", sep = "", collapse = " "), " not found in x")
-    drop <- i
-  }
-  else if (is.null(drop)) {
-    drop <- numeric(0)
-  }
-  if (!is.numeric(drop) || any(is.na(drop)) || any(drop < 1 | 
-                                                   drop > length(x.dim))) 
-    stop("drop must contain dimension numbers")
-  if (!all(x.dim[drop] == 1)) 
-    stop("dimensions to drop (", paste(drop, collapse = ", "), 
-         ") do not have length 1")
-  x.dimnames <- dimnames(x)
-  #dimnames(x) <- NULL
-  dimnames(x) <- vector("list", length(dimnames(x)))
-  dim(x) <- NULL
-  keep <- setdiff(seq(len = length(x.dim)), drop)
-  if (length(x.dim[keep]) > 1 || (length(x.dim[keep]) == 1 && 
-                                  one.d.array)) {
-    dim(x) <- x.dim[keep]
-    if (!is.null(x.dimnames)) 
-      dimnames(x) <- x.dimnames[keep]
-  }
-  else if (length(x.dim[keep]) == 1 && named.vector) {
-    names(x) <- x.dimnames[keep][[1]]
-  }
-  else {
-  }
-  x
+GetBetaMatrix <- function(beta, N, k) {
+  stopifnot(length(beta) == 2, length(N) == 2, length(k) == 2)
+  matrix(c(k[1], 1 - k[1], 1 - k[2], k[2]), nrow = 2, ncol = 2) * 
+    matrix(sum(N) / N * beta, nrow = 2, ncol = 2, byrow = T)
 }
 
-sweep1 <- function(x, MARGIN, STATS, FUN) {
-  sweep(X, MARGIN, as.array(STATS), FUN)
-}
 #initial.new.exposures (num.param.sets x num.init.exp) matrix or NULL - sets new.exposures at start.date
 #population num.pops x 1 - assumes this is S, all others 0
 #start.date scalar Date
@@ -207,8 +159,12 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
     
   }
   
-  q <- lapply(q, asNumeric) #if using mpfr
-  total.infected <- asNumeric(total.infected)
+  if (class(new.exposures) == "mpfrArray") {
+    q <- lapply(q, asNumeric) #if using mpfr
+    total.infected <- asNumeric(total.infected)
+    new.exposures <- asNumeric(new.exposures)
+  }
+  
   
   icu <- c(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP  
   vent <-  c(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
@@ -221,7 +177,7 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
   names(list.return)[names(list.return) == "R"] <- "R.nonhosp"
   list.return$hosp <- adrop(list.return$HP[, , 1, , drop = F], 3)
   
-  list.return$new.exposures <- asNumeric(new.exposures)
+  list.return$new.exposures <- new.exposures
   return(list.return) #list of num.days x num.param x num.init.exp  S E ...
 }
 
@@ -257,7 +213,7 @@ FitSEIR <- function(initial.new.exposures, total.population, start.date, observe
   num.param.sets <- nrow(params)
   num.init.exp <- ncol(initial.new.exposures)
   
-  seir <- SEIR(initial.new.exposures, initial.conditions = total.population, start.date, end.date = max(observed.data$date), params)
+  seir <- SEIR(initial.new.exposures, population = total.population, start.date, end.date = max(observed.data$date), params)
   
   # TODO: add weights if we're fitting data other than hospital (eg. ICU, total cases)
   # weights <- lapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col)))
@@ -672,4 +628,59 @@ FindSearchBug <- function(use.slow) {
   sq.err <- colSums((zz - observed.data$hosp)^2)
   print(summary(sq.err))
   cat()
+}
+
+#adrop as written doesn't work for mpfr
+adrop <- function (x, drop = TRUE, named.vector = TRUE, one.d.array = FALSE, 
+                   ...) 
+{
+  if (is.null(dim(x))) 
+    stop("require an object with a dim attribute")
+  if (length(list(...))) 
+    if (length(names(list(...)))) 
+      stop("have unrecognized ... arguments for adrop.default: ", 
+           paste(names(list(...)), collapse = ", "))
+  else stop("have unrecognized unnamed ... arguments for adrop.default")
+  x.dim <- dim(x)
+  if (is.logical(drop)) {
+    if (length(drop) != length(x.dim)) 
+      stop("length of drop is not equal length of dim(x)")
+    drop <- which(drop)
+  }
+  else if (is.character(drop)) {
+    if (any(is.na(i <- match(drop, names(x.dim))))) 
+      stop("dimension names ", paste("'", drop[is.na(i)], 
+                                     "'", sep = "", collapse = " "), " not found in x")
+    drop <- i
+  }
+  else if (is.null(drop)) {
+    drop <- numeric(0)
+  }
+  if (!is.numeric(drop) || any(is.na(drop)) || any(drop < 1 | 
+                                                   drop > length(x.dim))) 
+    stop("drop must contain dimension numbers")
+  if (!all(x.dim[drop] == 1)) 
+    stop("dimensions to drop (", paste(drop, collapse = ", "), 
+         ") do not have length 1")
+  x.dimnames <- dimnames(x)
+  #dimnames(x) <- NULL
+  dimnames(x) <- vector("list", length(dimnames(x)))
+  dim(x) <- NULL
+  keep <- setdiff(seq(len = length(x.dim)), drop)
+  if (length(x.dim[keep]) > 1 || (length(x.dim[keep]) == 1 && 
+                                  one.d.array)) {
+    dim(x) <- x.dim[keep]
+    if (!is.null(x.dimnames)) 
+      dimnames(x) <- x.dimnames[keep]
+  }
+  else if (length(x.dim[keep]) == 1 && named.vector) {
+    names(x) <- x.dimnames[keep][[1]]
+  }
+  else {
+  }
+  x
+}
+
+sweep1 <- function(x, MARGIN, STATS, FUN) {
+  sweep(X, MARGIN, as.array(STATS), FUN)
 }
