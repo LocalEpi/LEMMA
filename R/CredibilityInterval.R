@@ -4,15 +4,10 @@
 #' @importFrom stats median optimize runif
 #' @importFrom graphics barplot
 
-#TODO: legend on ggplot in pdf
 #TODO: show observed even if only fitting initial to some
-#TODO: add excel input for best estimate of hospital data, remove lower.bound.multiplier, upper.bound.multiplier?
 
 GetModelName <- function(dt) {
-  dt[, add.name := ""]
-  dt[hasE & !hospInf & hospRate, add.name := "(LEMMA)"]
-  dt[!hasE & hospInf & !hospRate, add.name := "(COVIDmodel-ish)"]
-  model.name <- dt[, paste0(as.integer(hasE), as.integer(hospInf), as.integer(hospRate), add.name)]
+  model.name <- dt[, paste0(as.integer(hasE), as.integer(hospInf), as.integer(hospRate))]
   return(model.name)
 }
 
@@ -61,7 +56,7 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
   
   probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
   for (j in output.names) {
-    sim.accepted <- sim[[j]][, in.bounds]
+    sim.accepted <- sim[[j]][, in.bounds, drop = F]
     quant1 <- rowQuantiles(sim.accepted, probs = c(0, 0.05, 0.5))
     quant2 <- rowQuantiles(sim.accepted, probs = probs2)
     output <- data.table(date = date.range, quant1, bestguess = best.guess[[j]], quant2)
@@ -85,20 +80,24 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
   gg <- ggplot(dt.plot, aes(x=date)) +
     xlab("Date") + 
     ylab("Hospitalizations") +
-    geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%")) +
-    geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%")) +
-    geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%")) +
-    geom_line(aes(y = `50%`, color = "Median")) +
     geom_line(aes(y = bestguess, color = "Best Guess")) +
+    labs(title = posterior.title, caption = 'Upper Bound and Lower Bound are from "Hospitalization Data" sheet in Excel input') +
+    scale_color_manual("Projections", values = c("red", "yellow"), breaks = c("Median", "Best Guess")) +
     geom_point(aes(y=upper, shape = "Upper Bound"), fill = "black", na.rm = T) +
     
     geom_point(aes(y=lower, shape = "Lower Bound"), fill = "black", na.rm = T) +
-    labs(title = posterior.title, caption = 'Upper Bound and Lower Bound are from "Hospitalization Data" sheet in Excel input') +
-    scale_color_manual("Projections", values = c("red", "yellow"), breaks = c("Median", "Best Guess")) +
+    
     scale_alpha_manual("Range", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     scale_shape_manual("Data", values = c("triangle filled", "triangle down filled"), breaks = c( "Upper Bound", "Lower Bound")) 
+  if (sum(in.bounds) >= 1) {
+    gg <- gg + geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%")) +
+      geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%")) +
+      geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%")) +
+      geom_line(aes(y = `50%`, color = "Median"))
+  }
   print(gg)
   
+  if (sum(in.bounds) >= 1) {
     for (param.name in c("model", "currentRe", names(all.params))) {
       sub <- NULL
       cex.names <- 1
@@ -116,8 +115,10 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
       barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
       barplot(prop.table(table(param.dt[in.bounds])), main = posterior.title, sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
     }
+  }
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")
+  return(gg)
 }
 
 #` Main function to calculate credibility interval
@@ -153,12 +154,8 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   
   output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
-  if (sum(in.bounds) <= 1) {
-    cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
-  } else {
-    GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier)
-  }
-  return(list(output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
+  gplot <- GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier)
+  return(list(sim = sim, gplot = gplot, output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
 
