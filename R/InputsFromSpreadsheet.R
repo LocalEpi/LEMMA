@@ -58,6 +58,9 @@ ReadInputs <- function(path) {
 
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
   model.inputs <- TableToList(sheets$`Model Inputs`)
+  if (!("start.display.date" %in% names(model.inputs))) {
+    model.inputs$start.display.date <- as.Date("2020/3/1")
+  }
   hosp.data <- sheets$`Hospitilization Data`
   internal <- TableToList(sheets$Internal)
 

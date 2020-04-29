@@ -58,7 +58,7 @@ GetPlotTitle <- function(posterior.niter) {
 GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str) {
   output.list <- list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
   output.names <- names(output.list)
-
+  
   probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
   for (j in output.names) {
     sim.accepted <- sim[[j]][, in.bounds]
@@ -98,24 +98,24 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
     scale_alpha_manual("Range", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     scale_shape_manual("Data", values = c("triangle filled", "triangle down filled"), breaks = c( "Upper Bound", "Lower Bound")) 
   print(gg)
-
-  for (param.name in c("model", "currentRe", names(all.params))) {
-    sub <- NULL
-    cex.names <- 1
-
-    if (param.name == "model") {
-      cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
-      sub <- "(hasE  infect in hosp   rate to hosp)"
-      cex.names <- 0.5
-    } else if (param.name == "currentRe") {
-      cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3
-    } else {
-      cur.param <- all.params[[param.name]]
+  
+    for (param.name in c("model", "currentRe", names(all.params))) {
+      sub <- NULL
+      cex.names <- 1
+      
+      if (param.name == "model") {
+        cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
+        sub <- "(hasE  infect in hosp   rate to hosp)"
+        cex.names <- 0.5
+      } else if (param.name == "currentRe") {
+        cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3
+      } else {
+        cur.param <- all.params[[param.name]]
+      }
+      param.dt <- data.table(cur.param = factor(cur.param))
+      barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
+      barplot(prop.table(table(param.dt[in.bounds])), main = posterior.title, sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
     }
-    param.dt <- data.table(cur.param = factor(cur.param))
-    barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-    barplot(prop.table(table(param.dt[in.bounds])), main = posterior.title, sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-  }
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")
 }
@@ -125,11 +125,11 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   options("openxlsx.numFmt" = "0.0")
   sapply(grDevices::dev.list(), grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
   sapply(seq_len(sink.number()), sink, file=NULL) #same for sink
-
+  
   all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
   rm(extras) #extra is only used to save extra information to output file
-
-  date.range <- seq(observed.data[1, date], model.inputs$end.date, by = "day")
+  
+  date.range <- seq(model.inputs$start.display.date, model.inputs$end.date, by = "day")
   
   bounds.without.multiplier <- merge(data.table(date = date.range), hosp.bounds, all.x = T)
   bounds.with.multiplier <- copy(bounds.without.multiplier)
@@ -138,7 +138,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   
   
   best.guess.sim <- RunSim1(params1 = best.guess.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-
+  
   best.guess.in.bounds <- InBounds(best.guess.sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
   if (!best.guess.in.bounds) {
     cat("best.guess$hosp is not compatible with bounds\n")
@@ -146,12 +146,12 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
     dt.print[, OK := best.guess.hosp >= lower & best.guess.hosp <= upper]
     print(dt.print[!is.na(lower) & !is.na(upper)])
   }
-
+  
   sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
   in.bounds <- InBounds(sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
-
+  
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
-
+  
   output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
   if (sum(in.bounds) <= 1) {
     cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
