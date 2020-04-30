@@ -143,7 +143,8 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
         cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
         sub <- "(HasE  InfectInHosp   RateToHosp)"
       } else if (param.name == "currentRe") {
-        cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3
+        #TODO: this should be based on the current date vs the dates of the multipliers
+        cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3 
       } else {
         cur.param <- all.params[[param.name]]
       }
