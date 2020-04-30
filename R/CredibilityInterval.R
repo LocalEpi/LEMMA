@@ -86,7 +86,8 @@ PlotHist <- function(x, posterior.title, sub, xlab, in.bounds) {
         title1 <- paste0("Prior Distribution, niter = ", length(x))
       } else {
         d <- data.table(x = x[in.bounds])
-        breaks <- sort(unique(unlist(ggplot_build(g.list[[1]])$data[[1]][, c("xmin", 'xmax')])))
+        breaks <- unlist(ggplot_build(g.list[[1]])$data[[1]][, c("xmin", 'xmax')])
+        breaks <- sort(unique(round(breaks, digits = 8))) #round to fix problems with nearly identical breaks
         title1 <- posterior.title
       }
       g <- ggplot(d, aes(x=x))
