@@ -36,7 +36,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   stopifnot(p$exposed.to.hospital > p$latent.period) #otherwise gamma.h is nonsense
 
   exposed.to.hospital <- AsInteger(p$exposed.to.hospital) #these are used for indexing, avoids any problems with truncation
-  exposed.to.dischage <- AsInteger(p$exposed.to.hospital + p$hosp.length.of.stay)
+  exposed.to.discharge <- AsInteger(p$exposed.to.hospital + p$hosp.length.of.stay)
 
   has.E <- p$latent.period > 0
 
@@ -82,7 +82,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     return(new.exp)
   }
 
-  d$E <- new.infections <- new.admits <- new.dischanges <- matrix(NA_real_, nrow = num.param.sets, ncol = num.init.exp)
+  d$E <- new.infections <- new.admits <- new.discharges <- matrix(NA_real_, nrow = num.param.sets, ncol = num.init.exp)
   uhr <- p$use.hosp.rate #for readability
   admit.from.day <- discharge.from.day <- rep(NA_integer_, num.param.sets)
   # run SEIR model
@@ -94,6 +94,8 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
       new.exposures[tt, , ] <- initial.new.exposures
     } else {
       new.exposures[tt, , ] <- beta[tt, ] * q$S[tt, , ] * total.infected[tt, , ] / N
+      new.exposures[tt, , ] <- pmax(new.exposures[tt, , ], 0)
+      new.exposures[tt, , ] <- pmin(new.exposures[tt, , ], q$S[tt, , ])
     }
     new.nonhosp.recovered <- gamma.r * q$IR[tt, , ]
 
@@ -105,19 +107,18 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
 
     #uhr is params$use.hosp.rate
     new.admits[uhr, ] <- gamma.h[uhr] * q$IH[tt, uhr, ]
-    new.dischanges[uhr] <- psi[uhr] * q$HP[tt, uhr, ]
+    new.discharges[uhr] <- psi[uhr] * q$HP[tt, uhr, ]
 
     admit.from.day[!uhr] <- (tt - exposed.to.hospital)[!uhr]
-    discharge.from.day[!uhr] <- (tt - exposed.to.dischage)[!uhr]
+    discharge.from.day[!uhr] <- (tt - exposed.to.discharge)[!uhr]
 
     new.admits[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(admit.from.day)[!uhr]
-    new.dischanges[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(discharge.from.day)[!uhr]
+    new.discharges[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(discharge.from.day)[!uhr]
 
     d$IR <- new.infections * (1 - p$prop.hospitalized) - new.nonhosp.recovered
     d$IH <- new.infections * p$prop.hospitalized - new.admits
-
-    d$HP <- new.admits - new.dischanges
-    d$DC <- new.dischanges
+    d$HP <- new.admits - new.discharges
+    d$DC <- new.discharges
     d$R <- new.nonhosp.recovered
 
     total.d <- matrix(0, nrow = num.param.sets, ncol = num.init.exp) #just for error checking, could remove
@@ -125,9 +126,19 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
       q[[i]][tt + 1, , ] <- q[[i]][tt, , ] + d[[i]]
       total.d <- total.d + d[[i]] #just for error checking, could remove
     }
-    stopifnot(abs(total.d) < 1e-8) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
+    stopifnot(abs(total.d) < 1e-3) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
   }
-
+  for (i in names(q)) {
+    if (i == "IH") {
+      stopifnot(q[[i]][tt, uhr, ] > -1e-5) #TODO: figure out why the !uhr cases very rarely get negative IH (see /LEMMA_shared/JS code branch/neg bug.RData)
+      
+    } else {
+      stopifnot(q[[i]] > -1e-5) #sometimes we get precision problems and a compartment is slightly negative
+      
+    }
+    q[[i]] <- pmax(q[[i]], 0)
+  }
+ 
   icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
   list.return <- c(q, list(I = total.infected,
                            icu = icu,
@@ -228,7 +239,8 @@ CalcError <- function(simulated.data, observed.data, weights) {
     sum.sum.obs <- sum.sum.obs + colSums(weight^2 * (sim.data * obs.data), na.rm = T)
   }
   optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get best guess for optimal initial.new.exposures
-
+  optimal.initial.new.exposures.scale[sum.sum.obs == 0] <- 0 #fix 0/0 problems when sim.data is all 0
+  stopifnot(optimal.initial.new.exposures.scale >= 0)
   #assumes obs.date > min(sim.date)
   peak.before.first.observed <- hosp[sim.date == obs.date[1] - 1, , ] > hosp[sim.date == obs.date[1], , ]
   dim(peak.before.first.observed) <- c(num.param.sets, num.init.exp) #in case a dim was dropped
@@ -329,8 +341,7 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
   if (num.expand.max > 0) cat("expanded max ", num.expand.max, "/", num.params, "\n")
   if (num.opt.outside.minmax > 0) cat("opt.outside.minmax ", num.opt.outside.minmax, "/", num.params, "\n")
 
-
-  stopifnot(!anyNA(x.set.next))
+  stopifnot(x.set.next >= 0)
   converged.out <- abs(hosp.span) < 0.5
   return(list(x.set.next = x.set.next[!converged.out, , drop = F], converged = converged.out, hosp.span = hosp.span)) #note: x.set.next is among non-converged, others are not
 }
