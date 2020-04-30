@@ -156,6 +156,14 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
   return(gg)
 }
 
+TestOutputFile <- function(filestr) {
+  z <- file.create(filestr) #filestr has no extension, it's not the actual .pdf or .xlsx output
+  if (!z) {
+    stop("Unable to write to output file: ", filestr, "\nCheck your working directory and the value of internal.args$output.filestr")
+  }
+  file.remove(filestr) 
+}
+
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.guess.params, observed.data, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
@@ -165,6 +173,9 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   
   all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
   rm(extras) #extra is only used to save extra information to output file
+  
+  filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
+  TestOutputFile(filestr)
   
   date.range <- seq(model.inputs$start.display.date, model.inputs$end.date, by = "day")
   
@@ -192,8 +203,6 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
     sim <- NULL
     in.bounds <- FALSE
   }
-  
-  filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   
   output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
   gplot <- GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier)
