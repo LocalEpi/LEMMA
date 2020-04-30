@@ -28,6 +28,31 @@ Unlist <- function(zz) {
   do.call(c, zz)
 }
 
+SampleParam <- function(p, probs, niter) {
+  p <- Unlist(p)
+  if (class(p) == "logical") {
+    return(sample(p, size = niter, replace = T, prob = probs))
+  }
+  discrete <- sample(p, size = 1000, replace = T, prob = probs)
+  cont <- rnorm(niter, mean = mean(discrete), sd = sd(discrete))
+  if (class(p) == "Date") {
+   x <- as.Date(round(cont), origin = "1970-01-01")
+  } else if (class(p) == "numeric") {
+    x <- pmax(0, cont) #all parameters are >= 0
+    if (all(p == round(p))) {
+      x <- round(x) #if inputs are integers, return integers
+      if (all(p > 0)) {
+        x <- pmax(1, x) #don't return 0 unless it was an input
+      }
+    } else {
+      x <- pmax(min(p) / 10, x) #don't return 0 unless it was an input
+    }
+  } else {
+    stop("unexpected class in SampleParam")
+  }
+  return(x)
+}
+
 GetParams <- function(param.dist, niter, get.best.guess) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
@@ -39,7 +64,7 @@ GetParams <- function(param.dist, niter, get.best.guess) {
     stopifnot(weight.labels$mid == "Best Guess")
     params <- lapply(param.dist1, function (z) z$mid)
   } else {
-    params <- lapply(param.dist1, function (z) sample(Unlist(z), size = niter, replace = T, prob = probs))
+    params <- lapply(param.dist1, SampleParam, niter = niter, probs = probs)
   }
   params <- as.data.table(params)
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]

@@ -7,7 +7,7 @@
 #TODO: show observed even if only fitting initial to some
 
 GetModelName <- function(dt) {
-  model.name <- dt[, paste0(as.integer(hasE), as.integer(hospInf), as.integer(hospRate))]
+  model.name <- dt[, factor(paste0(as.integer(hasE), as.integer(hospInf), as.integer(hospRate)))]
   return(model.name)
 }
 
@@ -57,8 +57,12 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
   probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
   for (j in output.names) {
     sim.accepted <- sim[[j]][, in.bounds, drop = F]
-    quant1 <- rowQuantiles(sim.accepted, probs = c(0, 0.05, 0.5))
-    quant2 <- rowQuantiles(sim.accepted, probs = probs2)
+    if (is.null(sim)) {
+      quant1 <- quant2 <- NULL
+    } else {
+      quant1 <- rowQuantiles(sim.accepted, probs = c(0, 0.05, 0.5))
+      quant2 <- rowQuantiles(sim.accepted, probs = probs2)
+    }
     output <- data.table(date = date.range, quant1, bestguess = best.guess[[j]], quant2)
     output[, notes := ""]
     output[1, notes := GetPlotTitle(posterior.niter = sum(in.bounds))]
@@ -70,6 +74,40 @@ GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, dat
   openxlsx::write.xlsx(output.list, file = filestr.out)
   cat("\nExcel output: ", filestr.out, "\n")
   return(output.list)
+}
+
+PlotHist <- function(x, posterior.title, sub, xlab, in.bounds) {
+  if (uniqueN(x) > 1) {
+    g.list <- list()
+    for (prior in c(T, F)) {
+      if (prior) {
+        d <- data.table(x)
+        breaks <- NULL
+        title1 <- paste0("Prior Distribution, niter = ", length(x))
+      } else {
+        d <- data.table(x = x[in.bounds])
+        breaks <- sort(unique(unlist(ggplot_build(g.list[[1]])$data[[1]][, c("xmin", 'xmax')])))
+        title1 <- posterior.title
+      }
+      g <- ggplot(d, aes(x=x))
+      if (class(x) %in%c("logical", "integer", "Date", "factor") || all(x == round(x))) {
+        g <- g + geom_bar()
+      } else {
+        g <- g + geom_histogram(aes(y=..density..),     
+                                #   binwidth=.1,
+                                bins = 20,
+                                breaks = breaks,
+                                color="black", fill="white") +
+          geom_density(alpha=.2, fill="steelblue3") 
+      }
+      g <- g + labs(title = title1, caption = sub) + xlab(xlab)
+      print(g)
+      g.list[[length(g.list) + 1]] <- g
+    }
+  } else {
+    cat("No histogram for ", xlab, ", constant value = ", as.character(unique(x)), "\n", sep = "")
+  }
+  return(NULL)
 }
 
 GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.multiplier) {
@@ -98,22 +136,18 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
   print(gg)
   
   if (sum(in.bounds) >= 1) {
-    for (param.name in c("model", "currentRe", names(all.params))) {
+    for (param.name in c("currentRe", names(all.params), "model")) {
       sub <- NULL
-      cex.names <- 1
-      
       if (param.name == "model") {
         cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
-        sub <- "(hasE  infect in hosp   rate to hosp)"
-        cex.names <- 0.5
+        sub <- "(HasE  InfectInHosp   RateToHosp)"
       } else if (param.name == "currentRe") {
         cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3
       } else {
         cur.param <- all.params[[param.name]]
       }
-      param.dt <- data.table(cur.param = factor(cur.param))
-      barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-      barplot(prop.table(table(param.dt[in.bounds])), main = posterior.title, sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
+      
+      PlotHist(cur.param, posterior.title, sub, param.name, in.bounds)
     }
   }
   grDevices::dev.off()
@@ -124,7 +158,8 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.guess.params, observed.data, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
-  sapply(grDevices::dev.list(), grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
+  devlist <- grDevices::dev.list()
+  sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
   sapply(seq_len(sink.number()), sink, file=NULL) #same for sink
   
   all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
@@ -137,7 +172,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   bounds.with.multiplier[, lower := internal.args$lower.bound.multiplier * lower]
   bounds.with.multiplier[, upper := internal.args$upper.bound.multiplier * upper]
   
-  
+  cat("\nProjecting single Best Guess scenario:\n")
   best.guess.sim <- RunSim1(params1 = best.guess.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
   
   best.guess.in.bounds <- InBounds(best.guess.sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
@@ -148,8 +183,14 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
     print(dt.print[!is.na(lower) & !is.na(upper)])
   }
   
-  sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-  in.bounds <- InBounds(sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
+  if (nrow(all.params) > 1) {
+    cat("\nProjecting", nrow(all.params), "scenarios based on priors:\n")
+    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
+    in.bounds <- InBounds(sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
+  } else {
+    sim <- NULL
+    in.bounds <- FALSE
+  }
   
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   
