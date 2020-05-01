@@ -64,11 +64,13 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
   #TODO: get rid of r0.initial.ij, intervention1.multiplier.ij => inputs to GetBeta should be r0.initial.1, r0.initial.2, k.1, k.2 + multipliers of each, but maybe figure out vectors within param dt first
   params[, intervention1.multiplier.12 := intervention1.multiplier.22]
   params[, intervention1.multiplier.21 := intervention1.multiplier.11]
+  params[, intervention2.multiplier.12 := intervention2.multiplier.22]
+  params[, intervention2.multiplier.21 := intervention2.multiplier.11]
   return(params)
 }
 
-ReadInputs <- function(path) {
-  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H20"), #don't read the whole sheet - there are hidden data validation lists below
+ReadInputs <- function(path, temp.scale) {
+  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H24"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
@@ -77,6 +79,14 @@ ReadInputs <- function(path) {
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
 
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
+ 
+  for (i in names(temp.scale)) {
+    stopifnot(i %in% names(param.dist))
+    for (j in names(param.dist[[i]])) {
+      param.dist[[i]][[j]] <- param.dist[[i]][[j]] * temp.scale[[i]]
+    }
+  }
+  
   model.inputs <- TableToList(sheets$`Model Inputs`)
   model.inputs$total.population <- c(875000, 8000)
   

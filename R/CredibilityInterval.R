@@ -138,18 +138,22 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, HP2.bound
     print(dt.print[!is.na(lower) & !is.na(upper)])
   }
 
-  sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-  in.bounds <- InBounds(rbind(sim$hosp, sim$HP2), bounds, required.in.bounds = internal.args$required.in.bounds)
-
-  filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
-
-  output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
-  if (sum(in.bounds) <= 1) {
-    cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
-    return(NULL)
+  if (nrow(all.params) > 2) {
+    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
+    in.bounds <- InBounds(rbind(sim$hosp, sim$HP2), bounds, required.in.bounds = internal.args$required.in.bounds)
+    
+    filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
+    
+    output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
+    if (sum(in.bounds) <= 1) {
+      cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
+      return(NULL)
+    }
+    GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, date.range, filestr, observed.data)
+  } else {
+    sim <- in.bounds <- filestr <- output.list <- NULL
   }
-  GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, date.range, filestr, observed.data)
-  return(NULL)
+  return(list(sim = sim, output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
 
