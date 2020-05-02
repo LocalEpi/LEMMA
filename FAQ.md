@@ -1,0 +1,31 @@
+# LEMMA FAQ
+1. What is the definition of the “priors” row?
+
+These are the probabilities used in our simulations before we check their consistency with the observed data. They are reflected in the .pdf output of the "Prior" histograms. The "Posterior" histograms in the .pdf output show the distribution of each parameter that is compatible with the observed data.
+
+Example: 
+
+Priors	5%	15%	60%	15%	5%
+
+Basic reproductive number R0 before Intervention1	2.5	3	3.5	4	4.5
+
+Number of Days from Infection to Becoming Infectious (Latent Period)	0	2	3	4	5
+
+When we do our first simulation, we will draw an initial R0. Roughly speaking\*, 60% of the time we will use R0 = 3.5, 15% of the time we use R0 = 4, etc. Then we draw the latent period; 60% of the time 3 days, 15% 4 days, etc. We do the same for each of the 19 parameters. Then use these 19 parameters to project hospitalization.. If the projected hospitalization is compatabile** with the observed hospitalization, this set of parameters is accepted.
+
+We repeat this process `main.iterations` times. We get our projected distributions by taking quantiles of the accepted projections.
+
+*Actually we draw a normally distributed random variable with the same mean and standard deviation implied by this discrete distribution.
+
+** Specifically, a scenario is accepted if `required.in.bounds` fraction of the projected hospitalization by day is within `lower.bound.multiplier * LowerBound` to `upper.bound.multiplier * UpperBound`. You can customize these in the Internals sheet and Hospitalization Data sheet.
+
+2. How do the Re multipliers for interventions work?
+
+The first Re multiplier is multiplied by the basic R0 to give the new Re after the first intervention.
+The second Re multiplier is multiplied by the basic R0 **and** the first Re multiplier to give the new Re after the second intervention.
+Re after third intervention = `R0 * intervention1.multiplier * intervention2.multiplier * intervention3.multiplier`
+
+3. What if I only have 2 interventions?
+
+Set all values of `intervention3.multiplier` to 1.
+
