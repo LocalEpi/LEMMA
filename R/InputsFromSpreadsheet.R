@@ -72,7 +72,7 @@ GetParams <- function(param.dist, niter, get.best.guess) {
   return(params)
 }
 
-ReadInputs <- function(path) {
+ReadInputs <- function(path, generate.params = TRUE) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H22"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
@@ -106,7 +106,11 @@ ReadInputs <- function(path) {
   hosp.bounds <- hosp.data[, .(date = Date, lower = LowerBound, upper = UpperBound)]
 
   set.seed(internal$random.seed)
-  params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
+  if (generate.params) {
+    params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
+  } else {
+    params <- data.table()
+  }
   best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T)
 
   if (is.na(internal$output.filestr)) {
@@ -115,7 +119,7 @@ ReadInputs <- function(path) {
   sheets$time.of.run <- as.character(Sys.time())
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
  
-  return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, best.guess.params = best.guess, excel.input = sheets))
+  return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, best.guess.params = best.guess, excel.input = sheets, param.dist = param.dist))
 }
 
 #' Run Credibility Interval based on Excel inputs
@@ -131,4 +135,33 @@ CredibilityIntervalFromExcel <- function(input.file) {
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
   invisible(cred.int)
+}
+
+#' Run Credibility Interval based on Excel inputs
+#'
+#' @param input.file A .xlsx file
+#' @return a ggplot object
+#' @export
+VaryOneParameter <- function(input.file, parameter.name = "") {
+  inputs <- ReadInputs(input.file, generate.params = F)
+  params <- inputs$best.guess.params
+  if (parameter.name %in% names(params)) {
+    parameter.range <- Unlist(inputs$param.dist[[parameter.name]])
+    params <- params[rep(1, length(parameter.range))]
+    params[[parameter.name]] <- parameter.range
+  } else {
+    cat("parameter.name needs to be one of the following:\n")
+    print(names(params))
+    stop("unrecognized parameter.name")
+  }
+  date.range <- seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day")
+  sim <- RunSim1(params1 = params, model.inputs = inputs$model.inputs, observed.data = inputs$observed.data, internal.args = inputs$internal.args, date.range = date.range)
+  
+  colnames(sim$hosp) <- parameter.range
+  dt.plot <- melt(data.table(date = as.Date(rownames(sim$hosp)), sim$hosp), id = "date", value.name = "Hospitalizations", variable.name = "parameter")
+  ggplot(dt.plot, aes(x=date, y=Hospitalizations, group = parameter)) +
+    xlab("Date") + 
+    geom_line(aes(color = parameter)) +
+    scale_color_hue(name = parameter.name)
+    
 }
