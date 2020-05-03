@@ -88,6 +88,12 @@ ReadInputs <- function(path) {
   }
   hosp.data <- sheets$`Hospitilization Data`
   internal <- TableToList(sheets$Internal)
+  if (!("plot.observed.data" %in% names(internal))) {
+    internal$plot.observed.data <- TRUE
+  }
+  if (!("include.plot.caption" %in% names(internal))) {
+    internal$include.plot.caption <- TRUE
+  }
 
   observed.data <- hosp.data[, .(date = Date, hosp = (LowerBound + UpperBound) / 2)] #TODO: make this more flexible?
   if (!is.na(internal$min.obs.date.to.fit)) {

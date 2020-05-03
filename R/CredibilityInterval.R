@@ -111,23 +111,25 @@ PlotHist <- function(x, posterior.title, sub, xlab, in.bounds) {
   return(NULL)
 }
 
-GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.multiplier) {
+GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.multiplier, internal.args) {
   posterior.title <- GetPlotTitle(posterior.niter = sum(in.bounds))
   filestr.out <- paste0(filestr, ".pdf")
-  grDevices::pdf(file = filestr.out)
+  grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
   dt.plot <- merge(hosp, bounds.without.multiplier, all.x = T, by = "date")
   gg <- ggplot(dt.plot, aes(x=date)) +
     xlab("Date") + 
     ylab("Hospitalizations") +
     geom_line(aes(y = bestguess, color = "Best Guess")) +
-    labs(title = posterior.title, caption = 'Upper Bound and Lower Bound are from "Hospitalization Data" sheet in Excel input') +
+    labs(title = posterior.title, caption = if (internal.args$include.plot.caption) 'Upper Bound and Lower Bound are from "Hospitalization Data" sheet in Excel input') +
     scale_color_manual("Projections", values = c("red", "yellow"), breaks = c("Median", "Best Guess")) +
-    geom_point(aes(y=upper, shape = "Upper Bound"), fill = "black", na.rm = T) +
+    scale_alpha_manual("Range", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%"))
+  
+  if (internal.args$plot.observed.data) {
+    gg <- gg + geom_point(aes(y=upper, shape = "Upper Bound"), fill = "black", na.rm = T) +
+      geom_point(aes(y=lower, shape = "Lower Bound"), fill = "black", na.rm = T) +
+      scale_shape_manual("Data", values = c("triangle filled", "triangle down filled"), breaks = c( "Upper Bound", "Lower Bound")) 
+  }
     
-    geom_point(aes(y=lower, shape = "Lower Bound"), fill = "black", na.rm = T) +
-    
-    scale_alpha_manual("Range", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
-    scale_shape_manual("Data", values = c("triangle filled", "triangle down filled"), breaks = c( "Upper Bound", "Lower Bound")) 
   if (sum(in.bounds) >= 1) {
     gg <- gg + geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%")) +
       geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%")) +
@@ -206,7 +208,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, best.gues
   }
   
   output.list <- GetExcelOutput(sim, best.guess.sim, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str)
-  gplot <- GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier)
+  gplot <- GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier, internal.args)
   return(list(sim = sim, gplot = gplot, output.list = output.list, best.guess.sim = best.guess.sim, in.bounds = in.bounds, best.guess.in.bounds = best.guess.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
