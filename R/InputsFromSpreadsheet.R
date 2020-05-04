@@ -159,9 +159,9 @@ VaryOneParameter <- function(input.file, parameter.name = "") {
   
   colnames(sim$hosp) <- parameter.range
   dt.plot <- melt(data.table(date = as.Date(rownames(sim$hosp)), sim$hosp), id = "date", value.name = "Hospitalizations", variable.name = "parameter")
-  ggplot(dt.plot, aes(x=date, y=Hospitalizations, group = parameter)) +
+  gplot <- ggplot(dt.plot, aes(x=date, y=Hospitalizations, group = parameter)) +
     xlab("Date") + 
     geom_line(aes(color = parameter)) +
     scale_color_hue(name = parameter.name)
-    
+   return(list(gplot = gplot, sim = sim)) 
 }
