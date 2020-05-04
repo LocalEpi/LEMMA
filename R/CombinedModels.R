@@ -61,7 +61,8 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments (will be num.param.sets x num.init.exp)
 
   total.infected <- new.exposures <- empty.compartment
-
+  new.admits.output <- new.discharges.output <- empty.compartment
+  
   date.index <- GetDateIndex(initial.conditions$date, dates)
   stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
   for (i in base.compartment.names) { #TODO: improve speed here? this is taking a decent amout of time
@@ -127,17 +128,21 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
       total.d <- total.d + d[[i]] #just for error checking, could remove
     }
     stopifnot(abs(total.d) < 1e-3) #d adds to zero in each compartment for each param.set and init.exp - just for error checking, could remove
-  }
-  for (i in names(q)) {
-    if (i == "IH") {
-      stopifnot(q[[i]][tt, uhr, ] > -1e-5) #TODO: figure out why the !uhr cases very rarely get negative IH (see /LEMMA_shared/JS code branch/neg bug.RData)
-      
-    } else {
-      stopifnot(q[[i]] > -1e-5) #sometimes we get precision problems and a compartment is slightly negative
-      
+    
+    for (i in names(q)) {
+      if (i == "IH") {
+        stopifnot(q[[i]][tt, uhr, ] > -1e-5) #TODO: figure out why the !uhr cases very rarely get negative IH (see /LEMMA_shared/JS code branch/neg bug.RData)
+      } else {
+        stopifnot(q[[i]][tt, , ] > -1e-5) #sometimes we get precision problems and a compartment is slightly negative
+      }
+      q[[i]][tt, , ] <- pmax(q[[i]][tt, , ], 0)
     }
-    q[[i]] <- pmax(q[[i]], 0)
+    
+    new.admits.output[tt, , ] <- new.admits
+    new.discharges.output[tt, , ] <- new.discharges
   }
+  
+ 
  
   icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
   list.return <- c(q, list(I = total.infected,
@@ -145,7 +150,9 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
                            vent = as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu,
                            R.total = q$R + q$DC, #R is recovered (did not go to hospital)
                            active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious
-                           total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC)) #everyone ever exposed (implicitly includes dead); same as N - S
+                           total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC, #everyone ever exposed (implicitly includes dead); same as N - S
+                           new.admits = new.admits.output,
+                           new.discharges = new.discharges.output))
   names(list.return)[names(list.return) == "R"] <- "R.nonhosp"
   names(list.return)[names(list.return) == "HP"] <- "hosp"
 
