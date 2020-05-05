@@ -4,3 +4,4 @@
 .Ruserdata
 LEMMA.Rproj
 .Rbuildignore
+inst/doc

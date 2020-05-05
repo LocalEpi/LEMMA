@@ -56,10 +56,20 @@
 <li>
       <a href="../articles/case-studies.html">Case Studies</a>
     </li>
+    <li>
+      <a href="../articles/faq.html">LEMMA FAQ</a>
+    </li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/LocalEpi/LEMMA/">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -75,7 +85,7 @@
       <h1 data-toc-skip>Case Studies</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/LocalEpi/LEMMA/blob/master/vignettes/case-studies.Rmd"><code>vignettes/case-studies.Rmd</code></a></small>
       <div class="hidden name"><code>case-studies.Rmd</code></div>
 
     </div>
@@ -154,10 +164,10 @@
 <span class="co">#&gt; 41: 2020-05-02         90       96.0</span>
 <span class="co">#&gt;           date LowerBound UpperBound</span></pre></body></html></div>
 <p>There may be some data quality problems in March 30 - April 4:</p>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">ylab</a></span>(<span class="st">"Hospitalizations"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Hospitalizations"</span>)</pre></body></html></div>
 <p><img src="case-studies_files/figure-html/unnamed-chunk-4-1.png" width="768"></p>
 <p>At this point we would suggest investigating this data further with your DPH. For this vignette, we will omit the days March 30, March 31, April 3, April 4.</p>
 <div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="no">hosp.bounds</span> <span class="kw">&lt;-</span>
@@ -244,11 +254,11 @@
 </ol>
 <div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="no">hosp.bounds</span> <span class="kw">&lt;-</span> <span class="no">dt</span>[, <span class="fu">.</span>(<span class="kw">date</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span>(<span class="no">Date</span>, <span class="kw">format</span> <span class="kw">=</span> <span class="st">"%m/%d/%y"</span>), <span class="kw">LowerBound</span> <span class="kw">=</span> <span class="no">Hospitalized_COVID_19_Positive_</span>)]</pre></body></html></div>
 <p>The data looks somewhat noisy.</p>
-<div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">x</span><span class="kw">=</span><span class="no">date</span>, <span class="kw">y</span><span class="kw">=</span><span class="no">LowerBound</span>)) + <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_point.html">geom_point</a></span>()</pre></body></html></div>
+<div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span><span class="kw">=</span><span class="no">date</span>, <span class="kw">y</span><span class="kw">=</span><span class="no">LowerBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>()</pre></body></html></div>
 <p><img src="case-studies_files/figure-html/unnamed-chunk-11-1.png" width="768"> Let’s see what happens if we use it as-is.</p>
 <p>In San Francisco, the UpperBound is roughly 115% of the LowerBound, so we could use than as a first approximation.</p>
 <div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="no">hosp.bounds</span>[, <span class="no">UpperBound</span> <span class="kw">:=</span> <span class="no">LowerBound</span> * <span class="fl">1.15</span>]
-<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) + <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) + <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) + <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/labs.html">ylab</a></span>(<span class="st">"Hospitalizations"</span>)</pre></body></html></div>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Hospitalizations"</span>)</pre></body></html></div>
 <p><img src="case-studies_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
 <p>Open the template Excel file. In Excel, Save As as “Alameda-May4-v1.xlsx”.</p>
 <p>On the Model Inputs sheet, change Number of People in Area to 1671000</p>
@@ -310,11 +320,11 @@
 <span class="no">hosp.bounds</span>$<span class="no">LowerBound</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span>(<span class="no">m1</span>)
 <span class="no">hosp.bounds</span>[, <span class="no">UpperBound</span> <span class="kw">:=</span> <span class="no">LowerBound</span> * <span class="fl">1.15</span>]
 
-<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.upper</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Upper Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>) +
-  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.lower</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Lower Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>)</pre></body></html></div>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.upper</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Upper Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>) +
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.lower</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Lower Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>)</pre></body></html></div>
 <p><img src="case-studies_files/figure-html/unnamed-chunk-16-1.png" width="768"> Copy and paste the bounds to the Hospitilization Data tab.</p>
 <div class="sourceCode" id="cb17"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span>(<span class="no">hosp.bounds</span>[, <span class="fu">.</span>(<span class="no">date</span>, <span class="no">LowerBound</span>, <span class="no">UpperBound</span>)],
             <span class="kw">sep</span> <span class="kw">=</span> <span class="st">","</span>, <span class="kw">row.names</span> <span class="kw">=</span> <span class="no">F</span>, <span class="kw">col.names</span> <span class="kw">=</span> <span class="no">F</span>)

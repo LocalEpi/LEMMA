@@ -3,5 +3,6 @@ pkgdown: 1.5.1
 pkgdown_sha: ~
 articles:
   case-studies: case-studies.html
-last_built: 2020-05-05T18:28Z
+  faq: faq.html
+last_built: 2020-05-05T19:55Z
 

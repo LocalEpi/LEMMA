@@ -1,4 +1,23 @@
-# LEMMA FAQ
+---
+title: "LEMMA FAQ"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FAQ}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=F}
+library(LEMMA)
+```
+
 1. What is the definition of the “priors” row?
 
 These are the probabilities used in our simulations before we check their consistency with the observed data. They are reflected in the .pdf output of the "Prior" histograms. The "Posterior" histograms in the .pdf output show the distribution of each parameter that is compatible with the observed data.
@@ -28,4 +47,5 @@ Re after third intervention = `R0 * intervention1.multiplier * intervention2.mul
 3. What if I only have 2 interventions?
 
 Set all values of `intervention3.multiplier` to 1.
+
 
