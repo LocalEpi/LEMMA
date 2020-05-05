@@ -1,6 +1,7 @@
 Package: LEMMA
 Title: Local Epidemic Modeling for Management & Action 
 Version: 0.3.0.9003
+URL: https://github.com/LocalEpi/LEMMA/
 Authors@R: 
     person(given = "Joshua",
            family = "Schwab",
