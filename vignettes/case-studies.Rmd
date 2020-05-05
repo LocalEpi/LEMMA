@@ -1,10 +1,11 @@
 ---
 title: "Case Studies"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Case Studies}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+vignette: |
+  %\VignetteIndexEntry{Case Studies} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -14,6 +15,8 @@ knitr::opts_chunk$set(
   fig.width=8, 
   fig.height=6
 )
+
+eval.all <- F
 ```
 ```{r setup}
 library(LEMMA)
@@ -43,18 +46,23 @@ dt[CovidStatus == "COVID+", mult.high := 1]
 dt[CovidStatus == "PUI", mult.low := 0]
 dt[CovidStatus == "PUI", mult.high := 0.3]
 
-hosp.bounds <- dt[, .(LowerBound = sum(PatientCount * mult.low), UpperBound = sum(PatientCount * mult.high)), by=date]
+hosp.bounds <- dt[, .(LowerBound = sum(PatientCount * mult.low), 
+                      UpperBound = sum(PatientCount * mult.high)), by=date]
 hosp.bounds
 ```
 
 There may be some data quality problems in March 30 - April 4:
 ``` {r}
-ggplot(hosp.bounds, aes(x = date)) + geom_line(aes(y = LowerBound)) + geom_line(aes(y = UpperBound)) + ylab("Hospitalizations")
+ggplot(hosp.bounds, aes(x = date)) + 
+  geom_line(aes(y = LowerBound)) + 
+  geom_line(aes(y = UpperBound)) + 
+  ylab("Hospitalizations")
 ```
 
 At this point we would suggest investigating this data further with your DPH. For this vignette, we will omit the days March 30, March 31, April 3, April 4.
 ```{r}
-hosp.bounds <- hosp.bounds[!date %in% as.Date(c("2020-03-30", "2020-03-31", "2020-04-03", "2020-04-04"))]
+hosp.bounds <- 
+  hosp.bounds[!date %in% as.Date(c("2020-03-30", "2020-03-31", "2020-04-03", "2020-04-04"))]
 ```
 
 Open the template Excel file (the original is `system.file("extdata", "SF-April13.xlsx", package = "LEMMA")` but the installation instructions on GitHub suggest copying it to example.xlsx in your local directory). In Excel, Save As as "SF-May4-v1.xlsx".
@@ -71,7 +79,7 @@ These should reflect your prior knowledge, based on available research and local
 Save the Excel file.
 
 4. Run CredibilityIntervalFromExcel (takes 1-2 minutes)
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("SF-May4-v1.xlsx")
 ```
 Note that the "Best Guess" scenario is not compatible with the given bounds. See FAQ.md for more details on what this means. 
@@ -83,7 +91,7 @@ The first page of the .pdf says we have 342 iterations in the posterior distribu
 We suggest at least 1000 iterations in the posterior distribution for inference about the 5th-95th quantiles. On the Internal sheet to, change `main.iterations` to 35000. 
 The current output only projects until May 1. On the Model Inputs sheet, change Projection End Date to 9/1/2020.
 Save As SF-May4-v2.xlsx and rerun CredibilityIntervalFromExcel (takes ~5 minutes). This gives 1101 posterior iterations.
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("SF-May4-v2.xlsx")
 ```
 
@@ -127,7 +135,7 @@ write.table(hosp.bounds, sep = ",", row.names = F, col.names = F)
 As an example, let's use the numbers in the template.
 
 4. Run CredibilityIntervalFromExcel
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v1.xlsx")
 ```
 
@@ -137,6 +145,10 @@ The first page of the .pdf says we have 0 iterations. Obviously we need to make 
 The April 16 data is clearly an outlier. Delete that row in Excel. (Because the sheet is protected, it's probably easiest to cut and paste everything else.)
 
 Save As Alameda-May4-v2.xlsx.
+
+```{r, eval = eval.all}
+LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v2.xlsx")
+```
 
 Running CredibilityIntervalFromExcel still gives 0 iterations.
 
@@ -158,13 +170,14 @@ ggplot(hosp.bounds, aes(x = date)) +
 ```
 Copy and paste the bounds to the Hospitilization Data tab.
 ```{r}
-write.table(hosp.bounds[, .(date, LowerBound, UpperBound)], sep = ",", row.names = F, col.names = F)
+write.table(hosp.bounds[, .(date, LowerBound, UpperBound)], 
+            sep = ",", row.names = F, col.names = F)
 ```
 To get fast feedback on just the Best Guess scenario, set main.iterations to 1.
 
 Save As Alameda-May4-v3.xlsx.
 
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v3.xlsx")
 ```
 
@@ -193,15 +206,46 @@ print(z$gplot)
 
 We might be getting in the ballpark. Let's try a flatter prior distribution. Set all Priors to 20%. Set Re multiplier to 0.35	0.4	0.45 0.55	0.7. Set main.iterations to 10000. Set required.in.bounds to 95%. 
 
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v7.xlsx")
 ```
 
 Now we at least have 34 iterations. Based on the histograms in the .pdf output, we might need a longer hospital length of stay (if you have data on this, that would be even better!).
-```{r, eval = F}
+```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v8.xlsx")
 ```
 
-Now we at least have 117 iterations.
+Now we have 117 iterations.
 
-I continued this process and eventually was able to tighten lower.bound.multiplier to 0.98 and upper.bound.multiplier to	1.02. With main.iterations = 200000, I came up with niter = 825.
+We continued this process and eventually were able to come up with priors that fit the data well. We then increased main.iterations to 200000 to get a large number of posterior iterations.
+
+This was not shown above, but another thing to try is increasing upper.bound.multiplier and/or decreasing lower.bound.multiplier. This will include combinations of parameters that give projections slightly (more) outside the given LowerBound and UpperBound. 
+
+## Important Considerations
+
+In this case study, an important question is: how confident are we in the UpperBound of the most recent days? These are important because hospitalization appears to be declining. If we force the model to be lower than exactly UpperBound (upper.bound.multiplier = 1) on every day (required.in.bounds = 100%), projections will be more optimistic. 
+
+There are several reasons why it may be more prudent to use less strict bounds (perhaps lower.bound.multiplier = 0.95; upper.bound.multiplier = 1.10) and to allow the projections to be outside the bounds for some days (perhaps required.in.bounds = 90%) . For Alameda County, PUI data was not available so it is especially difficult to know the true number of COVID-19 positive. Even if PUI data were available, it is also possible that the recent decline is due to random fluctuation or reasons not captured by our model. 
+
+```{r, eval = F}
+#This will take at least 30 minutes
+LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v9-very strict criteria.xlsx")
+```
+
+```{r, eval = F}
+#This will take at least 30 minutes
+LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v9-less strict criteria.xlsx")
+```
+
+# Modelling Lifting Shelter In Place
+
+Lifting Shelter in Place can be modelled as a future intervention which multiplies Re by a factor greater than 1. This is already set in the existing xlsx inputs. We just need to change Model Inputs -> Projection End Date to a later date to see the effect.
+
+![](Alameda-May4-vs.png)
+
+![](Alameda-May4-ls.png)
+
+
+
+
+

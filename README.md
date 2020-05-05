@@ -25,6 +25,10 @@ file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork 
 
 ** LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day. **
 
+If you get an error something like 
+"lazy-load database 'Library/R/3.6/library/LEMMA/R/LEMMA.rdb' is corrupt"
+restart R and try step 3 again.
+
 # Running LEMMA
 1) Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
 2) Run the following code.
