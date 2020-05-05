@@ -1,15 +1,10 @@
 ---
 title: "Case Studies"
-output:
-  pdf_document: default
-  html_document: default
-resource_files:
-  - Alameda-v9-plot1.png
-  - Alameda-v9-plot2.png
-  - Alameda-v9-plot3.png
-  - Alameda-v9-plot4.png
-vignette: |
-  %\VignetteIndexEntry{Case Studies} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case Studies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -251,8 +246,4 @@ Future changes in public health interventions (for example, relaxing/replacing c
 
 ![](Alameda-v9-plot3.png)
 ![](Alameda-v9-plot4.png)
-
-
-
-
 
