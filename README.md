@@ -31,6 +31,13 @@ file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork 
 ```{r}
 LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
+# Case Studies (package vignette)
+To build the vignette:
+```{r}
+remotes::install_github("LocalEpi/LEMMA", build_vignettes = T)
+browseVignettes(package="LEMMA")
+```
+
 
 # Input:
 
