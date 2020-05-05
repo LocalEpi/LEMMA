@@ -2,8 +2,12 @@
 title: "Case Studies"
 output:
   pdf_document: default
-  html_document:
-    df_print: paged
+  html_document: default
+resource_files:
+  - Alameda-v9-plot1.png
+  - Alameda-v9-plot2.png
+  - Alameda-v9-plot3.png
+  - Alameda-v9-plot4.png
 vignette: |
   %\VignetteIndexEntry{Case Studies} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -232,18 +236,21 @@ There are several reasons why it may be more prudent to use less strict bounds (
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v9-very strict criteria.xlsx")
 ```
 
+![](Alameda-v9-plot1.png)
+
 ```{r, eval = F}
 #This will take at least 30 minutes
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v9-less strict criteria.xlsx")
 ```
 
-# Modelling Lifting Shelter In Place
+![](Alameda-v9-plot2.png)
 
-Lifting Shelter in Place can be modelled as a future intervention which multiplies Re by a factor greater than 1. This is already set in the existing xlsx inputs. We just need to change Model Inputs -> Projection End Date to a later date to see the effect.
+# Modelling Future Changes in Transmission
 
-![](Alameda-May4-vs.png)
+Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. This is already set in the existing xlsx inputs. We just need to change Model Inputs -> Projection End Date to a later date to see the effect. Below shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in Alameda-May4-v9-less strict criteria.xlsx or Alameda-May4-v9-very strict criteria.xlsx) on June 1. 
 
-![](Alameda-May4-ls.png)
+![](Alameda-v9-plot3.png)
+![](Alameda-v9-plot4.png)
 
 
 
