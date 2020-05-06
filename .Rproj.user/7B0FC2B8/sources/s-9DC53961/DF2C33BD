@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588718658931.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "DF2C33BD",
+    "lastKnownWriteTime" : 1588728548,
+    "last_content_update" : 1588728548729,
+    "path" : "~/Documents/GitHub/LEMMA/R/CombinedModels.R",
+    "project_path" : "R/CombinedModels.R",
+    "properties" : {
+        "cursorPosition" : "128,9",
+        "marks" : "<:119,0\n>:128,8",
+        "scrollLine" : "100"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

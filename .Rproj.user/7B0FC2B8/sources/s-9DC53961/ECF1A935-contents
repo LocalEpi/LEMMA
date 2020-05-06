@@ -1,0 +1,219 @@
+rm(list = ls())
+setwd("~/Documents/GitHub/LEMMA")
+source('~/Dropbox (UC Berkeley Biostat)/LEMMA_shared/JS code branch/VulnPopsDev/consistency checks - old SEIR.R')
+library(devtools)
+library(data.table)
+library(matrixStats)
+load_all()
+
+ConvertParams <- function(params, pop.num) {
+  #from new format with 2 pops to old format with 1
+  p <- copy(params)
+  # change.cols <- c(`1`="prop.hospitalized", `1`="hosp.length.of.stay", `2`="intervention1.multiplier", `2`="intervention2.multiplier")
+  # for (i in seq_along(change.cols)) {
+  #   new.format.name <- paste0(change.cols[i], ".", pop.num, if (names(change.cols)[i] == "2") pop.num)
+  #   setnames(p, old = new.format.name, new = change.cols[i])
+  # }
+  
+  setnames(p, paste0("prop.hospitalized.", pop.num), "prop.hospitalized")
+  setnames(p, paste0("hosp.length.of.stay.", pop.num), "hosp.length.of.stay")
+  
+  setnames(p, paste0("intervention1.multiplier.", pop.num, pop.num), "intervention1.multiplier")
+  setnames(p, paste0("intervention2.multiplier.", pop.num, pop.num), "intervention2.multiplier")
+  
+  setnames(p, paste0("r0.fromexcel.", pop.num), "r0.initial")
+  
+  p$use.hosp.rate <- T
+  return(p)
+}
+
+CredInt <- function(all.params, model.inputs, hosp.bounds, HP2.bounds, best.guess.params , observed.data, internal.args, extras, pop.num) {
+  all.params <- ConvertParams(all.params, pop.num)
+  best.guess.params <- ConvertParams(best.guess.params, pop.num)
+  if (pop.num == 2) {
+    hosp.bounds <- HP2.bounds
+  }
+  model.inputs$total.population <- model.inputs$total.population[pop.num]
+  outputs <- LEMMA:::CredibilityInterval(all.params = all.params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, best.guess.params = best.guess.params, observed.data = inputs$observed.data, internal.args = internal.args, extras = extras)
+  outputs$all.inputs.str <- NULL
+  return(outputs)
+}
+
+ConvertSimDT <- function(sim.in, pop.num) {
+  sim <- copy(sim.in)
+  #from new format with 2 pops to old format with 1
+  other.pop <- if (pop.num == 1) 2 else 1
+  sim[, grep(paste0("V", other.pop), names(sim), value = T)] <- NULL
+  sim$HP2 <- NULL
+  setnames(sim, sub(paste0(".V", pop.num), "", names(sim)))
+  sim$hosp <- sim$HP
+  sim$HP <- sim$new.exposures <- NULL
+  sim <- as.data.frame(sim)
+  sim <- sim[c("date", "S", "E", "IH", "IR", "R.nonhosp", "hosp", "DC", "I", 
+               "icu", "vent", "R.total", "active.cases", "total.cases")]
+  sim <- as.data.table(sim)
+  return(sim)
+}
+
+ConvertSimArray <- function(sim.in, pop.num) {
+  #from new format with 2 pops to old format with 1
+  if (is.null(sim.in)) return(NULL)
+  sim <- copy(sim.in)
+  sim$hosp <- sim$HP[, , pop.num]
+  sim$HP2 <- NULL
+  sim$HP <- sim$new.exposures <- NULL
+  sim <- lapply(sim, function (z) if (length(dim(z)) == 3) z[, , pop.num] else z)
+  sim <- sim[c("S", "E", "IH", "IR", "R.nonhosp", "hosp", "DC", "I", 
+               "icu", "vent", "R.total", "active.cases", "total.cases")]
+  return(sim)
+}
+
+Run1 <- function(inputs, HP2, pop.num, run.cred.int, run.new, E0) {
+  stopifnot(nrow(inputs$all.params) > 1)
+  if (run.new) {
+    load_all()
+    if (run.cred.int) {
+      outputs <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, HP2.bounds = HP2, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+    } else {
+      outputs <- Seir(initial.new.exposures = E0, inputs$model.inputs$total.population, inputs$internal.args$simulation.start.date, inputs$model.inputs$end.date, inputs$all.params)
+    }
+    
+  } else {
+    unload()
+    inputs$all.params <- ConvertParams(inputs$all.params, pop.num)
+    inputs$best.guess.params <- ConvertParams(inputs$best.guess.params, pop.num)
+    if (pop.num == 2) {
+      inputs$hosp.bounds <- HP2
+    }
+    orig.total.population <- inputs$model.inputs$total.population
+    inputs$model.inputs$total.population <- inputs$model.inputs$total.population[pop.num]
+    if (run.cred.int) {
+      outputs <- LEMMA:::CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+    } else {
+      E0 <- E0 * orig.total.population[pop.num] / sum(orig.total.population)
+      # outputs <- Seir.old(initial.new.exposures = E0, inputs$model.inputs$total.population, inputs$internal.args$simulation.start.date, inputs$model.inputs$end.date, inputs$all.params)
+      outputs <- LEMMA:::Seir(initial.new.exposures = E0, inputs$model.inputs$total.population, inputs$internal.args$simulation.start.date, inputs$model.inputs$end.date, inputs$all.params)
+    }
+  }
+  outputs$new.admits <- outputs$new.discharges <- NULL #these aren't in old code
+  outputs$all.inputs.str <- NULL
+  return(outputs)
+}
+
+RunBoth.notused <- function(inputs, HP2, pop.num.set) {
+  load_all()
+  outputs <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, HP2.bounds = HP2, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+  outputs$all.inputs.str <- NULL
+  
+  unload()
+  old.list <- list(NULL, NULL)
+  for (pop.num in pop.num.set) {
+    old.list[[pop.num]] <- CredInt(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, HP2.bounds = HP2, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input, pop.num = pop.num)
+  }
+  
+  return(list(new = outputs, old1 = old.list[[1]], old2 = old.list[[2]]))
+}
+
+RunBoth <- function(inputs, HP2, pop.num.set, run.cred.int) {
+  if (run.cred.int) {
+    E0 <- NA
+  } else {
+    E0 <- rep(10, nrow(inputs$all.params)) #runif(nrow(inputs$all.params), 0, 1e-3)
+  }
+  outputs.new <- Run1(inputs, HP2, pop.num = stop("pop.num not used"), run.cred.int, run.new = T, E0)
+  new.list <- list(NULL, NULL)
+  if (run.cred.int) {
+    for (pop.num in pop.num.set) {
+      new.list[[pop.num]]$sim <- ConvertSimArray(outputs.new$sim, pop.num)
+      new.list[[pop.num]]$best.guess.sim <- ConvertSimDT(outputs.new$best.guess.sim, pop.num)
+    }
+  } else {
+    for (pop.num in pop.num.set) {
+      new.list[[pop.num]] <- ConvertSimArray(outputs.new, pop.num)
+    }
+  }
+  old.list <- list(NULL, NULL)
+  for (pop.num in pop.num.set) {
+    old.list[[pop.num]] <- Run1(inputs, HP2, pop.num, run.cred.int, run.new = F, E0)
+  }
+  
+  return(list(new1 = new.list[[1]], new2 = new.list[[2]], old1 = old.list[[1]], old2 = old.list[[2]]))
+}
+
+inputs.orig <- ReadInputs("~/Dropbox/LEMMA_shared/JS code branch/VulnPopsDev/SF-homeless test-small niter.xlsx", temp.scale = NULL)
+inputs.orig$model.inputs$start.display.date <- as.Date("2020/")
+  
+#try different hypothetical data?
+HP2.orig <- data.table(date = seq(as.Date("2020/4/3"), as.Date("2020/4/25"), by="day"), lower = 0.5, upper = 4)
+
+if (T) {
+  #### Test 1
+  inputs <- ReadInputs("~/Dropbox/LEMMA_shared/JS code branch/VulnPopsDev/SF-homeless test-separate pops.xlsx", temp.scale = NULL)
+  # inputs$internal.args$search.expander <- 5
+  # inputs$all.params <- inputs$all.params[1:3]
+  inputs$internal.args$simulation.start.date <- as.Date("2020/2/15")
+  inputs$model.inputs$end.date <- as.Date("2020/4/18")
+  pop2.scale <- 1
+  inputs$model.inputs$total.population[2] <- inputs$model.inputs$total.population[2] * pop2.scale
+  #note to self: if changing all.params, remember to change best.guess.params also!
+  #but can't change k from here - betamatrix is currently calculated in ReadInputs
+  HP2 <- copy(HP2.orig)
+  HP2[, lower := lower * pop2.scale]
+  HP2[, upper := upper * pop2.scale]
+  
+  z <- RunBoth(inputs, HP2, 1:2, run.cred.int = F)
+  print(all.equal(z$new1, z$old1))
+  print(all.equal(z$new2, z$old2))
+  
+  z <- RunBoth(inputs, HP2, 1:2, run.cred.int = T)
+  print(all.equal(z$new1, z$old1))
+  print(all.equal(z$new2, z$old2))
+}
+
+
+
+
+####
+
+if (F) {
+  #### Test 3 - passing, although I haven't checked output.list or gplot (I think that's ok, just take a look at the plots at some point)
+  inputs <- inputs.orig
+  pop2.scale <- 1/8000
+  inputs$model.inputs$total.population[2] <- inputs$model.inputs$total.population[2] * pop2.scale
+  HP2 <- copy(HP2.orig)
+  HP2[, lower := NA]
+  HP2[, upper := NA]
+  z <- RunBoth(inputs, HP2)
+  new.best.guess.sim <- ConvertSimDT(z$new$best.guess.sim, 1)
+  new.sim <- ConvertSimArray(z$new$sim, 1)
+  print(all.equal(new.best.guess.sim, z$old1$best.guess.sim, tolerance = 1e-5))
+  print(all.equal(new.sim, z$old1$sim, tolerance = 1e-5))
+  print(all.equal(z$new$in.bounds, z$old1$in.bounds))
+  print(all.equal(z$new$best.guess.in.bounds, z$old1$best.guess.in.bounds))
+  ####
+}
+if (F) {
+  ### Test 3 using new RunBoth
+  inputs <- inputs.orig
+  inputs$internal.args$simulation.start.date <- as.Date("2020/2/15")
+  inputs$model.inputs$end.date <- as.Date("2020/3/1")
+  # inputs$all.params <- inputs$all.params[1:2]
+  pop2.scale <- 1/8000
+  inputs$model.inputs$total.population[2] <- inputs$model.inputs$total.population[2] * pop2.scale
+  HP2 <- copy(HP2.orig)
+  HP2[, lower := NA]
+  HP2[, upper := NA]
+  z <- RunBoth(inputs, HP2, pop.num.set = 1, run.cred.int = F)
+  print(all.equal(z$new1, z$old1))
+  
+  inputs$model.inputs$end.date <- as.Date("2020/4/25")
+  z.cred <- RunBoth(inputs, HP2, pop.num.set = 1, run.cred.int = T)
+  print(all.equal(z.cred$new1$sim, z.cred$old1$sim))
+  print(all.equal(z.cred$new1$best.guess.sim, z.cred$old1$best.guess.sim))
+  
+}
+#do consistency checks: Seir should be same, CredbilityInterval should be close
+#1) if pops separate - compare to master, run once for each [to do]
+#2) if perfect mixing - compare to master, run once with sum of population [to do]
+#3) if size of one pop is zero (or near zero?) - compare to master, run once with main population [done]
+
