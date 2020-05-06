@@ -72,7 +72,7 @@ GetParams <- function(param.dist, niter, get.best.guess) {
   return(params)
 }
 
-ReadInputs <- function(path, generate.params = TRUE) {
+ReadInputs <- function(path) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H22"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
@@ -80,7 +80,10 @@ ReadInputs <- function(path, generate.params = TRUE) {
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
 
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
+  return(sheets)
+}
 
+ProcessSheets <- function(sheets, generate.params = TRUE) {
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
   model.inputs <- TableToList(sheets$`Model Inputs`)
   if (!("start.display.date" %in% names(model.inputs))) {
@@ -128,7 +131,8 @@ ReadInputs <- function(path, generate.params = TRUE) {
 #' @return list with all outputs (invisible)
 #' @export
 CredibilityIntervalFromExcel <- function(input.file) {
-  inputs <- ReadInputs(input.file)
+  sheets <- ReadInputs(input.file)
+  inputs <- ProcessSheets(sheets)
 
   cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
   cat("\nDone\n\n")
@@ -143,7 +147,8 @@ CredibilityIntervalFromExcel <- function(input.file) {
 #' @return a ggplot object
 #' @export
 VaryOneParameter <- function(input.file, parameter.name = "") {
-  inputs <- ReadInputs(input.file, generate.params = F)
+  sheets <- ReadInputs(input.file)
+  inputs <- ProcessSheets(sheets, generate.params = F)
   params <- inputs$best.guess.params
   if (parameter.name %in% names(params)) {
     parameter.range <- Unlist(inputs$param.dist[[parameter.name]])
