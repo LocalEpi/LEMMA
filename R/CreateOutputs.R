@@ -172,7 +172,7 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
       } else if (param.name == "final_Re") {
         #TODO: this could be cleaned up
         all.params[, final_Re := r0.initial]
-        for (i in grep("intervention[123456789].multiplier$", names(p), value=T)) {
+        for (i in grep("intervention[123456789].multiplier$", names(all.params), value=T)) {
           all.params[, final_Re := final_Re * get(i)]
         }
         cur.param <- all.params[, final_Re]
