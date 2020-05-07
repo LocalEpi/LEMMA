@@ -170,8 +170,12 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
         #TODO: this should be based on the current date vs the dates of the multipliers
         cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3 
       } else if (param.name == "final_Re") {
-        #TODO: this should be based on the number of multipliers
-        cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier * intervention3.multiplier]
+        #TODO: this could be cleaned up
+        all.params[, final_Re := r0.initial]
+        for (i in grep("intervention[123456789].multiplier$", names(p), value=T)) {
+          all.params[, final_Re := final_Re * get(i)]
+        }
+        cur.param <- all.params[, final_Re]
       } else {
         cur.param <- all.params[[param.name]]
       }
