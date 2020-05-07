@@ -72,13 +72,13 @@ PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
           geom_density(alpha=.2, fill="steelblue3") 
       }
       g <- g + labs(title = title1, caption = cap) + xlab(xlab)
-      print(g)
       g.list[[length(g.list) + 1]] <- g
     }
   } else {
+    g.list <- NULL
     cat("No histogram for ", xlab, ", constant value = ", as.character(unique(x)), "\n", sep = "")
   }
-  return(NULL)
+  return(g.list)
 }
 
 GetProjectionPlot <- function(short.term, niter, hosp.quantiles, bounds.without.multiplier, bounds.labels, plot.observed.data) {
@@ -176,7 +176,8 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
         cur.param <- all.params[[param.name]]
       }
       
-      PlotHist(cur.param, posterior.title, cap, param.name, in.bounds)
+      g.list <- PlotHist(cur.param, posterior.title, cap, param.name, in.bounds)
+      sapply(g.list, print)
     }
   }
   grDevices::dev.off()
