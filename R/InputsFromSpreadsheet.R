@@ -144,7 +144,7 @@ CredibilityIntervalFromExcel <- function(input.file) {
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
-  invisible(cred.int)
+  invisible(c(cred.int, inputs = list(inputs)))
 }
 
 #' Run Credibility Interval based on Excel inputs
