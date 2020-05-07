@@ -50,7 +50,7 @@ The provided spreadsheet provides a template and example of the inputs needed to
 ### Sheet 1: Parameters with Distributions
 Briefly, LEMMA requires parameters related to the epidemic modeling (e.g., basic reproductive number, duration of infectiousness, percent of infected persons who are hospitalized). LEMMA also allows the user to specify the timing and impact of public health interventions, such as school closures and shelter-in-place orders. The current implementation allows for 3 interventions; the first two are assumed to occur before the current date, and the third can be used to simulate epidemic if measures are implemented or lifted at a future date. Explanations for specific parameters are provided below.
 
-- Priors (Row 3): Specify the sampling probabilities for each parameter. You can change these as long as they sum to 100% The E-column corresponds to your best guess and should be given the most weight.
+- Priors (Row 3): Specify the sampling probabilities for each parameter. You can change these as long as they sum to 100% The E-column corresponds to your most likely prior and should be given the most weight.
 
 - Basic reproductive number R0 before Intervention1: This should represent initial epidemic growth before any public health interventions were implemented.
 
@@ -82,7 +82,7 @@ Given the above input, LEMMA runs specified number of simulations, where in each
 
 The main output is provided in pdf format. 
 
-- Page 1 is a graph of projected hospitalizations by date with uncertainity bounds. The yellow line is the projection under your best guess of parameters (represented by column E of the 'Parameters with Distributions' Tab). The red line is the median of the posterior projections. Uncertainty bands are represented by the shaded regions, representing quantiles of the posterior projections. 25%-75% of the posterior distribution falls within the dark gray band, 15%-85% within the medium gray band, and 5%-95% within the light gray bands. The black dots are the observed hospitalizations (currently assumed to be the average of the lower and upper bounds). 
+- Page 1 is a graph of projected hospitalizations by date with uncertainity bounds. The yellow line is the User's Prior Projection - a projection using only column E of the 'Parameters with Distributions' Tab. The red line is the median of the posterior projections. Uncertainty bands are represented by the shaded regions, representing quantiles of the posterior projections. 25%-75% of the posterior distribution falls within the dark gray band, 15%-85% within the medium gray band, and 5%-95% within the light gray bands. The black dots are the observed hospitalizations (currently assumed to be the average of the lower and upper bounds). 
 
 - Page 2 provides the prior distribution for the models considered. These models are derived by a combination of 3 parameters where 0 denotes false and 1 true. 'hasE' indicates if there is a latent period; 'infect in hosp' indicates if patients are infectious in the hospital, and 'rate to hospital' indicates if there is a constant rate at which infectious persons are hospitalized. 
 
@@ -94,7 +94,7 @@ The main output is provided in pdf format.
 
 - The following pages provide the prior and posterior distributions for all the specified parameters. 
 
-The Excel spreadsheet output provides detailed output for daily number hospitalized, in the ICU, on ventilators, as well as active cases and resolved cases. For each, the best guess and quantiles are provided.
+The Excel spreadsheet output provides detailed output for daily number hospitalized, in the ICU, on ventilators, as well as active cases and resolved cases. For each, the User's Prior Projection and quantiles are provided.
 
 
 ### License

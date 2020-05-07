@@ -53,15 +53,14 @@ SampleParam <- function(p, probs, niter) {
   return(x)
 }
 
-GetParams <- function(param.dist, niter, get.best.guess) {
+GetParams <- function(param.dist, niter, get.upp) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
 
   weight.labels <- param.dist$weight.labels
   param.dist1 <- param.dist
   param.dist1$parameter.weights <- param.dist1$weight.labels <-  NULL
-  if (get.best.guess) {
-    stopifnot(weight.labels$mid == "Best Guess")
+  if (get.upp) {
     params <- lapply(param.dist1, function (z) z$mid)
   } else {
     params <- lapply(param.dist1, SampleParam, niter = niter, probs = probs)
@@ -83,7 +82,7 @@ ReadInputs <- function(path) {
   return(sheets)
 }
 
-ProcessSheets <- function(sheets, generate.params = TRUE) {
+ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
   model.inputs <- TableToList(sheets$`Model Inputs`)
   if (!("start.display.date" %in% names(model.inputs))) {
@@ -91,12 +90,19 @@ ProcessSheets <- function(sheets, generate.params = TRUE) {
   }
   hosp.data <- sheets$`Hospitilization Data`
   internal <- TableToList(sheets$Internal)
-  if (!("plot.observed.data" %in% names(internal))) {
-    internal$plot.observed.data <- TRUE
+  if (!("plot.observed.data.long.term" %in% names(internal))) {
+    internal$plot.observed.data.long.term <- FALSE
   }
-  if (!("include.plot.caption" %in% names(internal))) {
-    internal$include.plot.caption <- TRUE
+  if (!("plot.observed.data.short.term" %in% names(internal))) {
+    internal$plot.observed.data.short.term <- TRUE
   }
+  if (!("lower.bound.label" %in% names(internal))) {
+    internal$lower.bound.label <- "Confirmed COVID19"
+  }
+  if (!("upper.bound.label" %in% names(internal))) {
+    internal$upper.bound.label <- "Probable COVID19"
+  }
+  
 
   observed.data <- hosp.data[, .(date = Date, hosp = (LowerBound + UpperBound) / 2)] #TODO: make this more flexible?
   if (!is.na(internal$min.obs.date.to.fit)) {
@@ -110,11 +116,11 @@ ProcessSheets <- function(sheets, generate.params = TRUE) {
 
   set.seed(internal$random.seed)
   if (generate.params) {
-    params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F)
+    params <- GetParams(param.dist, internal$main.iterations, get.upp = F)
   } else {
     params <- data.table()
   }
-  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T)
+  upp <- GetParams(param.dist, internal$main.iterations, get.upp = T)
 
   if (is.na(internal$output.filestr)) {
     internal$output.filestr <- sub(".xlsx", " output", path, fixed = T)
@@ -122,7 +128,7 @@ ProcessSheets <- function(sheets, generate.params = TRUE) {
   sheets$time.of.run <- as.character(Sys.time())
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
  
-  return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, best.guess.params = best.guess, excel.input = sheets, param.dist = param.dist))
+  return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, upp.params = upp, excel.input = sheets, param.dist = param.dist))
 }
 
 #' Run Credibility Interval based on Excel inputs
@@ -132,9 +138,9 @@ ProcessSheets <- function(sheets, generate.params = TRUE) {
 #' @export
 CredibilityIntervalFromExcel <- function(input.file) {
   sheets <- ReadInputs(input.file)
-  inputs <- ProcessSheets(sheets)
+  inputs <- ProcessSheets(sheets, input.file)
 
-  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, best.guess.params = inputs$best.guess.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, upp.params = inputs$upp.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
@@ -148,8 +154,8 @@ CredibilityIntervalFromExcel <- function(input.file) {
 #' @export
 VaryOneParameter <- function(input.file, parameter.name = "") {
   sheets <- ReadInputs(input.file)
-  inputs <- ProcessSheets(sheets, generate.params = F)
-  params <- inputs$best.guess.params
+  inputs <- ProcessSheets(sheets, input.file, generate.params = F)
+  params <- inputs$upp.params
   if (parameter.name %in% names(params)) {
     parameter.range <- Unlist(inputs$param.dist[[parameter.name]])
     params <- params[rep(1, length(parameter.range))]
