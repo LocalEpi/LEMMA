@@ -81,7 +81,7 @@ Save the Excel file.
 ```{r, eval = eval.all}
 LEMMA::CredibilityIntervalFromExcel("SF-May4-v1.xlsx")
 ```
-Note that the "Best Guess" scenario is not compatible with the given bounds. See FAQ.md for more details on what this means. 
+Note that the "User's Prior Projection" scenario is not compatible with the given bounds. See FAQ.md for more details on what this means. 
 
 5. Examine the .pdf and/or .xlsx output. 
 The first page of the .pdf says we have 342 iterations in the posterior distribution. This is also shown at the top of the Notes column on each .xlsx sheet.
@@ -172,7 +172,7 @@ Copy and paste the bounds to the Hospitilization Data tab.
 write.table(hosp.bounds[, .(date, LowerBound, UpperBound)], 
             sep = ",", row.names = F, col.names = F)
 ```
-To get fast feedback on just the Best Guess scenario, set main.iterations to 1.
+To get fast feedback on just the User's Prior Projection scenario, set main.iterations to 1.
 
 Save As Alameda-May4-v3.xlsx.
 
@@ -180,8 +180,8 @@ Save As Alameda-May4-v3.xlsx.
 LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v3.xlsx")
 ```
 
-7. Adjust Prior Distribution for Best Guess
-It looks like our "best guess" of R0 = 3.5 is too low to match the data. Try R0 = 4.
+7. Adjust User's Prior Projection
+It looks like our prior of R0 = 3.5 is too low to match the data. Try R0 = 4.
 Save As Alameda-May4-v4.xlsx.
 
 It may be more convenient to plot within RStudio so we don't have to refer to the .pdf output. 
