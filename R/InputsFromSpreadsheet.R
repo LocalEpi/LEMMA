@@ -72,7 +72,7 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
   return(params)
 }
 
-ReadInputs <- function(path, temp.scale) {
+ReadInputs <- function(path) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H24"), #don't read the whole sheet - there are hidden data validation lists below
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
@@ -83,12 +83,12 @@ ReadInputs <- function(path, temp.scale) {
 
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
  
-  for (i in names(temp.scale)) {
-    stopifnot(i %in% names(param.dist))
-    for (j in names(param.dist[[i]])) {
-      param.dist[[i]][[j]] <- param.dist[[i]][[j]] * temp.scale[[i]]
-    }
-  }
+  # for (i in names(temp.scale)) {
+  #   stopifnot(i %in% names(param.dist))
+  #   for (j in names(param.dist[[i]])) {
+  #     param.dist[[i]][[j]] <- param.dist[[i]][[j]] * temp.scale[[i]]
+  #   }
+  # }
   
   model.inputs <- TableToList(sheets$`Model Inputs`)
   model.inputs$total.population <- c(875000, 8000)

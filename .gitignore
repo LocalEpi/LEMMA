@@ -1,5 +1,6 @@
 .Rbuildignore
 .Rhistory
-.Rproj.user*
+.Rproj.user
+.Rproj.user/
 jsLEMMA.Rproj
 LEMMA.Rproj
