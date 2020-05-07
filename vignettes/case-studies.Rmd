@@ -100,10 +100,8 @@ Save the Excel file.
 result <- LEMMA::CredibilityIntervalFromExcel("SF-May4.xlsx")
 ```
 
-```{r, echo=FALSE}
-if (eval.all) {
-  result$gplot$long.term <- result$gplot$long.term + labs(subtitle = "Scenario: Re increases 50% (20%-100%) on June 1")
-}
+```{r, echo=FALSE, eval=eval.all}
+result$gplot$long.term <- result$gplot$long.term + labs(subtitle = "Scenario: Re increases 50% (20%-100%) on June 1")
 ```
 Note: You will get the same .pdf and .xlsx output files without the `result <-`
 ```{r, eval = F}
@@ -260,7 +258,7 @@ CachePlot("Alameda-May4-v7.rds", print.long.term = F)
 Now we at least have 40 iterations. Based on the histograms in the .pdf output, we might need a longer hospital length of stay (if you have data on this, that would be even better!).
 ```{r, echo = F}
  if (eval.all) {
-    gplot.hist <- PlotHist(result$inputs$all.params$hosp.length.of.stay, GetPlotTitle(sum(result$in.bounds)), "", "hosp.length.of.stay", result$in.bounds)
+    gplot.hist <- LEMMA:::PlotHist(result$inputs$all.params$hosp.length.of.stay, LEMMA:::GetPlotTitle(sum(result$in.bounds)), "", "hosp.length.of.stay", result$in.bounds)
     saveRDS(gplot.hist, "Alameda-May4-v7-hist.rds")
   } else {
     gplot.hist <- readRDS("Alameda-May4-v7-hist.rds")
@@ -286,8 +284,15 @@ We continued this process and eventually were able to come up with priors that f
 result <- LEMMA::CredibilityIntervalFromExcel("Alameda-May4-v9.xlsx")
 ```
 ```{r, echo=FALSE}
-CachePlot("Alameda-May4-v9.rds")
+CachePlot("Alameda-May4-v9.rds", print.long.term = F)
 ```
+
+As in "Modelling Future Changes in Transmission" above, the long term projection shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in Alameda-May4-v9.xlsx) on June 1.
+
+```{r, echo=FALSE}
+CachePlot("Alameda-May4-v9.rds", print.short.term = F)
+```
+
 
 This was not shown above, but another thing to try is increasing `upper.bound.multiplier` and/or decreasing `lower.bound.multiplier`. This will include combinations of parameters that give projections slightly (more) outside the given LowerBound and UpperBound. 
 

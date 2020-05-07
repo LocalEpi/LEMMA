@@ -403,7 +403,9 @@
 <p>Now we have 115 iterations.</p>
 <p>We continued this process and eventually were able to come up with priors that fit the data well. We adjusted the prior probabilities, R0, hospital length of stay, the second Re multiplier, days to reach Re, patients in hospital are infectious and constant rate to hospital.</p>
 <div class="sourceCode" id="cb24"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v9.xlsx"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-35-1.png" width="768"><img src="case-studies_files/figure-html/unnamed-chunk-35-2.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-35-1.png" width="768"></p>
+<p>As in “Modelling Future Changes in Transmission” above, the long term projection shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in Alameda-May4-v9.xlsx) on June 1.</p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-36-1.png" width="768"></p>
 <p>This was not shown above, but another thing to try is increasing <code>upper.bound.multiplier</code> and/or decreasing <code>lower.bound.multiplier</code>. This will include combinations of parameters that give projections slightly (more) outside the given LowerBound and UpperBound.</p>
 <div id="important-considerations" class="section level2">
 <h2 class="hasAnchor">
