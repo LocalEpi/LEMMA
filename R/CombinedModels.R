@@ -245,7 +245,7 @@ CalcError <- function(simulated.data, observed.data, weights) {
     sum.sim.sq <- sum.sim.sq + colSums(weight^2 * sim.data^2, na.rm = T)
     sum.sum.obs <- sum.sum.obs + colSums(weight^2 * (sim.data * obs.data), na.rm = T)
   }
-  optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get best guess for optimal initial.new.exposures
+  optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get estimate of optimal initial.new.exposures
   optimal.initial.new.exposures.scale[sum.sum.obs == 0] <- 0 #fix 0/0 problems when sim.data is all 0
   stopifnot(optimal.initial.new.exposures.scale >= 0)
   #assumes obs.date > min(sim.date)
@@ -292,13 +292,14 @@ SeqAround <- function(lo, hi, est, n) {
 }
 
 GetNextX <- function(fit, first.iter, expander, num.init.exp) {
-  #TODO: vectorize? (I think the time saved vs complexity is not worth it)
-  #TODO: make a smarter guess of x.min/x.max - inner bucket should be estimate of the width of initial.exposures needed to establish convergence, outer buckets should try to establish an interior solution
+  #TODO: make a smarter estimate of x.min/x.max - inner bucket should be estimate of the width of initial.exposures needed to establish convergence, outer buckets should try to establish an interior solution
 
   #if expander is too small, optimal.initial.new.exposures won't fit in x.min to x.max during (for iter > 1); if expander is too big, won't detect convergence
   #if you see a lot of "expanded max" or "opt.outside.minmax" -> make expander bigger
   #if convergence is low on iter = 2 => try expander smaller or bigger or increase num.init.exp (this is harder to say because it can detect convergence between different indexes)
 
+  #This could be vectorized but I think the time saved vs complexity is not worth it
+  
   #num.init.exp is number to use on all iterations except the initial fit (which uses one initial exposure)
   stopifnot(num.init.exp %% 2 == 1) #num.init.exp must be odd
 
@@ -402,145 +403,3 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
   return(seir)
 }
 
-#just for debugging
-RunSim.slow <- function(total.population, observed.data, start.date, end.date, params) {
-  f <- function(x, p, check.peak) {
-    seir <- SEIR(matrix(x, 1, 1), initial.conditions = total.population, start.date, end.date = max(observed.data$date), p)
-
-    weights <- lapply(observed.data[, -"date"], function (obs.data.col) 1)
-    error <- CalcError(seir, observed.data, weights)
-
-    badness <- error$sum.error.sq
-    if (check.peak) {
-      return(c(badness=badness, peak = error$peak.before.first.observed))
-    } else {
-      cat("x = ", x, "f(x) = ", badness, "\n")
-      badness
-    }
-  }
-  best.fit <- rep(NA_real_, nrow(params))
-  for (j in 1:nrow(params)) {
-
-    #find upper bound
-    x <- c(10^(-30:0), observed.data[1, hosp], length.out = 100)
-    fx <- sapply(x, f, p = params[j], check.peak = T)
-    if (!all(fx["peak", ]  == 1)) {
-      fx["badness", ][fx["peak", ] == 1] <- Inf
-    }
-    upper <- x[which.min(fx["badness", ]) + 1]
-    stopifnot(is.finite(upper))
-
-    opt <- optimize(f, interval = c(0, upper), p = params[j], check.peak = F,  tol=1e-30)
-    best.fit[j] <- opt$minimum
-    if (opt$objective > 10) {
-      print(opt)
-    }
-  }
-
-
-  seir <- Seir(best.fit, initial.conditions = total.population, start.date, end.date, params)
-
-}
-
-RunExample <- function() {
-  if (T) {
-    set.seed(NULL); sseed <- round(runif(1, 1, 10000)); set.seed(sseed); cat("sseed = ", sseed, "\n")
-  } else {
-    set.seed(2267)
-  }
-
-  start.date <- as.Date("2020/1/23")
-  hosp.date <- as.Date("2020/3/25")
-
-  num.params <- 20
-  latent.period <- RandInt(num.params, 0, 6)
-  params <- data.table(
-    latent.period = latent.period,
-    illness.length.given.nonhosp = RandInt(num.params, 2, 10),
-    exposed.to.hospital = RandInt(num.params, latent.period + 1, 12),
-    hosp.length.of.stay = RandInt(num.params, 5, 15),
-    prop.hospitalized = RandInt(num.params, 4, 6) / 100,
-    prop.icu = 0,
-    prop.vent = 0,
-    patients.in.hosp.are.infectious = T,
-    use.hosp.rate = T,
-    intervention1_smooth_days = 7,
-    intervention1_date = as.Date("2020/3/6"),
-    intervention1_multiplier = sample(c(.6, .4, .5, .8, 1), size = num.params, replace = T),
-    intervention2_smooth_days = 7,
-    intervention2_date = as.Date("2020/3/16"),
-    intervention2_multiplier = sample(c(.45, .3, .4, .8, 1), size = num.params, replace = T),
-    r0.initial = runif(num.params, 2.5, 4.5)
-  )
-
-  observed.data <- data.table(date = hosp.date + 0:5, hosp = c(20, 22, 26, 27, 30, 35))
-  end.date <- max(observed.data$date)
-
-  #RunSim example
-  if (T) {
-    sim <- RunSim.new(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
-  }
-
-  #Seir examples
-  if (F) {
-    #single params, single initial.new.exposures
-    print(Seir(initial.new.exposures = 0.1, initial.conditions = 880000, start.date, end.date, params[1]))
-    #multiple params, single initial.new.exposures
-    print(Seir(initial.new.exposures = 5, initial.conditions = 880000, start.date, end.date, params[1]))
-
-    #multiple params, multiple initial.new.exposures
-    print(Seir(initial.new.exposures = runif(nrow(params)), initial.conditions = 880000, start.date, end.date, params))
-  }
-}
-
-FindSearchBug <- function(use.slow) {
-
-
-  start.date <- as.Date("2020/1/23")
-  hosp.date <- as.Date("2020/3/25")
-
-  num.params <- 20
-  latent.period <- RandInt(num.params, 0, 6)
-  params <- data.table(
-    latent.period = latent.period,
-    illness.length.given.nonhosp = RandInt(num.params, 2, 10),
-    exposed.to.hospital = RandInt(num.params, latent.period + 1, 12),
-    hosp.length.of.stay = RandInt(num.params, 5, 15),
-    prop.hospitalized = RandInt(num.params, 4, 6) / 100,
-    prop.icu = 0,
-    prop.vent = 0,
-    patients.in.hosp.are.infectious = T,
-    use.hosp.rate = T,
-    intervention1_smooth_days = 7,
-    intervention1_date = as.Date("2020/3/6"),
-    intervention1_multiplier = sample(c(.6, .4, .5, .8, 1), size = num.params, replace = T),
-    intervention1_smooth_days = 7,
-    intervention1_date = as.Date("2020/3/16"),
-    intervention1_multiplier = sample(c(.45, .3, .4, .8, 1), size = num.params, replace = T),
-    r0.initial = runif(num.params, 2.5, 4.5)
-  )
-
-  # params <- params[c(12)]
-
-  # observed.data <- data.table(date = hosp.date, hosp = 20)
-  observed.data <- data.table(date = hosp.date + 0:5, hosp = c(20, 22, 26, 27, 30, 35))
-  end.date <- max(observed.data$date)
-
-  if (use.slow) {
-    sim <- RunSim.slow(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
-  } else {
-    sim <- RunSim.new(params, total.population = 880000, observed.data = observed.data, start.date = start.date, end.date = end.date)
-  }
-
-  cat("\n\n")
-
-  zz <- sim$hosp[as.character(observed.data$date), ]
-  if (is.vector(zz) == 1) {
-    print(summary(zz))
-  } else {
-    print(cbind(observed.data, rowQuantiles(zz)))
-  }
-  sq.err <- colSums((zz - observed.data$hosp)^2)
-  print(summary(sq.err))
-  cat()
-}
