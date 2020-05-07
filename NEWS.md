@@ -1,8 +1,13 @@
-v0.3.0.9004 
-“Best Guess” was sometimes misinterpreted so we changed “Best Guess” to “User’s Prior Projection”. User’s Prior Projection is only displayed if niter < 100.
-Added to internal.args:
--plot.observed.data.long.term
--plot.observed.data.short.term
--lower.bound.label
--upper.bound.label
-PDF now includes short-term (dates of observed data) and long-term (until Projection End Date) plots
+# LEMMA 0.3.0.9004 
+
+## New Features
+* “Best Guess” was sometimes misinterpreted so we changed “Best Guess” to “User’s Prior Projection”. User’s Prior Projection is only displayed if niter < 100.
+
+* PDF now includes short-term (dates of observed data) and long-term (until Projection End Date) plots
+
+* `plot.observed.data.long.term`, `plot.observed.data.short.term` added to internal.args (Internal sheet). These logicals control plotting the observed data bounds on the long-term and short-term plots.
+
+* `lower.bound.label`, `upper.bound.label` added to internal.args (Internal sheet). For example, in San Francisco these are "Confirmed COVID19" and "Confirmed COVID19 + 30%PUI".
+
+## Minor improvements and fixes
+* Case Studies was updated to include plots

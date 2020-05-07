@@ -95,31 +95,70 @@
 
     
     
-<ol style="list-style-type: decimal">
-<li>What is the definition of the “priors” row?</li>
-</ol>
+<div id="what-is-the-definition-of-the-priors-row" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-is-the-definition-of-the-priors-row" class="anchor"></a>What is the definition of the “priors” row?</h2>
 <p>These are the probabilities used in our simulations before we check their consistency with the observed data. They are reflected in the .pdf output of the “Prior” histograms. The “Posterior” histograms in the .pdf output show the distribution of each parameter that is compatible with the observed data.</p>
-<p>Example:</p>
-<p>Priors 5% 15% 60% 15% 5%</p>
-<p>Basic reproductive number R0 before Intervention1 2.5 3 3.5 4 4.5</p>
-<p>Number of Days from Infection to Becoming Infectious (Latent Period) 0 2 3 4 5</p>
-<p>When we do our first simulation, we will draw an initial R0. Roughly speaking*, 60% of the time we will use R0 = 3.5, 15% of the time we use R0 = 4, etc. Then we draw the latent period; 60% of the time 3 days, 15% 4 days, etc. We do the same for each of the 19 parameters. Then use these 19 parameters to project hospitalization.. If the projected hospitalization is compatabile** with the observed hospitalization, this set of parameters is accepted.</p>
+<p><em>Example:</em></p>
+<table class="table">
+<colgroup>
+<col width="69%">
+<col width="5%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="4%">
+</colgroup>
+<thead><tr class="header">
+<th>Priors</th>
+<th>5%</th>
+<th>15%</th>
+<th>60%</th>
+<th>15%</th>
+<th>5%</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Basic reproductive number R0 before Intervention1</td>
+<td>2.5</td>
+<td>3</td>
+<td>3.5</td>
+<td>4</td>
+<td>4.5</td>
+</tr>
+<tr class="even">
+<td>Number of Days from Infection to Becoming Infectious (Latent Period)</td>
+<td>0</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>When we do our first simulation, we will draw an initial <em>R0</em>. Roughly speaking*, 60% of the time we will use <em>R0 = 3.5</em>, 15% of the time we use <em>R0 = 4</em>, etc. Then we draw the latent period; 60% of the time 3 days, 15% 4 days, etc. We do the same for each of the 19 parameters. Then use these 19 parameters to project hospitalization. If the projected hospitalization is compatabile** with the observed hospitalization, this set of parameters is accepted.</p>
 <p>We repeat this process <code>main.iterations</code> times. We get our projected distributions by taking quantiles of the accepted projections.</p>
 <p>*Actually we draw a normally distributed random variable with the same mean and standard deviation implied by this discrete distribution.</p>
 <p>** Specifically, a scenario is accepted if <code>required.in.bounds</code> fraction of the projected hospitalization by day is within <code>lower.bound.multiplier * LowerBound</code> to <code>upper.bound.multiplier * UpperBound</code>. You can customize these in the Internals sheet and Hospitalization Data sheet.</p>
-<ol start="2" style="list-style-type: decimal">
-<li>How do the Re multipliers for interventions work?</li>
-</ol>
-<p>The first Re multiplier is multiplied by the basic R0 to give the new Re after the first intervention. The second Re multiplier is multiplied by the basic R0 <strong>and</strong> the first Re multiplier to give the new Re after the second intervention. Re after third intervention = <code>R0 * intervention1.multiplier * intervention2.multiplier * intervention3.multiplier</code></p>
-<ol start="3" style="list-style-type: decimal">
-<li>What if I only have 2 interventions?</li>
-</ol>
+</div>
+<div id="how-do-the-re-multipliers-for-interventions-work" class="section level2">
+<h2 class="hasAnchor">
+<a href="#how-do-the-re-multipliers-for-interventions-work" class="anchor"></a>How do the Re multipliers for interventions work?</h2>
+<p>The first Re multiplier is multiplied by the basic R0 to give the new Re after the first intervention. The second Re multiplier is multiplied by the basic R0 <strong>and</strong> the first Re multiplier to give the new Re after the second intervention.</p>
+<p>Re after third intervention = <code>R0 * intervention1.multiplier * intervention2.multiplier * intervention3.multiplier</code></p>
+</div>
+<div id="what-if-i-only-have-2-interventions" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-if-i-only-have-2-interventions" class="anchor"></a>What if I only have 2 interventions?</h2>
 <p>Set all values of <code>intervention3.multiplier</code> to 1.</p>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 
