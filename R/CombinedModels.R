@@ -117,16 +117,16 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
           new.exposures[tt, j, , k] <- S.N * (beta.mat %*% total.infected[tt, j, , k])
         }
       }
-      # cat("new code: tt = ", tt, "\n")
-      # print(p[1])
-      # cat("new.exposures=\n")
-      # print(new.exposures)
-      # if (tt == 3) {
-      #   print(beta[tt, 1, , ])
-      #   print(q$S[tt, 1, , ])
-      #   print(total.infected[tt, 1, , ])
-      #   print(N)
-      # }
+      cat("new code: tt = ", tt, "\n")
+      print(p[1])
+      cat("new.exposures=\n")
+      print(new.exposures)
+      if (tt == 3) {
+        print(beta[tt, 1, , ])
+        print(q$S[tt, 1, , ])
+        print(total.infected[tt, 1, , ])
+        print(N)
+      }
       if (F) {
         # warning("temp - truncation disabled")
       } else {

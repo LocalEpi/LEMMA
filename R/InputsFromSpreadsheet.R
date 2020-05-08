@@ -45,9 +45,6 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
   
-  params[, k1 := within.group.mixing]
-  params[, k2 := within.group.mixing] #assumed same for now
-
   params[, r0.initial.11 := NA_real_]
   params[, r0.initial.12 := NA_real_]
   params[, r0.initial.21 := NA_real_]
@@ -73,7 +70,7 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
 }
 
 ReadInputs <- function(path) {
-  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H24"), #don't read the whole sheet - there are hidden data validation lists below
+  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"), #assumes text under last row has been moved
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
@@ -91,7 +88,9 @@ ReadInputs <- function(path) {
   # }
   
   model.inputs <- TableToList(sheets$`Model Inputs`)
-  model.inputs$total.population <- c(875000, 8000)
+  stopifnot(!is.null(model.inputs$total.population1), !is.null(model.inputs$total.population2))
+  model.inputs$total.population <- c(model.inputs$total.population1, model.inputs$total.population2)
+  model.inputs$total.population1 <- model.inputs$total.population2 <- NULL
   
   hosp.data <- sheets$`Hospitilization Data`
   internal <- TableToList(sheets$Internal)
