@@ -103,18 +103,18 @@
 <h1 class="hasAnchor">
 <a href="#san-francisco" class="anchor"></a>San Francisco</h1>
 <ol style="list-style-type: decimal">
-<li><p>Get raw data. It would be better to automate this, but to keep things simple in this example, we exported as csv from <a href="https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem" class="uri">https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem</a>. This is COVID-19_Hospitalizations_SFMay4.csv.</p></li>
+<li><p>Get raw data. It would be better to automate this, but to keep things simple in this example, we exported as csv from <a href="https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem" class="uri">https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem</a>. This is COVID-19_Hospitalizations_SFMay6.csv.</p></li>
 <li><p>Estimate Hospitilization Data bounds <code>LEMMA</code> needs lower and upper bounds on the <em>true</em> number of people hospitalized with COVID-19 on each day. In other words, if all hospital patients in San Francisco were given a perfect COVID-19 test on Day <span class="math inline">\(X\)</span>, how many would test positive for COVID-19? San Francisco has number of confirmed COVID+ and PUI (persons under investigation - suspected COVID-19). We currently assume a lower bound of 100% of confirmed and an upper bound of 100% of confirmed + 30% of PUI (adding together DPHCategory = Med/Surg and DPHCategory = ICU).</p></li>
 </ol>
 <p>A quick overview of the data:</p>
-<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">dt</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html">fread</a></span>(<span class="st">"COVID-19_Hospitalizations_SFMay4.csv"</span>)
+<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">dt</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html">fread</a></span>(<span class="st">"COVID-19_Hospitalizations_SFMay6.csv"</span>)
 <span class="no">dt</span>[, <span class="no">date</span> <span class="kw">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span>(<span class="no">reportDate</span>)]
 <span class="no">dt</span>[, <span class="fu">.</span>(<span class="kw">meanAcrossDays</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span>(<span class="no">PatientCount</span>)), <span class="kw">by</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"Hospital"</span>, <span class="st">"DPHCategory"</span>, <span class="st">"CovidStatus"</span>)]
 <span class="co">#&gt;            Hospital DPHCategory CovidStatus meanAcrossDays</span>
-<span class="co">#&gt; 1: All SF Hospitals    Med/Surg      COVID+      46.951220</span>
-<span class="co">#&gt; 2: All SF Hospitals         ICU      COVID+      28.146341</span>
-<span class="co">#&gt; 3: All SF Hospitals    Med/Surg         PUI      44.195122</span>
-<span class="co">#&gt; 4: All SF Hospitals         ICU         PUI       8.487805</span></pre></body></html></div>
+<span class="co">#&gt; 1: All SF Hospitals    Med/Surg      COVID+       47.64444</span>
+<span class="co">#&gt; 2: All SF Hospitals         ICU      COVID+       28.06667</span>
+<span class="co">#&gt; 3: All SF Hospitals    Med/Surg         PUI       44.26667</span>
+<span class="co">#&gt; 4: All SF Hospitals         ICU         PUI        8.00000</span></pre></body></html></div>
 <p>Calculate bounds:</p>
 <div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">dt</span>[<span class="no">CovidStatus</span> <span class="kw">==</span> <span class="st">"COVID+"</span>, <span class="no">mult.low</span> <span class="kw">:=</span> <span class="fl">1</span>]
 <span class="no">dt</span>[<span class="no">CovidStatus</span> <span class="kw">==</span> <span class="st">"COVID+"</span>, <span class="no">mult.high</span> <span class="kw">:=</span> <span class="fl">1</span>]
@@ -166,6 +166,10 @@
 <span class="co">#&gt; 39: 2020-04-30         90       96.0</span>
 <span class="co">#&gt; 40: 2020-05-01         87       95.7</span>
 <span class="co">#&gt; 41: 2020-05-02         90       96.0</span>
+<span class="co">#&gt; 42: 2020-05-03         86       91.1</span>
+<span class="co">#&gt; 43: 2020-05-04         84       87.9</span>
+<span class="co">#&gt; 44: 2020-05-05         80       90.8</span>
+<span class="co">#&gt; 45: 2020-05-06         78      115.8</span>
 <span class="co">#&gt;           date LowerBound UpperBound</span></pre></body></html></div>
 <p>There may be some data quality problems in March 30 - April 4:</p>
 <div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) +
@@ -215,7 +219,11 @@
 <span class="co">#&gt; 2020-04-29,90,96.6</span>
 <span class="co">#&gt; 2020-04-30,90,96</span>
 <span class="co">#&gt; 2020-05-01,87,95.7</span>
-<span class="co">#&gt; 2020-05-02,90,96</span></pre></body></html></div>
+<span class="co">#&gt; 2020-05-02,90,96</span>
+<span class="co">#&gt; 2020-05-03,86,91.1</span>
+<span class="co">#&gt; 2020-05-04,84,87.9</span>
+<span class="co">#&gt; 2020-05-05,80,90.8</span>
+<span class="co">#&gt; 2020-05-06,78,115.8</span></pre></body></html></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Choose your prior distributions in the Parameters with Distributions tab. These should reflect your prior knowledge, based on available research and local information. The values in the template file reflect our knowledge as of April 13 about San Francisco. We later learned that Percent of Hospitalized COVID-19 Patients That are Currently in the ICU should be lower - we changed it to 32% 34% 36% 39% 41%</li>
 </ol>
@@ -223,17 +231,17 @@
 <ol start="4" style="list-style-type: decimal">
 <li>Run CredibilityIntervalFromExcel (takes 1-2 minutes)</li>
 </ol>
-<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"SF-May4.xlsx"</span>)</pre></body></html></div>
-<p>Note: You will get the same .pdf and .xlsx output files without the <code>result &lt;-</code></p>
-<div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"SF-May4.xlsx"</span>)</pre></body></html></div>
-<p>Adding <code>result &lt;-</code> gives you more flexibility to use the outputs of LEMMA within R.</p>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-11-1.png" width="768"></p>
+<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"SF-May6.xlsx"</span>)</pre></body></html></div>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-9-1.png" width="768"></p>
+<p>The projection fits the data reasonably well, but we have only 361 posterior distributions. We recommend at least 1000 for inference. On the Internal sheet, change <code>main.iterations</code> to 35000. Save As “SF-May 6-v2.xlsx”</p>
+<div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"SF-May6-v2.xlsx"</span>)</pre></body></html></div>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
 </div>
 <div id="modelling-future-changes-in-transmission" class="section level1">
 <h1 class="hasAnchor">
 <a href="#modelling-future-changes-in-transmission" class="anchor"></a>Modelling Future Changes in Transmission</h1>
 <p>Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. This is already set in the existing xlsx inputs. Below shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in SF-May4.xlsx) on June 1.</p>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-12-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-13-1.png" width="768"></p>
 </div>
 <div id="alameda-county" class="section level1">
 <h1 class="hasAnchor">
@@ -263,12 +271,12 @@
 <div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="no">hosp.bounds</span> <span class="kw">&lt;-</span> <span class="no">dt</span>[, <span class="fu">.</span>(<span class="kw">date</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span>(<span class="no">Date</span>, <span class="kw">format</span> <span class="kw">=</span> <span class="st">"%m/%d/%y"</span>), <span class="kw">LowerBound</span> <span class="kw">=</span> <span class="no">Hospitalized_COVID_19_Positive_</span>)]</pre></body></html></div>
 <p>The data looks somewhat noisy.</p>
 <div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span><span class="kw">=</span><span class="no">date</span>, <span class="kw">y</span><span class="kw">=</span><span class="no">LowerBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>()</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-15-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 <p>Let’s see what happens if we use it as-is.</p>
 <p>In San Francisco, the UpperBound is roughly 115% of the LowerBound, so we could use than as a first approximation.</p>
 <div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="no">hosp.bounds</span>[, <span class="no">UpperBound</span> <span class="kw">:=</span> <span class="no">LowerBound</span> * <span class="fl">1.15</span>]
 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span>(<span class="no">hosp.bounds</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">x</span> <span class="kw">=</span> <span class="no">date</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">LowerBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) + <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span>(<span class="st">"Hospitalizations"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-17-1.png" width="768"></p>
 <p>Open the template Excel file. In Excel, Save As as “Alameda-May4-v1.xlsx”.</p>
 <p>On the Model Inputs sheet, change Number of People in Area to 1671000</p>
 <p>Copy and paste the bounds to the Hospitilization Data tab.</p>
@@ -315,13 +323,13 @@
 <ol start="5" style="list-style-type: decimal">
 <li>Examine the .pdf and/or .xlsx output.</li>
 </ol>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-19-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-20-1.png" width="768"></p>
 <p>The first page of the .pdf says we have 0 iterations. Obviously we need to make some changes.</p>
 <p>The April 16 data is clearly an outlier. Delete that row in Excel.</p>
 <p>Save As Alameda-May4-v2.xlsx.</p>
 <div class="sourceCode" id="cb15"><html><body><pre class="r"><span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v2.xlsx"</span>)</pre></body></html></div>
 <p>Running CredibilityIntervalFromExcel still gives 0 iterations.</p>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-21-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-22-1.png" width="768"></p>
 <ol start="6" style="list-style-type: decimal">
 <li>Try smoothing the data. We use loess with span = 0.4 but other smoothing procedures could be used.</li>
 </ol>
@@ -338,7 +346,7 @@
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span> <span class="kw">=</span> <span class="no">UpperBound</span>)) +
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.upper</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Upper Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>) +
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span>(<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span>(<span class="kw">y</span><span class="kw">=</span><span class="no">orig.lower</span>, <span class="kw">shape</span> <span class="kw">=</span> <span class="st">"Lower Bound"</span>), <span class="kw">fill</span> <span class="kw">=</span> <span class="st">"black"</span>, <span class="kw">na.rm</span> <span class="kw">=</span> <span class="no">T</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-22-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-23-1.png" width="768"></p>
 <p>Copy and paste the bounds to the Hospitilization Data tab.</p>
 <div class="sourceCode" id="cb17"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span>(<span class="no">hosp.bounds</span>[, <span class="fu">.</span>(<span class="no">date</span>, <span class="no">LowerBound</span>, <span class="no">UpperBound</span>)],
             <span class="kw">sep</span> <span class="kw">=</span> <span class="st">","</span>, <span class="kw">row.names</span> <span class="kw">=</span> <span class="no">F</span>, <span class="kw">col.names</span> <span class="kw">=</span> <span class="no">F</span>)
@@ -377,35 +385,35 @@
 <p>To get fast feedback on just the User’s Prior Projection scenario, on the Internals sheet, set main.iterations to 1.</p>
 <p>Save As Alameda-May4-v3.xlsx.</p>
 <div class="sourceCode" id="cb18"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v3.xlsx"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-25-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-26-1.png" width="768"></p>
 <ol start="7" style="list-style-type: decimal">
 <li>Adjust User’s Prior Projection It looks like our prior of R0 = 3.5 is too low to match the data. Try R0 = 4. Save As Alameda-May4-v4.xlsx.</li>
 </ol>
 <p>It may be more convenient to plot within RStudio so we don’t have to refer to the .pdf output.</p>
 <div class="sourceCode" id="cb19"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v4.xlsx"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span>(<span class="no">result</span>$<span class="no">gplot</span>$<span class="no">short.term</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-26-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-27-1.png" width="768"></p>
 <p>Try fitting E0 (the initial number of exposed) using only the days before peak hospitalization. On the Interal sheet, set max.obs.date.to.fit to 4/10/2020.</p>
 <div class="sourceCode" id="cb20"><html><body><pre class="r"><span class="no">z</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v5.xlsx"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span>(<span class="no">z</span>$<span class="no">gplot</span>$<span class="no">short.term</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-27-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-28-1.png" width="768"></p>
 <p>Now the beginning looks better, but then the multiplier for one of the interventions needs to be stronger. Change the first Re multiplier from 0.6 to 0.5.</p>
 <div class="sourceCode" id="cb21"><html><body><pre class="r"><span class="no">z</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v6.xlsx"</span>)
 <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span>(<span class="no">z</span>$<span class="no">gplot</span>$<span class="no">short.term</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-28-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-29-1.png" width="768"></p>
 <p>We might be getting in the ballpark. Let’s try a flatter prior distribution. Set all Priors to 20%. Set Re multiplier for the first intervention to 0.35 0.4 0.45 0.55 0.7. Set main.iterations to 10000. Set required.in.bounds to 95%.</p>
 <div class="sourceCode" id="cb22"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v7.xlsx"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-30-1.png" width="768"></p>
-<p>Now we at least have 40 iterations. Based on the histograms in the .pdf output, we might need a longer hospital length of stay (if you have data on this, that would be even better!). <img src="case-studies_files/figure-html/unnamed-chunk-31-1.png" width="768"><img src="case-studies_files/figure-html/unnamed-chunk-31-2.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-31-1.png" width="768"></p>
+<p>Now we at least have 40 iterations. Based on the histograms in the .pdf output, we might need a longer hospital length of stay (if you have data on this, that would be even better!). <img src="case-studies_files/figure-html/unnamed-chunk-32-1.png" width="768"><img src="case-studies_files/figure-html/unnamed-chunk-32-2.png" width="768"></p>
 <p>Change Average Hospital Length of Stay to 6 10 14 18 22. Save as Alameda-May4-v8.xlsx.</p>
 <div class="sourceCode" id="cb23"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v8.xlsx"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-33-1.png" width="768"></p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-34-1.png" width="768"></p>
 <p>Now we have 115 iterations.</p>
 <p>We continued this process and eventually were able to come up with priors that fit the data well. We adjusted the prior probabilities, R0, hospital length of stay, the second Re multiplier, days to reach Re, patients in hospital are infectious and constant rate to hospital.</p>
 <div class="sourceCode" id="cb24"><html><body><pre class="r"><span class="no">result</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">::</span><span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"Alameda-May4-v9.xlsx"</span>)</pre></body></html></div>
-<p><img src="case-studies_files/figure-html/unnamed-chunk-35-1.png" width="768"></p>
-<p>As in “Modelling Future Changes in Transmission” above, the long term projection shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in Alameda-May4-v9.xlsx) on June 1.</p>
 <p><img src="case-studies_files/figure-html/unnamed-chunk-36-1.png" width="768"></p>
+<p>As in “Modelling Future Changes in Transmission” above, the long term projection shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in Alameda-May4-v9.xlsx) on June 1.</p>
+<p><img src="case-studies_files/figure-html/unnamed-chunk-37-1.png" width="768"></p>
 <p>This was not shown above, but another thing to try is increasing <code>upper.bound.multiplier</code> and/or decreasing <code>lower.bound.multiplier</code>. This will include combinations of parameters that give projections slightly (more) outside the given LowerBound and UpperBound.</p>
 <div id="important-considerations" class="section level2">
 <h2 class="hasAnchor">

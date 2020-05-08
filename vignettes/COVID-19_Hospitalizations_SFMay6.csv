@@ -40,6 +40,10 @@ reportDate,Hospital,DPHCategory,CovidStatus,PatientCount
 2020/04/30,All SF Hospitals,Med/Surg,COVID+,58
 2020/05/01,All SF Hospitals,Med/Surg,COVID+,58
 2020/05/02,All SF Hospitals,Med/Surg,COVID+,60
+2020/05/03,All SF Hospitals,Med/Surg,COVID+,60
+2020/05/04,All SF Hospitals,Med/Surg,COVID+,57
+2020/05/05,All SF Hospitals,Med/Surg,COVID+,54
+2020/05/06,All SF Hospitals,Med/Surg,COVID+,48
 2020/03/23,All SF Hospitals,ICU,COVID+,14
 2020/03/24,All SF Hospitals,ICU,COVID+,15
 2020/03/25,All SF Hospitals,ICU,COVID+,18
@@ -81,6 +85,10 @@ reportDate,Hospital,DPHCategory,CovidStatus,PatientCount
 2020/04/30,All SF Hospitals,ICU,COVID+,32
 2020/05/01,All SF Hospitals,ICU,COVID+,29
 2020/05/02,All SF Hospitals,ICU,COVID+,30
+2020/05/03,All SF Hospitals,ICU,COVID+,26
+2020/05/04,All SF Hospitals,ICU,COVID+,27
+2020/05/05,All SF Hospitals,ICU,COVID+,26
+2020/05/06,All SF Hospitals,ICU,COVID+,30
 2020/03/23,All SF Hospitals,Med/Surg,PUI,101
 2020/03/24,All SF Hospitals,Med/Surg,PUI,96
 2020/03/25,All SF Hospitals,Med/Surg,PUI,62
@@ -122,6 +130,10 @@ reportDate,Hospital,DPHCategory,CovidStatus,PatientCount
 2020/04/30,All SF Hospitals,Med/Surg,PUI,19
 2020/05/01,All SF Hospitals,Med/Surg,PUI,23
 2020/05/02,All SF Hospitals,Med/Surg,PUI,17
+2020/05/03,All SF Hospitals,Med/Surg,PUI,15
+2020/05/04,All SF Hospitals,Med/Surg,PUI,13
+2020/05/05,All SF Hospitals,Med/Surg,PUI,27
+2020/05/06,All SF Hospitals,Med/Surg,PUI,125
 2020/03/23,All SF Hospitals,ICU,PUI,21
 2020/03/24,All SF Hospitals,ICU,PUI,15
 2020/03/25,All SF Hospitals,ICU,PUI,12
@@ -163,3 +175,7 @@ reportDate,Hospital,DPHCategory,CovidStatus,PatientCount
 2020/04/30,All SF Hospitals,ICU,PUI,1
 2020/05/01,All SF Hospitals,ICU,PUI,6
 2020/05/02,All SF Hospitals,ICU,PUI,3
+2020/05/03,All SF Hospitals,ICU,PUI,2
+2020/05/04,All SF Hospitals,ICU,PUI,0
+2020/05/05,All SF Hospitals,ICU,PUI,9
+2020/05/06,All SF Hospitals,ICU,PUI,1

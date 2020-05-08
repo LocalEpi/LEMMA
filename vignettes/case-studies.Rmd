@@ -44,14 +44,14 @@ In these Case Studies we show how to use LEMMA to model COVID-19 hospitalization
 # San Francisco
 
 1. Get raw data. 
-It would be better to automate this, but to keep things simple in this example, we exported as csv from https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem. This is COVID-19_Hospitalizations_SFMay4.csv.
+It would be better to automate this, but to keep things simple in this example, we exported as csv from https://data.sfgov.org/COVID-19/COVID-19-Hospitalizations/nxjg-bhem. This is COVID-19_Hospitalizations_SFMay6.csv.
 
 2. Estimate Hospitilization Data bounds
 `LEMMA` needs lower and upper bounds on the *true* number of people hospitalized with COVID-19 on each day. In other words, if all hospital patients in San Francisco were given a perfect COVID-19 test on Day $X$, how many would test positive for COVID-19? San Francisco has number of confirmed COVID+ and PUI (persons under investigation - suspected COVID-19). We currently assume a lower bound of 100% of confirmed and an upper bound of 100% of confirmed + 30% of PUI (adding together DPHCategory = Med/Surg and DPHCategory = ICU). 
 
 A quick overview of the data:
 ```{r}
-dt <- fread("COVID-19_Hospitalizations_SFMay4.csv")
+dt <- fread("COVID-19_Hospitalizations_SFMay6.csv")
 dt[, date := as.Date(reportDate)]
 dt[, .(meanAcrossDays = mean(PatientCount)), by = c("Hospital", "DPHCategory", "CovidStatus")]
 ```
@@ -97,28 +97,33 @@ Save the Excel file.
 
 4. Run CredibilityIntervalFromExcel (takes 1-2 minutes)
 ```{r, eval = eval.all}
-result <- LEMMA::CredibilityIntervalFromExcel("SF-May4.xlsx")
+result <- LEMMA::CredibilityIntervalFromExcel("SF-May6.xlsx")
+```
+
+
+```{r, echo=FALSE}
+CachePlot("SF-May6.rds", print.long.term = F)
+```
+
+The projection fits the data reasonably well, but we have only 361 posterior distributions. We recommend at least 1000 for inference. On the Internal sheet, change `main.iterations` to 35000. Save As "SF-May 6-v2.xlsx"
+```{r, eval = eval.all}
+result <- LEMMA::CredibilityIntervalFromExcel("SF-May6-v2.xlsx")
 ```
 
 ```{r, echo=FALSE, eval=eval.all}
 result$gplot$long.term <- result$gplot$long.term + labs(subtitle = "Scenario: Re increases 50% (20%-100%) on June 1")
 ```
-Note: You will get the same .pdf and .xlsx output files without the `result <-`
-```{r, eval = F}
-LEMMA::CredibilityIntervalFromExcel("SF-May4.xlsx")  
-```
-Adding `result <-` gives you more flexibility to use the outputs of LEMMA within R.
-
 ```{r, echo=FALSE}
-CachePlot("SF-May4.rds", print.long.term = F)
+CachePlot("SF-May6-v2.rds", print.long.term = F)
 ```
+
 
 # Modelling Future Changes in Transmission
 
 Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. This is already set in the existing xlsx inputs. Below shows the effect of the third intervention which multiplies Re by 1.1 to 2 (C19:G19 in SF-May4.xlsx) on June 1.
 
 ```{r, echo=FALSE}
-CachePlot("SF-May4.rds", print.short.term = F)
+CachePlot("SF-May6-v2.rds", print.short.term = F)
 ```
 
 # Alameda County
