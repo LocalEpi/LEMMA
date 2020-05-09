@@ -114,19 +114,21 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
         for (k in 1:num.init.exp) {
           beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
           S.N <- q$S[tt, j, , k] / N
-          new.exposures[tt, j, , k] <- S.N * (beta.mat %*% total.infected[tt, j, , k])
+          new.exposures[tt, j, , k] <- beta.mat %*% (S.N * total.infected[tt, j, , k])
         }
       }
-      cat("new code: tt = ", tt, "\n")
-      print(p[1])
-      cat("new.exposures=\n")
-      print(new.exposures)
-      if (tt == 3) {
-        print(beta[tt, 1, , ])
-        print(q$S[tt, 1, , ])
-        print(total.infected[tt, 1, , ])
-        print(N)
-      }
+      
+      # if (tt == 3) {
+      #   cat("new code: tt = ", tt, "\n")
+      #   print(p[1])
+      #   cat("new.exposures=\n")
+      #   print(new.exposures)
+      #   
+      #   print(beta[tt, 1, , ])
+      #   print(q$S[tt, 1, , ])
+      #   print(total.infected[tt, 1, , ])
+      #   print(N)
+      # }
       if (F) {
         # warning("temp - truncation disabled")
       } else {
