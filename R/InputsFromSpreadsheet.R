@@ -28,7 +28,7 @@ Unlist <- function(zz) {
   do.call(c, zz)
 }
 
-GetParams <- function(param.dist, niter, get.best.guess, N) {
+GetParams <- function(param.dist, niter, get.best.guess, N, make.pops.same) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
 
@@ -45,13 +45,24 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
   
+  if (make.pops.same) {
+    #for testing that same pops with uniforming mixing = one pop 
+    params[, r0.initial.2 := r0.initial.1]
+    params[, prop.hospitalized.2 := prop.hospitalized.1]
+    params[, hosp.length.of.stay.2 := hosp.length.of.stay.1]
+    params[, intervention1.multiplier.22 := intervention1.multiplier.11]
+    params[, intervention2.multiplier.22 := intervention2.multiplier.11]
+    params[, k1 := N[1] / sum(N)]
+    params[, k2 := N[2] / sum(N)]
+  }
+  
   params[, r0.initial.11 := NA_real_]
   params[, r0.initial.12 := NA_real_]
   params[, r0.initial.21 := NA_real_]
   params[, r0.initial.22 := NA_real_]
   for (i in 1:nrow(params)) {
     p <- params[i]
-    params[i, r0.fromexcel.1 := r0.initial.1] #this is a mess - these are only used by the old code for consistency checks
+    params[i, r0.fromexcel.1 := r0.initial.1] #this is temporary - these are only used by ConvertParams in consistency checks2.R
     params[i, r0.fromexcel.2 := r0.initial.2]
     
     r.mat <- GetBetaMatrix(c(p$r0.initial.1, p$r0.initial.2), N, c(p$k1, p$k2))
@@ -69,7 +80,7 @@ GetParams <- function(param.dist, niter, get.best.guess, N) {
   return(params)
 }
 
-ReadInputs <- function(path) {
+ReadInputs <- function(path, make.pops.same = F) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"), #assumes text under last row has been moved
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
@@ -105,16 +116,11 @@ ReadInputs <- function(path) {
 
   hosp.bounds <- hosp.data[, .(date = Date, lower = internal$lower.bound.multiplier * LowerBound, upper = internal$upper.bound.multiplier * UpperBound)]
 
-  # HP2 <- copy(inputs$hosp.bounds)
-  # HP2[, obs := round(lower / 20)]
-  # HP2[, lower := obs * 0.5]
-  # HP2[, upper := (obs + 2) * 2]
-  # HP2$obs <- NULL
-  # 
-  
   set.seed(internal$random.seed)
-  params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F, N = model.inputs$total.population)
-  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T, N = model.inputs$total.population)
+  if (internal$random.seed == 63613) set.seed(NULL)
+  
+  params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F, N = model.inputs$total.population, make.pops.same)
+  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T, N = model.inputs$total.population, make.pops.same)
   if (is.na(internal$output.filestr)) {
     internal$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }
