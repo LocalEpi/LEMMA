@@ -4,10 +4,36 @@
 
 #TODO: RunSim needs some error checking that params (or maybe other data.tables) have the right names - I had a bug at one point because I was passing intervention1_multiplier instead of intervention1.multiplier and it didn't throw an error, it just ignored intervention1.multiplier
 
-GetBetaMatrix <- function(beta, N, k) {
-  stopifnot(length(beta) == 2, length(N) == 2, length(k) == 2)
-  matrix(c(k[1], 1 - k[1], 1 - k[2], k[2]), nrow = 2, ncol = 2) * 
-    matrix(sum(N) / N * beta, nrow = 2, ncol = 2, byrow = T)
+GetBetaMatrix <- function(beta, params, N) {
+  #beta: num.param.sets x num.pops
+  #m: num.param.sets x num.pops
+  #N: num.pops
+  
+  #return: num.param.sets x num.pops x num.pops
+
+  num.param.sets <- nrow(beta)
+  num.pops <- ncol(beta)
+  stopifnot(num.pops == 2, length(N) == 2)
+  N1 <- N[1]
+  N2 <- N[2]
+  m1 <- params$m1
+  m2 <- params$m2
+  
+  a1 <- params$cross.term.coefs.a1
+  a2 <- params$cross.term.coefs.a2
+  b1 <- params$cross.term.coefs.b1
+  b2 <- params$cross.term.coefs.b2
+  c1 <- params$cross.term.coefs.c1
+  c2 <- params$cross.term.coefs.c2
+  d1 <- params$cross.term.coefs.d1
+  d2 <- params$cross.term.coefs.d2
+  
+  beta.mat <- array(NA_real_, dim = c(num.param.sets, num.pops, num.pops))
+  beta.mat[, 1, 1] <- beta[, 1] * ((N1 + N2) / N1 - (1 - m1) * N2 / N1)
+  beta.mat[, 2, 2] <- beta[, 2] * ((N1 + N2) / N2 - (1 - m2) * N1 / N2)
+  beta.mat[, 1, 2] <- beta[, 1] * (b1 * (1 - m1) + d1 * (1 - m2)) + beta[, 2] * (a1 * (1 - m1) + c1 * (1 - m2))
+  beta.mat[, 2, 1] <- beta[, 1] * (b2 * (1 - m1) + d2 * (1 - m2)) + beta[, 2] * (a2 * (1 - m1) + c2 * (1 - m2))
+  return(beta.mat)
 }
 
 #initial.new.exposures (num.param.sets x num.init.exp) matrix or NULL - sets new.exposures at start.date
@@ -63,7 +89,7 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
   stopifnot(num.days > 1) #single day may cause problems
   
   overall.gamma <- gamma.r  #TODO: figure out what this should be (weighted average of gamma.r and gamma.h?)
-  beta <- GetBeta(dates, params, overall.gamma) #num.days x num.param.sets
+  beta <- GetBeta(dates, params, overall.gamma, population) #num.days x num.param.sets x num.pops x num.pops
   
   # S = susceptible
   # E = exposed (but not yet infectious)
@@ -78,6 +104,7 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
   d <- sapply(base.compartment.names, function (z) NULL) #d: change in base compartments 
   
   total.infected <- new.exposures <- empty.compartment
+  new.exposures[] <- 0
   
   #date.index <- GetDateIndex(initial.conditions$date, dates) 
   #stopifnot(identical(which(date.index), 1L), initial.conditions$date == start.date) #needs work if a range of dates (need to at least change the starting tt)
@@ -99,25 +126,27 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
     if (tt == num.days) break
     
     if (tt == 1 && !is.null(initial.new.exposures)) {
-      #new.exposures[tt, , , ] <- 0
-      #new.exposures[tt, , 1, ] <- initial.new.exposures #initial.new.exposures is only in pop1
-      # new.exposures[tt, , 2, ] <- initial.new.exposures; warning("temp!")
-      #FIXME: super slow, just for dev
-      for (j in 1:num.param.sets) {
-        for (k in 1:num.init.exp) {
-          new.exposures[tt, j, , k] <- initial.new.exposures[j, k] * (population / N)
-        }
+      # for (j in 1:num.param.sets) {
+      #   for (k in 1:num.init.exp) {
+      #     new.exposures[tt, j, , k] <- initial.new.exposures[j, k] * (population / N)
+      #   }
+      # }
+      for (i in 1:num.pops) {
+        new.exposures[tt, , i, ] <- initial.new.exposures * population[i] / N
       }
     } else {
-      #FIXME: super slow, just for dev
-      for (j in 1:num.param.sets) {
-        for (k in 1:num.init.exp) {
-          beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
-          S.N <- q$S[tt, j, , k] / N
-          new.exposures[tt, j, , k] <- beta.mat %*% (S.N * total.infected[tt, j, , k])
+      # for (j in 1:num.param.sets) {
+      #   for (k in 1:num.init.exp) {
+      #     beta.mat <-  beta[tt, j, , ] #num.pops x num.pops
+      #     S.N <- q$S[tt, j, , k] / N
+      #     new.exposures1[tt, j, , k] <- S.N * (beta.mat %*%  total.infected[tt, j, , k])
+      #   }
+      # }
+      for (i in 1:num.pops) {
+        for (j in 1:num.pops) {
+          new.exposures[tt, , i, ] <- new.exposures[tt, , i, ] + beta[tt, , i, j] * q$S[tt, , i, ] * total.infected[tt, , j, ] / N
         }
       }
-      
       # if (tt == 3) {
       #   cat("new code: tt = ", tt, "\n")
       #   print(p[1])
@@ -287,39 +316,21 @@ CalcError <- function(simulated.data, observed.data, weights) {
   return(list(sum.error.sq = sum.error.sq, peak.before.first.observed = peak.before.first.observed, optimal.initial.new.exposures.scale = optimal.initial.new.exposures.scale))
 }
 
-GetBeta.noint <- function(dates, params, overall.gamma) {
-  #num.days x num.param.sets x num.pops (in: S) x num.pops (by: I)
-  num.days <- length(dates)
-  num.param.sets <- nrow(params)
-  num.pops <- 2 #FIXME
-  prior.beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
-  prior.beta[, , 1, 1] <- matrix(params$r0.initial.11 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
-  #affects new infections in 1 caused by 2
-  prior.beta[, , 1, 2] <- matrix(params$r0.initial.12 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
-  prior.beta[, , 2, 1] <- matrix(params$r0.initial.21 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
-  prior.beta[, , 2, 2] <- matrix(params$r0.initial.22 * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
-  
-  #FIXME: doesn't do anything with intervention yet
-  cum.multiplier <- 1
-  beta <- prior.beta * cum.multiplier
-  return(beta)
-}
-
 #for each parameter set, we take num.popsxnum.pops matrix of (list of initialR0, mult, date, smooth) 
 #=> output beta: num.days x num.param.sets x num.pops x num.pops
 
-GetBeta <- function(dates, params, overall.gamma) {
+GetBeta <- function(dates, params, overall.gamma, population) {
   ExpandToDays <- function(param) {
     matrix(param, nrow = num.days, ncol = num.param.sets, byrow = T)
   }
-  GetSingleBeta <- function(pop.index1, pop.index2) {
+  GetSingleBeta <- function(pop.index) {
     num.interventions <- length(grep("^intervention[[:digit:]]+\\.date$", names(params)))
     multiplier <- matrix(1, nrow = num.days, ncol = num.param.sets)
     for (intervention.num in seq_len(num.interventions)) {
       int.str <- paste0("intervention", intervention.num, ".")
       intervention.date <- params[[paste0(int.str, "date")]]
       intervention.smooth.days <- params[[paste0(int.str, "smooth.days")]]
-      intervention.multiplier <- params[[paste0(int.str, "multiplier.", pop.index1, pop.index2)]]
+      intervention.multiplier <- params[[paste0(int.str, "multiplier.", pop.index)]]
       stopifnot(!is.null(intervention.smooth.days), !is.null(intervention.date), !is.null(intervention.multiplier))
       
       multiplier.mat <- ExpandToDays(intervention.multiplier ^ (1 / intervention.smooth.days))
@@ -327,7 +338,7 @@ GetBeta <- function(dates, params, overall.gamma) {
       multiplier[index] <- multiplier[index] * multiplier.mat[index]
     }
     cum.multiplier <- colCumprods(multiplier) #num.days x num.param.sets
-    r0.initial <- params[[paste0("r0.initial.", pop.index1, pop.index2)]]
+    r0.initial <- params[[paste0("r0.initial.", pop.index)]]
     stopifnot(!is.null(r0.initial))
     prior.beta <- matrix(r0.initial * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
     return(prior.beta * cum.multiplier)
@@ -339,43 +350,19 @@ GetBeta <- function(dates, params, overall.gamma) {
   date.mat <- matrix(dates, nrow = num.days, ncol = num.param.sets)
   
   num.pops <- 2
+  single.beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops))
+  for (pop.index in 1:num.pops) {
+    #Get beta1, beta2 (beta that would be used in separate populations where N = Ni)
+    single.beta[, , pop.index] <- GetSingleBeta(pop.index)
+  }
   beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
-  for (pop.index1 in 1:num.pops) {
-    for (pop.index2 in 1:num.pops) {
-      beta[, , pop.index1, pop.index2] <- GetSingleBeta(pop.index1, pop.index2)
-    }
+  #TODO: vectorize GetBetaMatrix across days
+  for (d in 1:num.days) {
+    beta[d, , , ] <- GetBetaMatrix(beta = single.beta[d, , ], N = population, params = params)
   }
   return(beta)
 }
 
-
-GetBeta.orig <- function(dates, params, overall.gamma) {
-  #scale beta by int_mult
-  num.days <- length(dates)
-  num.param.sets <- nrow(params)
-  multiplier <- matrix(1, nrow = num.days, ncol = num.param.sets)
-  intervention.multiplier.str <- grep("^intervention[[:digit:]]+\\.multiplier$", names(params), value = T)
-  #intervention1.smooth.days, intervention2.smooth.days, etc.
-  #intervention1.date, intervention2.date, etc.
-  #intervention1.multiplier, intervention2.multiplier, etc.
-  date.mat <- matrix(dates, nrow = num.days, ncol = num.param.sets)
-  ExpandToDays <- function(param) matrix(param, nrow = num.days, ncol = num.param.sets, byrow = T)
-  for (int.mult.str in intervention.multiplier.str) {
-    intervention.multiplier <- params[[int.mult.str]]
-    intervention.smooth.days <- params[[sub("multiplier", "smooth.days", int.mult.str)]]
-    intervention.date <- params[[sub("multiplier", "date", int.mult.str)]]
-    stopifnot(!is.null(intervention.multiplier), !is.null(intervention.smooth.days), !is.null(intervention.date))
-    
-    multiplier.mat <- ExpandToDays(intervention.multiplier ^ (1 / intervention.smooth.days))
-    index <- date.mat >= ExpandToDays(intervention.date) & date.mat <= ExpandToDays(intervention.date + intervention.smooth.days - 1)
-    multiplier[index] <- multiplier[index] * multiplier.mat[index]
-  }
-  cum.multiplier <- colCumprods(multiplier) #num.days x num.param.sets
-  
-  prior.beta <- matrix(params$r0.initial * overall.gamma, nrow = num.days, ncol = num.param.sets, byrow = T)
-  beta <- prior.beta * cum.multiplier
-  return(beta)
-}
 
 #probably a better way to do this
 SeqAround <- function(lo, hi, est, n) {

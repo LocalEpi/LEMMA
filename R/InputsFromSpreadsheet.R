@@ -28,6 +28,31 @@ Unlist <- function(zz) {
   do.call(c, zz)
 }
 
+SampleParam <- function(p, probs, niter) {
+  p <- Unlist(p)
+  if (class(p) == "logical") {
+    return(sample(p, size = niter, replace = T, prob = probs))
+  }
+  discrete <- sample(p, size = 1000, replace = T, prob = probs)
+  cont <- rnorm(niter, mean = mean(discrete), sd = sd(discrete))
+  if (class(p) == "Date") {
+    x <- as.Date(round(cont), origin = "1970-01-01")
+  } else if (class(p) == "numeric") {
+    x <- pmax(0, cont) #all parameters are >= 0
+    if (all(p == round(p))) {
+      x <- round(x) #if inputs are integers, return integers
+      if (all(p > 0)) {
+        x <- pmax(1, x) #don't return 0 unless it was an input
+      }
+    } else {
+      x <- pmax(min(p) / 10, x) #don't return 0 unless it was an input
+    }
+  } else {
+    stop("unexpected class in SampleParam")
+  }
+  return(x)
+}
+
 GetParams <- function(param.dist, niter, get.best.guess, N, make.pops.same) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
@@ -39,7 +64,7 @@ GetParams <- function(param.dist, niter, get.best.guess, N, make.pops.same) {
     stopifnot(weight.labels$mid == "Best Guess")
     params <- lapply(param.dist1, function (z) z$mid)
   } else {
-    params <- lapply(param.dist1, function (z) sample(Unlist(z), size = niter, replace = T, prob = probs))
+    params <- lapply(param.dist1, SampleParam, niter = niter, probs = probs)
   }
   params <- as.data.table(params)
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
@@ -50,33 +75,22 @@ GetParams <- function(param.dist, niter, get.best.guess, N, make.pops.same) {
     params[, r0.initial.2 := r0.initial.1]
     params[, prop.hospitalized.2 := prop.hospitalized.1]
     params[, hosp.length.of.stay.2 := hosp.length.of.stay.1]
-    params[, intervention1.multiplier.22 := intervention1.multiplier.11]
-    params[, intervention2.multiplier.22 := intervention2.multiplier.11]
-    params[, k1 := N[1] / sum(N)]
-    params[, k2 := N[2] / sum(N)]
+    params[, intervention1.multiplier.2 := intervention1.multiplier.1]
+    params[, intervention2.multiplier.2 := intervention2.multiplier.1]
+    params[, m1 := 0]
+    params[, m2 := 0]
   }
   
-  params[, r0.initial.11 := NA_real_]
-  params[, r0.initial.12 := NA_real_]
-  params[, r0.initial.21 := NA_real_]
-  params[, r0.initial.22 := NA_real_]
-  for (i in 1:nrow(params)) {
-    p <- params[i]
-    params[i, r0.fromexcel.1 := r0.initial.1] #this is temporary - these are only used by ConvertParams in consistency checks2.R
-    params[i, r0.fromexcel.2 := r0.initial.2]
-    
-    r.mat <- GetBetaMatrix(c(p$r0.initial.1, p$r0.initial.2), N, c(p$k1, p$k2))
-    params[i, r0.initial.11 := r.mat[1, 1]] 
-    params[i, r0.initial.12 := r.mat[1, 2]] 
-    params[i, r0.initial.21 := r.mat[2, 1]] 
-    params[i, r0.initial.22 := r.mat[2, 2]] 
+  GetCrossTermCoefs <- function(niter) {
+    x <- matrix(runif(4 * niter), nrow = niter, ncol = 4)
+    x <- x / rowSums(x)
+    return(x)
   }
-  #this is ok if k doesn't change; if there's a k multiplier, need to input intervention1.multiplier.1, intervention1.multiplier.2; intervention1.multiplier[i,j] is a function of k.i mult and beta.i mult
-  #TODO: get rid of r0.initial.ij, intervention1.multiplier.ij => inputs to GetBeta should be r0.initial.1, r0.initial.2, k.1, k.2 + multipliers of each, but maybe figure out vectors within param dt first
-  params[, intervention1.multiplier.12 := intervention1.multiplier.22]
-  params[, intervention1.multiplier.21 := intervention1.multiplier.11]
-  params[, intervention2.multiplier.12 := intervention2.multiplier.22]
-  params[, intervention2.multiplier.21 := intervention2.multiplier.11]
+  
+  cross.term.coefs <- as.data.table(cbind(GetCrossTermCoefs(niter), GetCrossTermCoefs(niter)))
+  setnames(cross.term.coefs, paste0("cross.term.coefs.", c("a", "b", "c", "d"), rep(1:2, each=4)))
+  params <- cbind(params, cross.term.coefs)
+
   return(params)
 }
 

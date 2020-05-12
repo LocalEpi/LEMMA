@@ -124,7 +124,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, HP2.bound
   all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
   rm(extras) #extra is only used to save extra information to output file
 
-  date.range <- seq(observed.data[1, date], model.inputs$end.date, by = "day")
+  date.range <- seq(model.inputs$start.display.date, model.inputs$end.date, by = "day") 
   bounds <- rbind(merge(data.table(date = date.range), hosp.bounds, all.x = T),
                   merge(data.table(date = date.range), HP2.bounds, all.x = T))
 
