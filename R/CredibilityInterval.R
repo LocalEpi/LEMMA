@@ -4,18 +4,6 @@
 #' @importFrom stats median optimize runif
 #' @importFrom graphics barplot
 
-#TODO: legend on ggplot in pdf
-#TODO: show observed even if only fitting initial to some
-#TODO: add excel input for best estimate of hospital data, remove lower.bound.multiplier, upper.bound.multiplier?
-
-GetModelName <- function(dt) {
-  dt[, add.name := ""]
-  dt[hasE & !hospInf & hospRate, add.name := "(LEMMA)"]
-  dt[!hasE & hospInf & !hospRate, add.name := "(COVIDmodel-ish)"]
-  model.name <- dt[, paste0(as.integer(hasE), as.integer(hospInf), as.integer(hospRate), add.name)]
-  return(model.name)
-}
-
 #TRUE if at least required.in.bounds fraction of vector x is in bounds
 #if both lower and upper are NA, ignore that bound
 #if one of lower/upper is NA but not the other, error
@@ -53,68 +41,6 @@ RunSim1 <- function(params1, model.inputs, observed.data, internal.args, date.ra
   return(sim)
 }
 
-GetExcelOutput <- function(sim, best.guess, in.bounds, best.guess.in.bounds, date.range, filestr, all.inputs.str) {
-  output.list <- list(hosp=NULL, HP2=NULL) #list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
-  output.names <- names(output.list)
-
-  probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
-  for (j in output.names) {
-    sim.accepted <- sim[[j]][, in.bounds]
-    quant1 <- rowQuantiles(sim.accepted, probs = c(0, 0.05, 0.5))
-    quant2 <- rowQuantiles(sim.accepted, probs = probs2)
-    output <- data.table(date = date.range, quant1, bestguess = best.guess[[j]], quant2)
-    output[, notes := ""]
-    output[1, notes := paste0("niter = ", sum(in.bounds), " / ", length(in.bounds), "  bestguess ", ifelse(best.guess.in.bounds, "accepted", "rejected"))]
-    output.list[[j]] <- cbind(output.list[[j]], output)
-  }
-  output.list$all.inputs = all.inputs.str
-  filestr.out <- paste0(filestr, ".xlsx")
-  openxlsx::write.xlsx(output.list, file = filestr.out)
-  cat("\nExcel output: ", filestr.out, "\n")
-  return(output.list)
-}
-
-GetPdfOutput <- function(hosp, in.bounds, all.params, date.range, filestr, observed.data) {
-  filestr.out <- paste0(filestr, ".pdf")
-  grDevices::pdf(file = filestr.out)
-  #TODO: clean up this plotting code - I think it should use melt to make a long data frame so we don't get the error about missing values
-  dt.plot <- hosp[, .(date, five=`5%`, fifteen=`15%`, twentyfive=`25%`,
-                                  median = `50%`, bestguess,
-                                  seventyfive=`75%`, eightyfive=`85%`, ninetyfive=`95%`)]
-
-  dt.plot <- merge(dt.plot, observed.data, all.x = T)
-  gg <- ggplot(dt.plot, aes(x=date)) +
-    ylab("Hospitalizations") +
-    geom_ribbon(aes(ymin=twentyfive, ymax=seventyfive), alpha = 0.4) +
-    geom_ribbon(aes(ymin=fifteen, ymax=eightyfive), alpha = 0.3) +
-    geom_ribbon(aes(ymin=five, ymax=ninetyfive), alpha = 0.2) +
-    geom_line(aes(y = bestguess), color = "yellow") +
-    geom_line(aes(y = median), color = "red") +
-    geom_point(aes(x=date, y=hosp))
-  suppressWarnings(print(gg)) #warnings for NA in observed data
-
-  for (param.name in names(all.params)) {
-    sub <- NULL
-    cex.names <- 1
-
-    if (param.name == "model") {
-      # cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
-      cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = F)])
-      sub <- "(hasE  infect in hosp   rate to hosp)"
-      cex.names <- 0.5
-    } else if (param.name == "currentRe") {
-      cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3
-    } else {
-      cur.param <- all.params[[param.name]]
-    }
-    param.dt <- data.table(cur.param = factor(cur.param))
-    barplot(prop.table(table(param.dt)), main = paste0("Prior Distribution, niter = ", length(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-    barplot(prop.table(table(param.dt[in.bounds])), main = paste0("Posterior Distribution, niter =", sum(in.bounds)), sub = sub, xlab = param.name, ylab = "Freq", cex.names = cex.names)
-  }
-  grDevices::dev.off()
-  cat("\nPDF output: ", filestr.out, "\n")
-}
-
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, HP2.bounds, best.guess.params, observed.data, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
@@ -149,7 +75,7 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, HP2.bound
     if (sum(in.bounds) <= 1) {
       cat("niter = ", sum(in.bounds), " / ", length(in.bounds), "in bounds. No pdf output written.\n")
     } else {
-      GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, date.range, filestr, observed.data)
+      GetPdfOutput(hosp = output.list$hosp, in.bounds = in.bounds, all.params = all.params, filestr = filestr, bounds.without.multiplier = NULL) #need to fix bounds.without.multiplier
     }
   } else {
     sim <- in.bounds <- filestr <- output.list <- NULL

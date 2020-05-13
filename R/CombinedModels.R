@@ -158,14 +158,10 @@ SEIR <- function(initial.new.exposures, population, start.date, end.date, params
       #   print(total.infected[tt, 1, , ])
       #   print(N)
       # }
-      if (F) {
-        # warning("temp - truncation disabled")
-      } else {
-        new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
-        new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
-      }
-      
     }
+    new.exposures[tt, , , ] <- pmax(new.exposures[tt, , , ], 0)
+    new.exposures[tt, , , ] <- pmin(new.exposures[tt, , , ], q$S[tt, , , ])
+    
     new.nonhosp.recovered <- gamma.r * adrop(q$IR[tt, , , , drop = F], 1) 
     
     d$S <- adrop(-new.exposures[tt, , , , drop = F], 1)
@@ -358,7 +354,7 @@ GetBeta <- function(dates, params, overall.gamma, population) {
   beta <- array(NA_real_, dim = c(num.days, num.param.sets, num.pops, num.pops))
   #TODO: vectorize GetBetaMatrix across days
   for (d in 1:num.days) {
-    beta[d, , , ] <- GetBetaMatrix(beta = single.beta[d, , ], N = population, params = params)
+    beta[d, , , ] <- GetBetaMatrix(beta = adrop(single.beta[d, , , drop = F], 1), N = population, params = params)
   }
   return(beta)
 }

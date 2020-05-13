@@ -46,6 +46,9 @@ SampleParam <- function(p, probs, niter) {
       }
     } else {
       x <- pmax(min(p) / 10, x) #don't return 0 unless it was an input
+      if (all(p <= 1)) {
+        x <- pmin(x, 1)
+      }
     }
   } else {
     stop("unexpected class in SampleParam")
@@ -105,13 +108,6 @@ ReadInputs <- function(path, make.pops.same = F) {
 
   param.dist <- DistToList(sheets$`Parameters with Distributions`)
  
-  # for (i in names(temp.scale)) {
-  #   stopifnot(i %in% names(param.dist))
-  #   for (j in names(param.dist[[i]])) {
-  #     param.dist[[i]][[j]] <- param.dist[[i]][[j]] * temp.scale[[i]]
-  #   }
-  # }
-  
   model.inputs <- TableToList(sheets$`Model Inputs`)
   stopifnot(!is.null(model.inputs$total.population1), !is.null(model.inputs$total.population2))
   model.inputs$total.population <- c(model.inputs$total.population1, model.inputs$total.population2)
@@ -134,7 +130,7 @@ ReadInputs <- function(path, make.pops.same = F) {
   if (internal$random.seed == 63613) set.seed(NULL)
   
   params <- GetParams(param.dist, internal$main.iterations, get.best.guess = F, N = model.inputs$total.population, make.pops.same)
-  best.guess <- GetParams(param.dist, internal$main.iterations, get.best.guess = T, N = model.inputs$total.population, make.pops.same)
+  best.guess <- GetParams(param.dist, niter = 1, get.best.guess = T, N = model.inputs$total.population, make.pops.same)
   if (is.na(internal$output.filestr)) {
     internal$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }
