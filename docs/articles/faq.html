@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0.9004</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0.9005</span>
       </span>
     </div>
 
@@ -150,7 +150,19 @@
 <div id="what-if-i-only-have-2-interventions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#what-if-i-only-have-2-interventions" class="anchor"></a>What if I only have 2 interventions?</h2>
-<p>Set all values of <code>intervention3.multiplier</code> to 1.</p>
+<p>Set all values of <code>intervention3.multiplier</code> to 1. Or you can delete the rows with <code>intervention3.date</code>, <code>intervention3.multiplier</code>, <code>intervention3.smooth.days</code>.</p>
+</div>
+<div id="what-if-i-have-4-or-more-interventions" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-if-i-have-4-or-more-interventions" class="anchor"></a>What if I have 4 or more interventions?</h2>
+<p>You can have up to 9 interventions. To add more to the existing xlsx template:</p>
+<ol style="list-style-type: decimal">
+<li>In Excel, unprotect the Parameters with Distributions sheet.</li>
+<li>Unhide Column A</li>
+<li>Add rows, e.g <code>internal.name</code> = <code>intervention4.date</code>, <code>intervention4.multiplier</code>, <code>intervention4.smooth.days</code>
+</li>
+<li>Make sure there is at least one blank line after the end of all the parameters</li>
+</ol>
 </div>
   </div>
 
