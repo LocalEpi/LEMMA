@@ -1,3 +1,9 @@
+# LEMMA 0.3.0.9005
+
+## Minor improvements and fixes
+* CredibilityIntervalFromExcel now supports up to 9 interventions (see FAQ for details)
+
+
 # LEMMA 0.3.0.9004 
 
 ## New Features

@@ -72,13 +72,15 @@ GetParams <- function(param.dist, niter, get.upp) {
 }
 
 ReadInputs <- function(path) {
-  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions", range = "A1:H22"), #don't read the whole sheet - there are hidden data validation lists below
+  sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"), 
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
 
+  
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
+  sheets$`Parameters with Distributions` <- sheets$`Parameters with Distributions`[1:(which.max(is.na(internal.name)) - 1)]
   return(sheets)
 }
 

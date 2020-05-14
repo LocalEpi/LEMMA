@@ -160,27 +160,25 @@ GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.mu
   print(short.term <- GetProjectionPlot(short.term = T, niter = post.niter, hosp.quantiles = hosp, bounds.without.multiplier = bounds.without.multiplier, bounds.labels = bounds.labels, plot.observed.data = internal.args$plot.observed.data.short.term))
   print(long.term <- GetProjectionPlot(short.term = F, niter = post.niter, hosp.quantiles = hosp, bounds.without.multiplier = bounds.without.multiplier, bounds.labels = bounds.labels, plot.observed.data = internal.args$plot.observed.data.long.term))
   
+  intervention.multiplier.str <- grep("^intervention[[:digit:]]+\\.multiplier$", names(all.params), value = T)
+  captions <- list()
+  for (int.num in 0:length(intervention.multiplier.str)) {
+    cumRe <- all.params[, r0.initial]
+    cumRe.name <- paste0(".Re.", int.num)
+    captions[[cumRe.name]] <- paste0(cumRe.name, " = r0.initial")
+    for (i in seq_len(int.num)) {
+      cur.multiplier <- all.params[[paste0("intervention", i, ".multiplier")]]
+      stopifnot(!is.null(cur.multiplier))
+      cumRe <- cumRe * cur.multiplier
+      captions[[cumRe.name]] <- paste0(captions[[cumRe.name]], " * intervention", i, ".multiplier")
+    }
+    all.params[[cumRe.name]] <- cumRe
+  }
+  suppressWarnings(all.params[, model := factor(paste0(as.integer(latent.period > 0), as.integer(patients.in.hosp.are.infectious), as.integer(use.hosp.rate)))]) #suppress "Invalid .internal.selfref detected and fixed by ..." (not important)
+  captions$model <- "(HasE  InfectInHosp   RateToHosp)"
   if (post.niter >= 1) {
-    for (param.name in c("current_Re", "final_Re", names(all.params), "model")) {
-      cap <- NULL
-      if (param.name == "model") {
-        cur.param <- GetModelName(all.params[, .(hasE = latent.period > 0, hospInf = patients.in.hosp.are.infectious, hospRate = use.hosp.rate)])
-        cap <- "(HasE  InfectInHosp   RateToHosp)"
-      } else if (param.name == "current_Re") {
-        #TODO: this should be based on the current date vs the dates of the multipliers
-        cur.param <- all.params[, r0.initial * intervention1.multiplier * intervention2.multiplier] #note: doesn't include int_mult3 
-      } else if (param.name == "final_Re") {
-        #TODO: this could be cleaned up
-        all.params[, final_Re := r0.initial]
-        for (i in grep("intervention[123456789].multiplier$", names(all.params), value=T)) {
-          all.params[, final_Re := final_Re * get(i)]
-        }
-        cur.param <- all.params[, final_Re]
-      } else {
-        cur.param <- all.params[[param.name]]
-      }
-      
-      g.list <- PlotHist(cur.param, posterior.title, cap, param.name, in.bounds)
+    for (param.name in sort(names(all.params[,-"r0.initial"]))) {
+      g.list <- PlotHist(all.params[[param.name]], posterior.title, captions[[param.name]], param.name, in.bounds)
       sapply(g.list, print)
     }
   }

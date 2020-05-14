@@ -47,6 +47,14 @@ Re after third intervention = `R0 * intervention1.multiplier * intervention2.mul
 
 ## What if I only have 2 interventions?
 
-Set all values of `intervention3.multiplier` to 1.
+Set all values of `intervention3.multiplier` to 1. Or you can delete the rows with `intervention3.date`, `intervention3.multiplier`, `intervention3.smooth.days`. 
 
+## What if I have 4 or more interventions?
+
+You can have up to 9 interventions. To add more to the existing xlsx template:  
+
+1. In Excel, unprotect the Parameters with Distributions sheet.
+2. Unhide Column A
+3. Add rows, e.g `internal.name` = `intervention4.date`, `intervention4.multiplier`, `intervention4.smooth.days` 
+4. Make sure there is at least one blank line after the end of all the parameters
 
