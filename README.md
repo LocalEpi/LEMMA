@@ -4,12 +4,11 @@ LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provi
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to
 
-- Maya L. Petersen - UC Berkeley
 - Joshua Schwab - UC Berkeley
 - Laura B. Balzer - UMass Amherst
 - Elvin Geng - Washington University
 - James Peng - UC San Francisco
-
+- Maya L. Petersen - UC Berkeley
 
 ## Installation
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
