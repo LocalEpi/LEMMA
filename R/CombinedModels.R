@@ -9,24 +9,18 @@ AsInteger <- function(x) {
   as.integer(round(x))
 }
 
-#initial.new.exposures (num.param.sets x num.init.exp) matrix or NULL - sets new.exposures at start.date
-#initial.conditions data.table date S E IR IH HP DC R or single number S0, makes all others 0
+#initial.new.exposures (num.param.sets x num.init.exp) matrix - sets new.exposures at start.date
+#total.population single number S0 (all others compartments start at 0)
 #start.date scalar Date
 #end.date scalar Date
 #params data.table (num.param.sets x num.params)
-SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
-  if (is.numeric(initial.conditions)) {
-    initial.conditions <- data.table(date = start.date, S = initial.conditions, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
-  }
+SEIR <- function(initial.new.exposures, total.population, start.date, end.date, params) {
+  initial.conditions <- data.table(date = start.date, S = total.population, E = 0, IH = 0, IR = 0, R = 0, HP = 0, DC = 0)
+
   num.param.sets <- nrow(params)
-  if (is.null(initial.new.exposures)) {
-    num.init.exp <- 1
-  } else {
-    stopifnot(nrow(initial.new.exposures) == num.param.sets)
-    num.init.exp <- ncol(initial.new.exposures)
-  }
-
-
+  stopifnot(nrow(initial.new.exposures) == num.param.sets)
+  num.init.exp <- ncol(initial.new.exposures)
+  
   p <- params #for readability
 
   sigma <- 1 / p$latent.period
@@ -91,7 +85,7 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     total.infected[tt, , ] <- q$IR[tt, , ] + q$IH[tt, , ] + (p$patients.in.hosp.are.infectious) * q$HP[tt, , ]
     if (tt == num.days) break
 
-    if (tt == 1 && !is.null(initial.new.exposures)) {
+    if (tt == 1) {
       new.exposures[tt, , ] <- initial.new.exposures
     } else {
       new.exposures[tt, , ] <- beta[tt, ] * q$S[tt, , ] * total.infected[tt, , ] / N
@@ -141,13 +135,14 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
     new.admits.output[tt, , ] <- new.admits
     new.discharges.output[tt, , ] <- new.discharges
   }
-  
- 
  
   icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
+  vent <- as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
+  deaths <- as.vector(matrix(p[, prop.icu * prop.vent * prop.death], nrow = num.days, ncol = num.param.sets, byrow = T)) * q$DC #cumulative deaths
   list.return <- c(q, list(I = total.infected,
                            icu = icu,
-                           vent = as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu,
+                           vent = vent,
+                           deaths = deaths,
                            R.total = q$R + q$DC, #R is recovered (did not go to hospital)
                            active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious
                            total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC, #everyone ever exposed (implicitly includes dead); same as N - S
@@ -159,30 +154,12 @@ SEIR <- function(initial.new.exposures, initial.conditions, start.date, end.date
   return(list.return) #list of num.days x num.param x num.init.exp  S E ...
 }
 
-#utility wrapper
-Seir <- function(initial.new.exposures, initial.conditions, start.date, end.date, params) {
-  if (!is.null(initial.new.exposures)) {
-    if (is.matrix(initial.new.exposures)) {
-      stopifnot(nrow(initial.new.exposures) == nrow(params))
-    } else {
-      stopifnot(length(initial.new.exposures) == nrow(params))
-      initial.new.exposures <- as.matrix(initial.new.exposures)
-    }
-  }
-  stopifnot(end.date > start.date)
-  list.return <- SEIR(initial.new.exposures, initial.conditions, start.date, end.date, params)
-  num.param.sets <- dim(list.return$hosp)[2]
-  num.init.exp <- dim(list.return$hosp)[3]
-  if (num.init.exp == 1) {
-    list.return <- lapply(list.return, drop)
-    if (num.param.sets == 1) {
-      return(cbind(date = seq(start.date, end.date, by = "day"), as.data.table(list.return))) #data.table date S E ...
-    } else {
-      return(list.return) #list of num.days x num.params S E ...
-    }
-  } else {
-    return(list.return) #list of num.days x num.param x num.init.exp  S E ...
-  }
+#utility wrapper - used for one initial.new.exposure per param.set
+Seir <- function(initial.new.exposures, total.population, start.date, end.date, params) {
+  stopifnot(is.vector(initial.new.exposures))
+  stopifnot(length(initial.new.exposures) == nrow(params))
+  list.return <- SEIR(as.matrix(initial.new.exposures), total.population, start.date, end.date, params)
+  return(lapply(list.return, drop)) #list of num.days x num.params S E ...
 }
 
 #initial.new.exposures (num.param.sets x num.init.exp) matrix
@@ -190,7 +167,7 @@ FitSEIR <- function(initial.new.exposures, total.population, start.date, observe
   num.param.sets <- nrow(params)
   num.init.exp <- ncol(initial.new.exposures)
 
-  seir <- SEIR(initial.new.exposures, initial.conditions = total.population, start.date, end.date = max(observed.data$date), params)
+  seir <- SEIR(initial.new.exposures, total.population, start.date, end.date = max(observed.data$date), params)
 
   # TODO: add weights if we're fitting data other than hospital (eg. ICU, total cases)
   # weights <- lapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col)))
@@ -399,7 +376,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
   }
 
   #TODO: return seir at best.dt$index and use as initial condition for final projection in RunSim? (saves a little time but adds complexity)
-  seir <- Seir(best.dt$initial.new.exposures, initial.conditions = total.population, start.date, end.date, params)
+  seir <- Seir(best.dt$initial.new.exposures, total.population, start.date, end.date, params)
   return(seir)
 }
 
