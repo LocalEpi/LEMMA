@@ -20,32 +20,20 @@ GetPlotTitle <- function(posterior.niter) {
   paste0("Posterior Distribution, niter = ", posterior.niter, warn.str)
 }
 
-GetExcelOutput <- function(sim, upp, in.bounds, upp.in.bounds, date.range, filestr, all.inputs.str) {
-  output.list <- list(hosp = NULL, icu = NULL, vent = NULL, active.cases = NULL, total.cases = NULL)
-  output.names <- names(output.list)
-  
-  probs2 <- c(0.95, 1, 0.15, 0.25, seq(0.55, 0.9, by = 0.05))
-  for (j in output.names) {
-    sim.accepted <- sim[[j]][, in.bounds, drop = F]
-    if (is.null(sim)) {
-      quant1 <- quant2 <- NULL
-    } else {
-      quant1 <- rowQuantiles(sim.accepted, probs = c(0, 0.05, 0.5))
-      quant2 <- rowQuantiles(sim.accepted, probs = probs2)
-    }
-    output <- data.table(date = date.range, quant1, upp = upp[[j]], quant2)
-    output[, notes := ""]
-    output[1, notes := GetPlotTitle(posterior.niter = sum(in.bounds))]
-    output[2, notes := paste0("User's Prior Projection ", ifelse(upp.in.bounds, "accepted", "rejected"))]
-    output.list[[j]] <- cbind(output.list[[j]], output)
-  }
+GetExcelOutput <- function(quantile.list, model.inputs, filestr, all.inputs.str) {
+  display.date.range <- as.character(seq(model.inputs$start.display.date, model.inputs$end.date, by = "day"))
+  output.list <- lapply(quantile.list, function (quant) {
+    output <- data.table(date = display.date.range, quant[display.date.range, ], notes = "")
+    output[1, notes := GetPlotTitle(posterior.niter = attr(quantile.list, "posterior.niter"))]
+    return(output)
+  })
   output.list$all.inputs = all.inputs.str
   filestr.out <- paste0(filestr, ".xlsx")
   openxlsx::write.xlsx(output.list, file = filestr.out)
   cat("\nExcel output: ", filestr.out, "\n")
   return(output.list)
-}
-
+} 
+  
 PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
   if (uniqueN(x) > 1) {
     g.list <- list()
@@ -65,13 +53,25 @@ PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
         g <- g + geom_bar()
       } else {
         g <- g + geom_histogram(aes(y=..density..),     
-                                #   binwidth=.1,
                                 bins = 20,
                                 breaks = breaks,
                                 color="black", fill="white") +
           geom_density(alpha=.2, fill="steelblue3") 
       }
-      g <- g + labs(title = title1, caption = cap) + xlab(xlab)
+      
+      if (grepl(".Re.", xlab, fixed = T)) {
+        cat("\n", cap, ":\n")
+        re.quantiles <- round(quantile(d$x, c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
+        print(re.quantiles)
+        subtitl <- paste0(capture.output(print(re.quantiles)), collapse = "\n")
+      } else {
+        subtitl <- NULL
+      }
+         
+      g <- g + 
+        labs(title = title1, subtitle = subtitl, caption = cap) + 
+        xlab(xlab) + 
+        theme(plot.subtitle=element_text(family="Courier"))
       g.list[[length(g.list) + 1]] <- g
     }
   } else {
@@ -81,15 +81,29 @@ PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
   return(g.list)
 }
 
-GetProjectionPlot <- function(short.term, niter, hosp.quantiles, bounds.without.multiplier, bounds.labels, plot.observed.data) {
+GetYLabel <- function(compartment.name) {
+  switch(compartment.name, hosp = "Number of COVID19 Patients in Hospital", 
+         deaths = "Number of COVID19 Deaths",
+         compartment.name)
+}
+
+GetCompartmentName <- function(compartment.name) {
+  switch(compartment.name, hosp = "Hospitalization", 
+         icu = "ICU", 
+         "deaths" = "Death", 
+         compartment.name)
+}
+
+GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.observed.data, compartment.name, model.inputs, upp.sim) {
+  quantile.dt <- data.table(date = as.Date(rownames(quantiles)), quantiles)
   if (short.term) {
     date.breaks <- "1 week"
-    max.date <- bounds.without.multiplier[!is.na(lower), max(date)] + 3
-    title1 <- "Short Term Hospitalization Projections"
+    max.date <- bounds.list$bounds[!is.na(lower), max(date)] + 3
+    title1 <- paste("Short Term", GetCompartmentName(compartment.name), "Projections")
   } else {
     date.breaks <- "1 month"
-    max.date <- max(hosp.quantiles$date) - 3 #makes it look a little nicer when ending on first of the month
-    title1 <- "Long Term Hospitalization Projections"
+    max.date <- max(quantile.dt$date) - 3 #makes it look a little nicer when ending on first of the month
+    title1 <- paste("Long Term", GetCompartmentName(compartment.name), "Projections")
   }
   
   if (niter < 500) {
@@ -101,12 +115,18 @@ GetProjectionPlot <- function(short.term, niter, hosp.quantiles, bounds.without.
   plot.cred.int <- niter > 1
   plot.upp <- niter < 100
  
-  min.date <- min(bounds.without.multiplier$date) - 7 
-  obs.size <- 3
-  lb <- bounds.labels[1]
-  ub <- bounds.labels[2]
+  if (plot.observed.data) {
+    min.date <- bounds.list$bounds[!is.na(lower), min(date)] - 7 
+  } else {
+    min.date <- model.inputs$start.display.date - 7
+  }
   
-  dt.plot <- merge(hosp.quantiles, bounds.without.multiplier, all.x = T, by = "date")
+  obs.size <- 3
+  lb <- bounds.list$lower.bound.label
+  ub <- bounds.list$upper.bound.label
+  
+  dt.plot <- merge(quantile.dt, bounds.list$bounds, all.x = T, by = "date")
+  dt.plot <- merge(dt.plot, data.table(date = as.Date(names(upp.sim)), upp = upp.sim), by = "date")
   dt.plot <- dt.plot[date >= min.date & date <= max.date]
   gg <- ggplot(dt.plot, aes(x=date)) +    
     theme_light()
@@ -133,12 +153,12 @@ GetProjectionPlot <- function(short.term, niter, hosp.quantiles, bounds.without.
   if (plot.upp) {
     gg <- gg + geom_line(aes(y = upp), color = "yellow1", size = 1, linetype = "dashed")  + 
       theme(panel.background = element_rect(fill = "grey80")) + 
-      annotate("text", x = median(dt.plot$date), y = 10, label = "Yellow line is User's Prior Projection (column E of input)")
+      annotate("text", x = median(dt.plot$date), y = 1, label = "Yellow line is User's Prior Projection (column E of input)")
   } 
   
   gg <- gg + 
     xlab("") + 
-    ylab("Number of COVID19 Patients in Hospital") +
+    ylab(GetYLabel(compartment.name)) +
     labs(title = title1, subtitle = subtitle1) + 
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
@@ -150,15 +170,16 @@ GetProjectionPlot <- function(short.term, niter, hosp.quantiles, bounds.without.
   return(gg)
 }
 
-GetPdfOutput <- function(hosp, in.bounds, all.params, filestr, bounds.without.multiplier, internal.args) {
+GetPdfOutput <- function(quantiles, in.bounds, all.params, filestr, bounds, internal.args, model.inputs, upp.sim) {
   post.niter <- sum(in.bounds)
   posterior.title <- GetPlotTitle(post.niter)
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
   
-  bounds.labels <- c(internal.args$lower.bound.label, internal.args$upper.bound.label)
-  print(short.term <- GetProjectionPlot(short.term = T, niter = post.niter, hosp.quantiles = hosp, bounds.without.multiplier = bounds.without.multiplier, bounds.labels = bounds.labels, plot.observed.data = internal.args$plot.observed.data.short.term))
-  print(long.term <- GetProjectionPlot(short.term = F, niter = post.niter, hosp.quantiles = hosp, bounds.without.multiplier = bounds.without.multiplier, bounds.labels = bounds.labels, plot.observed.data = internal.args$plot.observed.data.long.term))
+  for (i in names(bounds)) {
+    print(short.term <- GetProjectionPlot(short.term = T, niter = post.niter, quantiles = quantiles[[i]], bounds.list = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.short.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
+    print(long.term <- GetProjectionPlot(short.term = F, niter = post.niter, quantiles = quantiles[[i]], bounds = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.long.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
+  }
   
   intervention.multiplier.str <- grep("^intervention[[:digit:]]+\\.multiplier$", names(all.params), value = T)
   captions <- list()

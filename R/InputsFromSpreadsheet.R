@@ -74,7 +74,8 @@ GetParams <- function(param.dist, niter, get.upp) {
 ReadInputs <- function(path) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"), 
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
-                 ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
+                 # ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
+                 ReadExcel(path, sheet = "Data", col_types = "guess"),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
 
@@ -90,7 +91,8 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   if (!("start.display.date" %in% names(model.inputs))) {
     model.inputs$start.display.date <- as.Date("2020/3/1")
   }
-  hosp.data <- sheets$`Hospitilization Data`
+  #hosp.data <- sheets$`Hospitilization Data`
+  hosp.data <- sheets$`Data`
   internal <- TableToList(sheets$Internal)
   if (!("plot.observed.data.long.term" %in% names(internal))) {
     internal$plot.observed.data.long.term <- FALSE

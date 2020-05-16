@@ -3,19 +3,34 @@
 
 # upp = User's Prior Projection
 
-#TRUE if at least required.in.bounds fraction of vector x is in bounds
+
+#TRUE if at least required.in.bounds fraction of matrix x (dates x params) is in bounds
 #if both lower and upper are NA, ignore that bound
 #if one of lower/upper is NA but not the other, error
-InBounds <- function(x, bounds, required.in.bounds) {
-  stopifnot(bounds[xor(is.na(lower), is.na(upper)), .N] == 0)
+#used for a single data type (hosp, active.cases, etc)
+InBounds1 <- function(x, bounds.obj) {
+  stopifnot(bounds.obj$bounds[xor(is.na(lower), is.na(upper)), .N] == 0)
   if (is.vector(x)) {
     x <- as.matrix(x)
   }
-  in.bounds <- x >= bounds$lower & x <= bounds$upper
-  return(colMeans(in.bounds, na.rm = T) >= required.in.bounds)
+  stopifnot(!is.null(rownames(x)))
+  x <- x[as.character(bounds.obj$bounds$date), ]
+  in.bounds <- x >= (bounds.obj$bounds$lower * bounds.obj$lower.bound.multiplier) & 
+    x <= (bounds.obj$bounds$upper * bounds.obj$upper.bound.multiplier)
+  return(colMeans(in.bounds, na.rm = T) >= bounds.obj$required.in.bounds)
 }
 
-RunSim1 <- function(params1, model.inputs, observed.data, internal.args, date.range) {
+InBounds <- function(sim, bounds.list) {
+  stopifnot(is.matrix(sim[[1]]))
+  num.param.sets <- ncol(sim[[1]]) #should be the same for all sim
+  in.bounds <- rep(T, num.param.sets)
+  for (i in names(bounds.list)) {
+    in.bounds <- in.bounds & InBounds1(sim[[i]], bounds.list[[i]])
+  }
+  return(in.bounds)
+}
+
+RunSim1 <- function(params1, model.inputs, observed.data, internal.args) {
   if (!internal.args$show.progress) {
     sink("CredibilityInterval progress log.txt")
   }
@@ -23,17 +38,25 @@ RunSim1 <- function(params1, model.inputs, observed.data, internal.args, date.ra
   if (!internal.args$show.progress) {
     sink()
   }
-  if (nrow(params1) == 1) {
-    sim <- sim[date %in% date.range]
-  } else {
-    sim <- lapply(sim, function (z) z[as.character(date.range), ])
-  }
+  # if (nrow(params1) == 1) {
+  #   sim <- sim[date %in% date.range]
+  # } else {
+  #   sim <- lapply(sim, function (z) z[as.character(date.range), ])
+  # }
   return(sim)
 }
 
+GetQuantiles <- function(sim, in.bounds) {
+  quantile.list <- lapply(sim, function (z) {
+    sim.accepted <- z[, in.bounds, drop = F]
+    rowQuantiles(sim.accepted, probs = seq(0, 1, by = 0.05))
+  })
+  attr(quantile.list, "posterior.niter") <- sum(in.bounds)
+  return(quantile.list)
+}
 
 #` Main function to calculate credibility interval
-CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, upp.params, observed.data, internal.args, extras) {
+CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.params, observed.data, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
   devlist <- grDevices::dev.list()
   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
@@ -45,36 +68,21 @@ CredibilityInterval <- function(all.params, model.inputs, hosp.bounds, upp.param
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   TestOutputFile(filestr)
   
-  date.range <- seq(model.inputs$start.display.date, model.inputs$end.date, by = "day")
-  
-  bounds.without.multiplier <- merge(data.table(date = date.range), hosp.bounds, all.x = T)
-  bounds.with.multiplier <- copy(bounds.without.multiplier)
-  bounds.with.multiplier[, lower := internal.args$lower.bound.multiplier * lower]
-  bounds.with.multiplier[, upper := internal.args$upper.bound.multiplier * upper]
-  
   cat("\nProjecting single User's Prior Projection scenario:\n")
-  upp.sim <- RunSim1(params1 = upp.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-  
-  upp.in.bounds <- InBounds(upp.sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
-  if (!upp.in.bounds) {
-    cat("\nnote: User's Prior Projection is not compatible with bounds\n")
-    dt.print <- cbind(upp.sim[, .(upp.hosp = round(hosp, 1))], bounds.with.multiplier)
-    dt.print[, OK := upp.hosp >= lower & upp.hosp <= upper]
-    print(dt.print[!is.na(lower) & !is.na(upper)])
-  }
-  
+  upp.sim <- RunSim1(params1 = upp.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args)
   if (nrow(all.params) > 1) {
     cat("\nProjecting", nrow(all.params), "scenarios based on priors:\n")
-    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args, date.range = date.range)
-    in.bounds <- InBounds(sim$hosp, bounds.with.multiplier, required.in.bounds = internal.args$required.in.bounds)
+    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args)
+    in.bounds <- InBounds(sim, bounds.list)
+    posterior.quantiles <- GetQuantiles(sim[union(c("hosp", "icu", "vent", "active.cases", "total.cases"), names(bounds.list))], in.bounds)
   } else {
-    sim <- NULL
+    sim <- posterior.quantiles <- NULL
     in.bounds <- FALSE
   }
   
-  output.list <- GetExcelOutput(sim, upp.sim, in.bounds, upp.in.bounds, date.range, filestr, all.inputs.str)
-  gplot <- GetPdfOutput(hosp = output.list$hosp, in.bounds, all.params, filestr, bounds.without.multiplier, internal.args)
-  return(list(sim = sim, gplot = gplot, output.list = output.list, upp.sim = upp.sim, in.bounds = in.bounds, upp.in.bounds = upp.in.bounds, date.range = date.range, filestr = filestr, all.inputs.str = all.inputs.str))
+  excel.output <- GetExcelOutput(posterior.quantiles, model.inputs, filestr, all.inputs.str)
+  gplot <- GetPdfOutput(posterior.quantiles, in.bounds, all.params, filestr, bounds.list, internal.args, model.inputs, upp.sim)
+  return(list(sim = sim, gplot = gplot, excel.output = excel.output, upp.sim = upp.sim, in.bounds = in.bounds, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
 
