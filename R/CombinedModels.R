@@ -291,7 +291,7 @@ SeqAround <- function(lo, hi, est, n) {
   c(est - d1 * rev(s), est, est + d2 * s)
 }
 
-GetNextX <- function(fit, first.iter, expander, num.init.exp) {
+GetNextX <- function(fit, first.iter, expander, num.init.exp, max.possible.x) {
   #TODO: make a smarter estimate of x.min/x.max - inner bucket should be estimate of the width of initial.exposures needed to establish convergence, outer buckets should try to establish an interior solution
 
   #if expander is too small, optimal.initial.new.exposures won't fit in x.min to x.max during (for iter > 1); if expander is too big, won't detect convergence
@@ -334,6 +334,7 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp) {
       max.x <- x.set.prev[index + 1]
       max.hosp <- hosp.prev[index + 1]
     }
+    max.x <- pmin(max.x, max.possible.x)
 
     hosp.span[j] <- max.hosp - min.hosp
     #converged if interior solution and diff between hosp [-1] and hosp [+1] < 0.5
@@ -366,6 +367,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
     print(ggplot(plot.dt, aes(x, badness)) + geom_point(aes(color=factor(type))) + geom_vline(xintercept = fit$best$optimal.initial.new.exposures) + ggtitle(paste0("iter = ", iter)) + coord_cartesian(ylim=plot.dt[, range(badness)]) + scale_y_log10())
   }
 
+  max.possible.x <- 0.2 * total.population
   num.param.sets <- nrow(params)
   best.dt <- data.table(converged = rep(F, num.param.sets))
   fit <- FitSEIR(matrix(1e-30, nrow = num.param.sets, ncol = 1), total.population, start.date, observed.data, params)
@@ -373,7 +375,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
     cat("---------- iter = ", iter, " -------------\n")
 
     #get next x.set (num.not.converged x num.init.exp) -- fit only has num.not.converged.
-    next.list <- GetNextX(fit, first.iter = iter == 1, expander = search.args$expander, num.init.exp = search.args$num.init.exp)
+    next.list <- GetNextX(fit, first.iter = iter == 1, expander = search.args$expander, num.init.exp = search.args$num.init.exp, max.possible.x = max.possible.x)
 
     best.dt[converged == F, initial.new.exposures := fit$best$initial.new.exposures]
     best.dt[converged == F, objective := fit$best$badness]

@@ -1,3 +1,9 @@
+# LEMMA 0.3.0.9006
+
+## Minor improvements and fixes
+* Fixed rare "q[[i]][tt, , ] > -1e-05 are not all TRUE" problem
+
+
 # LEMMA 0.3.0.9005
 
 ## Minor improvements and fixes
