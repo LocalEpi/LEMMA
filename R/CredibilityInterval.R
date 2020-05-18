@@ -30,9 +30,15 @@ InBounds <- function(sim, bounds.list) {
   return(in.bounds)
 }
 
-RunSim1 <- function(params1, model.inputs, observed.data, internal.args) {
+RunSim1 <- function(params1, model.inputs, internal.args, bounds.list) {
   if (!internal.args$show.progress) {
     sink("CredibilityInterval progress log.txt")
+  }
+  observed.data <- bounds.list[[1]]$bounds[, .(date)]
+  for (i in names(bounds.list)) {
+    temp.dt <- bounds.list[[i]]$bounds[, .(temp = (lower + upper) / 2)]
+    setnames(temp.dt, "temp", i)
+    observed.data <- cbind(observed.data, temp.dt)
   }
   sim <- RunSim(total.population = model.inputs$total.population, observed.data = observed.data, start.date = internal.args$simulation.start.date, end.date = model.inputs$end.date, params = params1, search.args = list(max.iter = internal.args$search.max.iter, expander = internal.args$search.expander, num.init.exp = internal.args$search.num.init.exp, max.nonconverge = internal.args$max.nonconverge))
   if (!internal.args$show.progress) {
@@ -55,8 +61,35 @@ GetQuantiles <- function(sim, in.bounds) {
   return(quantile.list)
 }
 
+SmoothBounds <- function(bounds.list) {
+  for (i in names(bounds.list)) {
+    span <- bounds.list[[i]]$loess.span
+    if (span > 0) {
+      bounds <- copy(bounds.list[[i]]$bounds)
+      bounds[, orig.lower := lower]
+      bounds[, orig.upper := upper]
+      bounds[, date.index := 1:.N]
+      bounds$lower <- predict(loess(lower ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
+      bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
+      
+      gg <- ggplot(bounds, aes(x = date)) +
+        geom_line(aes(y = lower)) +
+        geom_line(aes(y = upper)) +
+        geom_point(aes(y=orig.upper), color = "red4", shape = 4, na.rm = T) +
+        geom_point(aes(y=orig.lower), color = "palegreen4", shape = 4, na.rm = T) +
+        labs(title = "Pre and Post Data Smoothing", subtitle = paste("loess.span = ", span)) +
+        ylab(bounds.list[[i]]$long.name)
+      print(gg)
+      bounds.list[[i]]$bounds <- bounds[, .(date, lower, upper)]
+    } else {
+      cat("No smoothing for", bounds.list[[i]]$long.name, "- span = 0\n")
+    }
+  }
+  return(bounds.list)
+} 
+
 #` Main function to calculate credibility interval
-CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.params, observed.data, internal.args, extras) {
+CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.params, internal.args, extras) {
   options("openxlsx.numFmt" = "0.0")
   devlist <- grDevices::dev.list()
   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
@@ -68,11 +101,13 @@ CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.param
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   TestOutputFile(filestr)
   
+  bounds.list <- SmoothBounds(bounds.list)
+  
   cat("\nProjecting single User's Prior Projection scenario:\n")
-  upp.sim <- RunSim1(params1 = upp.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args)
+  upp.sim <- RunSim1(params1 = upp.params, model.inputs = model.inputs, internal.args = internal.args, bounds.list = bounds.list)
   if (nrow(all.params) > 1) {
     cat("\nProjecting", nrow(all.params), "scenarios based on priors:\n")
-    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, observed.data = observed.data, internal.args = internal.args)
+    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, internal.args = internal.args, bounds.list = bounds.list)
     in.bounds <- InBounds(sim, bounds.list)
     posterior.quantiles <- GetQuantiles(sim[union(c("hosp", "icu", "vent", "active.cases", "total.cases"), names(bounds.list))], in.bounds)
   } else {

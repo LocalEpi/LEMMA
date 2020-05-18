@@ -1,5 +1,5 @@
-ReadExcel <- function(path, col_types, sheet, range = NULL) {
-  x <- as.data.table(readxl::read_excel(path = path, col_types = col_types, sheet = sheet, range = range))
+ReadExcel <- function(path, col_types, sheet, ...) {
+  x <- as.data.table(readxl::read_excel(path = path, col_types = col_types, sheet = sheet, ...))
   attr(x, "sheetname") <- sheet
   return(x)
 }
@@ -75,13 +75,14 @@ ReadInputs <- function(path) {
   sheets <- list(ReadExcel(path, col_types = c("text", "text", "list", "list", "list", "list", "list", "skip"), sheet = "Parameters with Distributions"), 
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  # ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
-                 ReadExcel(path, sheet = "Data", col_types = "guess"),
+                 
+                 ReadExcel(path, sheet = "Data", col_types = "guess", skip = 8),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
-
+  sheets$bounds.args <- ReadExcel(path, sheet = "Data", col_types = "guess", n_max = 7)
+  sheets$`Parameters with Distributions` <- sheets$`Parameters with Distributions`[1:(which.max(is.na(internal.name)) - 1)]
   
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
-  sheets$`Parameters with Distributions` <- sheets$`Parameters with Distributions`[1:(which.max(is.na(internal.name)) - 1)]
   return(sheets)
 }
 
@@ -92,7 +93,8 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     model.inputs$start.display.date <- as.Date("2020/3/1")
   }
   #hosp.data <- sheets$`Hospitilization Data`
-  hosp.data <- sheets$`Data`
+  #hosp.bounds <- hosp.data[, .(date = Date, lower = LowerBound, upper = UpperBound)]
+  
   internal <- TableToList(sheets$Internal)
   if (!("plot.observed.data.long.term" %in% names(internal))) {
     internal$plot.observed.data.long.term <- FALSE
@@ -107,16 +109,44 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     internal$upper.bound.label <- "Probable COVID19"
   }
   
-
-  observed.data <- hosp.data[, .(date = Date, hosp = (LowerBound + UpperBound) / 2)] #TODO: make this more flexible?
   if (!is.na(internal$min.obs.date.to.fit)) {
     observed.data <- observed.data[date >= internal$min.obs.date.to.fit]
   }
   if (!is.na(internal$max.obs.date.to.fit)) {
     observed.data <- observed.data[date <= internal$max.obs.date.to.fit]
   }
-
-  hosp.bounds <- hosp.data[, .(date = Date, lower = LowerBound, upper = UpperBound)]
+  
+  bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges")
+  bounds.list <- list()
+  for (i in bounds.names) { 
+    lb <- paste0(i, ".lower")
+    ub <- paste0(i, ".upper")
+    bounds <- sheets$Data[, .(date, lower = get(lb), upper = get(ub))]
+    lower.mult <- sheets$bounds.args[internal.name == "bound.multiplier", as.numeric(get(lb))]
+    upper.mult <- sheets$bounds.args[internal.name == "bound.multiplier", as.numeric(get(ub))]
+    loess.span <- sheets$bounds.args[internal.name == "loess.span", as.numeric(get(lb))] #stored in the "lower" column only
+    req.in.bounds <- sheets$bounds.args[internal.name == "required.in.bounds", as.numeric(get(lb))] #stored in the "lower" column only
+    long.name <- sheets$bounds.args[internal.name == "long.name", get(lb)] #stored in the "lower" column only
+    lower.label <- sheets$bounds.args[internal.name == "bound.label", get(lb)]
+    upper.label <- sheets$bounds.args[internal.name == "bound.label", get(ub)]
+    if (!(all(is.na(bounds$lower)) && all(is.na(bounds$upper)))) {
+      bounds.arguments <- c(req.in.bounds, lower.mult, upper.mult, loess.span)
+      if (anyNA(bounds.arguments) || length(bounds.arguments) != 4) {
+        print(bounds.arguments)
+        stop("required.in.bounds, lower.bound.multiplier, upper.bound.multiplier, loess.span, must all be specified for ", i)
+      }
+      bounds.list[[i]] <- list(required.in.bounds = req.in.bounds, 
+                               lower.bound.multiplier = lower.mult, 
+                               upper.bound.multiplier = upper.mult,
+                               loess.span = loess.span,
+                               long.name = long.name, 
+                               lower.bound.label = lower.label,
+                               upper.bound.label = upper.label,
+                               bounds = bounds)
+    }
+    
+    #TODO: stopifnot all are not null
+  }
 
   set.seed(internal$random.seed)
   if (generate.params) {
@@ -132,7 +162,7 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   sheets$time.of.run <- as.character(Sys.time())
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
  
-  return(list(all.params = params, model.inputs = model.inputs, hosp.bounds = hosp.bounds, observed.data = observed.data, internal.args = internal, upp.params = upp, excel.input = sheets, param.dist = param.dist))
+  return(list(all.params = params, model.inputs = model.inputs, bounds.list = bounds.list, internal.args = internal, upp.params = upp, excel.input = sheets, param.dist = param.dist))
 }
 
 #' Run Credibility Interval based on Excel inputs
@@ -144,7 +174,7 @@ CredibilityIntervalFromExcel <- function(input.file) {
   sheets <- ReadInputs(input.file)
   inputs <- ProcessSheets(sheets, input.file)
 
-  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, hosp.bounds = inputs$hosp.bounds, upp.params = inputs$upp.params, observed.data = inputs$observed.data, internal.args = inputs$internal.args, extras = inputs$excel.input)
+  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, bounds.list = inputs$bounds.list, upp.params = inputs$upp.params, internal.args = inputs$internal.args, extras = inputs$excel.input)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
