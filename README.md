@@ -57,7 +57,7 @@ Briefly, LEMMA requires parameters related to the epidemic modeling (e.g., basic
 
 - Date of first intervention: Specify the date of the first public health intervention. 
 
-- Re multiplier: Specify the impact of the first intervention in terms of multiplicative reductions in the basic reproductive number. Supposed this is 60%. Then the effective reproductive number after the first intervention would be Re= 0.6*R0, where R0 is the basic reproductive number provided on Row 4. 
+- Re multiplier: Specify the impact of the first intervention in terms of multiplicative reductions in the basic reproductive number. Suppose this is 60%. Then the effective reproductive number after the first intervention would be Re= 0.6*R0, where R0 is the basic reproductive number provided on Row 4. 
 
 - Days to reach new Re: LEMMA assumes the effects of interventions do not happen instantaneously.
 Therefore, specify the number of days to reach the new effective reproductive number. 
@@ -67,7 +67,7 @@ Therefore, specify the number of days to reach the new effective reproductive nu
 - Contant rate to hospital (if FALSE, fixed number of days to hospital): This is a true/false indicator if there is a constant rate at which infectious persons are hospitalized. (Note this is different than the "Percent of Infected that are Hospitalized" (Row 8).)
 
 ### Sheet 2: Model Inputs
-Specify the number of people in the area of interest; this could be a region, city, or hospital catchement area. Specify the final date of projections. 
+Specify the number of people in the area of interest; this could be a region, city, or hospital catchement area. Specify the starting and final date of projections. 
 
 ### Sheet 3: Hospitalization Data
 Provide hospital case series data. On each date, specify the a lower and upper bound on the number of persons hospitalized with COVID-19. This bounding is intended to account for uncertainty due to persons who are hospitalized but under investigation (i.e., not yet confirmed COVID-19 positive or not). You may enter any range of dates. 
@@ -81,17 +81,11 @@ Given the above input, LEMMA runs specified number of simulations, where in each
 
 The main output is provided in pdf format. 
 
-- Page 1 is a graph of projected hospitalizations by date with uncertainity bounds. The yellow line is the User's Prior Projection - a projection using only column E of the 'Parameters with Distributions' Tab. The red line is the median of the posterior projections. Uncertainty bands are represented by the shaded regions, representing quantiles of the posterior projections. 25%-75% of the posterior distribution falls within the dark gray band, 15%-85% within the medium gray band, and 5%-95% within the light gray bands. The black dots are the observed hospitalizations (currently assumed to be the average of the lower and upper bounds). 
+- Page 1 is a graph of short term hospitalization projections by date with uncertainity bounds. The dark blue line is the median of the posterior projections. Uncertainty bands are represented by the shaded regions, representing quantiles of the posterior projections. 25%-75% of the posterior distribution falls within the dark purple band, 15%-85% within the medium purple band, and 5%-95% within the light purple bands. Green and red Xs denote the lower bound and upper bounds of the hospitalization case series data. (You can change these labels on the Internal Tab.)
 
-- Page 2 provides the prior distribution for the models considered. These models are derived by a combination of 3 parameters where 0 denotes false and 1 true. 'hasE' indicates if there is a latent period; 'infect in hosp' indicates if patients are infectious in the hospital, and 'rate to hospital' indicates if there is a constant rate at which infectious persons are hospitalized. 
+- Page 2 provides a graph of long term hospitalization projections by date with uncertainity bounds.
 
-- Page 3 provides the posterior distribution for the models considered. Importantly, at the top of this graph and all 'posterior' pages, you will see the number of simulations included in the posterior distribution (niter=#). 
-
-- Page 4 provides the prior distribution on the "current" effective reproductive number (currentRe). This is the reproductive number after the first two inteventions have taken place (but not the third which is assumed to be at a future date). 
-
-- Page 5 provides the posterior distribution for the current effective reproductive number (currentRe).
-
-- The following pages provide the prior and posterior distributions for all the specified parameters. 
+- The remaining pages provide the prior and posterior distributions for all the specified parameters. Importantly, at the top of all 'posterior' pages, you will see the number of simulations included in the posterior distribution (niter=#). Pages 31 and 32 provide the prior and posterior distributions for the models considered. These models are derived by a combination of 3 parameters where 0 denotes false and 1 true. 'hasE' indicates if there is a latent period; 'infect in hosp' indicates if patients are infectious in the hospital, and 'rate to hospital' indicates if there is a constant rate at which infectious persons are hospitalized. 
 
 The Excel spreadsheet output provides detailed output for daily number hospitalized, in the ICU, on ventilators, as well as active cases and resolved cases. For each, the User's Prior Projection and quantiles are provided.
 
