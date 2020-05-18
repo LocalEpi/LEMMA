@@ -200,7 +200,7 @@ VaryOneParameter <- function(input.file, parameter.name = "") {
     stop("unrecognized parameter.name")
   }
   date.range <- seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day")
-  sim <- RunSim1(params1 = params, model.inputs = inputs$model.inputs, observed.data = inputs$observed.data, internal.args = inputs$internal.args, date.range = date.range)
+  sim <- RunSim1(params1 = params, model.inputs = inputs$model.inputs, bounds.list = inputs$bounds.list, internal.args = inputs$internal.args)
   
   colnames(sim$hosp) <- parameter.range
   dt.plot <- melt(data.table(date = as.Date(rownames(sim$hosp)), sim$hosp), id = "date", value.name = "Hospitalizations", variable.name = "parameter")
