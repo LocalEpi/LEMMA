@@ -59,7 +59,7 @@ PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
           geom_density(alpha=.2, fill="steelblue3") 
       }
       
-      if (grepl(".Re.", xlab, fixed = T)) {
+      if (grepl(".Re.", xlab, fixed = T) && !prior) {
         cat("\n", cap, ":\n")
         re.quantiles <- round(quantile(d$x, c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
         print(re.quantiles)
@@ -95,14 +95,18 @@ GetCompartmentName <- function(compartment.name) {
 }
 
 GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.observed.data, compartment.name, model.inputs, upp.sim) {
-  quantile.dt <- data.table(date = as.Date(rownames(quantiles)), quantiles)
+  dt.plot <- merge(data.table(date = as.Date(names(upp.sim)), upp = upp.sim), bounds.list$bounds, all.x = T, by = "date")
+  if (!is.null(quantiles)) {
+    dt.plot <- merge(dt.plot, data.table(date = as.Date(rownames(quantiles)), quantiles), by = "date")
+  }
+  
   if (short.term) {
     date.breaks <- "1 week"
     max.date <- bounds.list$bounds[!is.na(lower), max(date)] + 3
     title1 <- paste("Short Term", GetCompartmentName(compartment.name), "Projections")
   } else {
     date.breaks <- "1 month"
-    max.date <- max(quantile.dt$date) - 3 #makes it look a little nicer when ending on first of the month
+    max.date <- max(dt.plot$date) - 3 #makes it look a little nicer when ending on first of the month
     title1 <- paste("Long Term", GetCompartmentName(compartment.name), "Projections")
   }
   
@@ -125,8 +129,6 @@ GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.ob
   lb <- bounds.list$lower.bound.label
   ub <- bounds.list$upper.bound.label
   
-  dt.plot <- merge(quantile.dt, bounds.list$bounds, all.x = T, by = "date")
-  dt.plot <- merge(dt.plot, data.table(date = as.Date(names(upp.sim)), upp = upp.sim), by = "date")
   dt.plot <- dt.plot[date >= min.date & date <= max.date]
   gg <- ggplot(dt.plot, aes(x=date)) +    
     theme_light()
@@ -175,10 +177,12 @@ GetPdfOutput <- function(quantiles, in.bounds, all.params, filestr, bounds, inte
   posterior.title <- GetPlotTitle(post.niter)
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
+  print(ggplot() + labs(title = paste("LEMMA", getNamespaceVersion("LEMMA")), subtitle = "This page is left blank to facilitate viewing is Mac Preview 'Two Page' mode"))
   
+  short.term <- long.term <- list()
   for (i in names(bounds)) {
-    print(short.term <- GetProjectionPlot(short.term = T, niter = post.niter, quantiles = quantiles[[i]], bounds.list = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.short.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
-    print(long.term <- GetProjectionPlot(short.term = F, niter = post.niter, quantiles = quantiles[[i]], bounds = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.long.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
+    print(short.term[[i]] <- GetProjectionPlot(short.term = T, niter = post.niter, quantiles = quantiles[[i]], bounds.list = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.short.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
+    print(long.term[[i]] <- GetProjectionPlot(short.term = F, niter = post.niter, quantiles = quantiles[[i]], bounds = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.long.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
   }
   
   intervention.multiplier.str <- grep("^intervention[[:digit:]]+\\.multiplier$", names(all.params), value = T)
