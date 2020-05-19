@@ -167,7 +167,7 @@ FitSEIR <- function(initial.new.exposures, total.population, start.date, observe
   num.param.sets <- nrow(params)
   num.init.exp <- ncol(initial.new.exposures)
 
-  seir <- SEIR(initial.new.exposures, total.population, start.date, end.date = max(observed.data$date), params)
+  seir <- SEIR(initial.new.exposures, total.population, start.date, end.date = max(observed.data$date) + 1, params) #add one day because new.admits is NA on the last day
 
   # TODO: add weights if we're fitting data other than hospital (eg. ICU, total cases)
   # weights <- lapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col)))
@@ -183,9 +183,10 @@ FitSEIR <- function(initial.new.exposures, total.population, start.date, observe
   best.fit.index <- max.col(-badness, ties.method = "last")
   optimal.initial.new.exposures <- rowCollapse(error$optimal.initial.new.exposures.scale * initial.new.exposures, best.fit.index)
 
-  best <- list(index = best.fit.index, initial.new.exposures = initial.new.exposures[cbind(seq_len(num.param.sets), best.fit.index)], optimal.initial.new.exposures = optimal.initial.new.exposures, badness = badness[cbind(seq_len(num.param.sets), best.fit.index)])
-
   hosp.at.last.obs.date <- matrix(seir$hosp[nrow(seir$hosp), , ], nrow = num.param.sets, ncol = num.init.exp) #fix if dropped to vector
+  
+  best <- list(index = best.fit.index, initial.new.exposures = initial.new.exposures[cbind(seq_len(num.param.sets), best.fit.index)], optimal.initial.new.exposures = optimal.initial.new.exposures, badness = badness[cbind(seq_len(num.param.sets), best.fit.index)], hosp = hosp.at.last.obs.date[cbind(seq_len(num.param.sets), best.fit.index)])
+
   #TODO: rename allz
   allz <- list(initial.new.exposures=initial.new.exposures, badness=badness, hosp=hosp.at.last.obs.date, peak=error$peak.before.first.observed) #badness and peak are just for debugging
   return(list(best = best, allz = allz))
@@ -216,13 +217,17 @@ CalcError <- function(simulated.data, observed.data, weights) {
   for (data.name in setdiff(names(observed.data), "date")) {
     sim.data <- simulated.data[[data.name]][sim.data.index, , , drop = F] # num.obs.days x num.param.sets x num.init.exp
     obs.data <- observed.data[[data.name]] # num.obs.days x 1
-
     weight <- weights[[data.name]]
-    sum.error.sq <- sum.error.sq + colSums(weight^2 * (sim.data - obs.data)^2, na.rm = T)
-    sum.sim.sq <- sum.sim.sq + colSums(weight^2 * sim.data^2, na.rm = T)
-    sum.sum.obs <- sum.sum.obs + colSums(weight^2 * (sim.data * obs.data), na.rm = T)
+    
+    index <- !is.na(obs.data)
+    sim.data <- sim.data[index, , , drop = F]
+    obs.data <- obs.data[index]
+    
+    sum.error.sq <- sum.error.sq + colSums(weight^2 * (sim.data - obs.data)^2)
+    sum.sim.sq <- sum.sim.sq + colSums(weight^2 * sim.data^2)
+    sum.sum.obs <- sum.sum.obs + colSums(weight^2 * (sim.data * obs.data))
   }
-  optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get estimate of optimal initial.new.exposures
+  optimal.initial.new.exposures.scale <- sum.sum.obs / sum.sim.sq  #multiply by initial.new.exposures to get estimate of optimal initial.new.exposures - this works well if all of the simulated data for the observed data range scales linearly with initial.new.exposures (as in when there are a small number of dates, but less well for more dates)
   optimal.initial.new.exposures.scale[sum.sum.obs == 0] <- 0 #fix 0/0 problems when sim.data is all 0
   stopifnot(optimal.initial.new.exposures.scale >= 0)
   #assumes obs.date > min(sim.date)
@@ -262,10 +267,10 @@ GetBeta <- function(dates, params, overall.gamma) {
 
 #probably a better way to do this
 SeqAround <- function(lo, hi, est, n) {
-  s <- (1:n) ^ 10
+  s <- 5 ^ (0:(n - 1))
   d1 <- (est - lo) / sum(s)
   d2 <- (hi - est) / sum(s)
-  c(est - d1 * rev(s), est, est + d2 * s)
+  c(est - d1 * rev(cumsum(s)), est, est + d2 * cumsum(s))
 }
 
 GetNextX <- function(fit, first.iter, expander, num.init.exp, max.possible.x) {
@@ -348,6 +353,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
   num.param.sets <- nrow(params)
   best.dt <- data.table(converged = rep(F, num.param.sets))
   fit <- FitSEIR(matrix(1e-30, nrow = num.param.sets, ncol = 1), total.population, start.date, observed.data, params)
+  # temp.hosp <- matrix(NA_real_, search.args$max.iter, num.param.sets)
   for (iter in 1:search.args$max.iter) {
     cat("---------- iter = ", iter, " -------------\n")
 
@@ -357,20 +363,32 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
     best.dt[converged == F, initial.new.exposures := fit$best$initial.new.exposures]
     best.dt[converged == F, objective := fit$best$badness]
     best.dt[converged == F, hosp.span := next.list$hosp.span]
-    best.dt[converged == F, converged := next.list$converged]
     best.dt[converged == F, est.opt := fit$best$optimal.initial.new.exposures]
-    best.dt[, finite.span := is.finite(hosp.span)]
-
+    best.dt[converged == F, finite.span := is.finite(hosp.span)]
+    best.dt[converged == F, best.hosp := fit$best$hosp]
+    
+    #note: make sure the converged update is last
+    best.dt[converged == F, converged := next.list$converged]
+   
    if (F) {
      print(fit$best)
+     cat("x.set.next:\n")
      print(next.list$x.set.next)
+     cat("fit$allz$hosp:\n")
+     print(fit$allz$hosp)
      print(best.dt)
+     cat(" ")
    }
     print(best.dt[, .(.N, median.initial.new.exposures = median(initial.new.exposures), median.hosp.span = median(hosp.span), max.hosp.span = max(hosp.span), mean.objective = mean(objective), med.est.opt = median(est.opt)), keyby= c("converged", "finite.span")])
     if (all(best.dt$converged)) break
 
     fit <- FitSEIR(next.list$x.set.next, total.population, start.date, observed.data, params[!best.dt$converged])
+    
+    # temp <- FitSEIR(as.matrix(fit$best$optimal.initial.new.exposures), total.population, start.date, observed.data, params[!best.dt$converged])
+    # temp.hosp[iter, !best.dt$converged] <- temp$best$hosp
   }
+  # temp.hosp <- temp.hosp[1:iter, ]
+  # print(temp.hosp - best.dt$best.hosp)
   if (!all(best.dt$converged)) {
     if (mean(!best.dt$converged) > search.args$max.nonconverge) {
       cat("did not converge:\n")
