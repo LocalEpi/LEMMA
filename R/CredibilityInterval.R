@@ -40,15 +40,17 @@ RunSim1 <- function(params1, model.inputs, internal.args, bounds.list) {
     setnames(temp.dt, "temp", i)
     observed.data <- cbind(observed.data, temp.dt)
   }
+  if (!is.na(internal.args$min.obs.date.to.fit)) {
+    observed.data <- observed.data[date >= internal.args$min.obs.date.to.fit]
+  }
+  if (!is.na(internal.args$max.obs.date.to.fit)) {
+    observed.data <- observed.data[date <= internal.args$max.obs.date.to.fit]
+  }
+  
   sim <- RunSim(total.population = model.inputs$total.population, observed.data = observed.data, start.date = internal.args$simulation.start.date, end.date = model.inputs$end.date, params = params1, search.args = list(max.iter = internal.args$search.max.iter, expander = internal.args$search.expander, num.init.exp = internal.args$search.num.init.exp, max.nonconverge = internal.args$max.nonconverge))
   if (!internal.args$show.progress) {
     sink()
   }
-  # if (nrow(params1) == 1) {
-  #   sim <- sim[date %in% date.range]
-  # } else {
-  #   sim <- lapply(sim, function (z) z[as.character(date.range), ])
-  # }
   return(sim)
 }
 
@@ -73,8 +75,8 @@ SmoothBounds <- function(bounds.list) {
       bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
       
       gg <- ggplot(bounds, aes(x = date)) +
-        geom_line(aes(y = lower)) +
-        geom_line(aes(y = upper)) +
+        geom_line(aes(y = lower), na.rm = T) +
+        geom_line(aes(y = upper), na.rm = T) +
         geom_point(aes(y=orig.upper), color = "red4", shape = 4, na.rm = T) +
         geom_point(aes(y=orig.lower), color = "palegreen4", shape = 4, na.rm = T) +
         labs(title = "Pre and Post Data Smoothing", subtitle = paste("loess.span = ", span)) +
@@ -110,12 +112,11 @@ CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.param
     sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, internal.args = internal.args, bounds.list = bounds.list)
     in.bounds <- InBounds(sim, bounds.list)
     posterior.quantiles <- GetQuantiles(sim[union(c("hosp", "icu", "vent", "active.cases", "total.cases"), names(bounds.list))], in.bounds)
+    excel.output <- GetExcelOutput(posterior.quantiles, model.inputs, filestr, all.inputs.str)
   } else {
-    sim <- posterior.quantiles <- NULL
+    sim <- posterior.quantiles <- excel.output <- NULL
     in.bounds <- FALSE
   }
-  
-  excel.output <- GetExcelOutput(posterior.quantiles, model.inputs, filestr, all.inputs.str)
   gplot <- GetPdfOutput(posterior.quantiles, in.bounds, all.params, filestr, bounds.list, internal.args, model.inputs, upp.sim)
   return(list(sim = sim, gplot = gplot, excel.output = excel.output, upp.sim = upp.sim, in.bounds = in.bounds, filestr = filestr, all.inputs.str = all.inputs.str))
 }

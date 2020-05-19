@@ -109,13 +109,6 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     internal$upper.bound.label <- "Probable COVID19"
   }
   
-  if (!is.na(internal$min.obs.date.to.fit)) {
-    observed.data <- observed.data[date >= internal$min.obs.date.to.fit]
-  }
-  if (!is.na(internal$max.obs.date.to.fit)) {
-    observed.data <- observed.data[date <= internal$max.obs.date.to.fit]
-  }
-  
   bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges")
   bounds.list <- list()
   for (i in bounds.names) { 
