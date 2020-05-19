@@ -66,27 +66,35 @@ GetQuantiles <- function(sim, in.bounds) {
 SmoothBounds <- function(bounds.list) {
   for (i in names(bounds.list)) {
     span <- bounds.list[[i]]$loess.span
+    
+    bounds <- copy(bounds.list[[i]]$bounds)
+    bounds[, orig.lower := lower]
+    bounds[, orig.upper := upper]
+    
     if (span > 0) {
-      bounds <- copy(bounds.list[[i]]$bounds)
-      bounds[, orig.lower := lower]
-      bounds[, orig.upper := upper]
       bounds[, date.index := 1:.N]
       bounds$lower <- predict(loess(lower ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
       bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
-      
-      gg <- ggplot(bounds, aes(x = date)) +
+    }
+    
+    gg <- ggplot(bounds, aes(x = date)) +
+      geom_point(aes(y=orig.upper), color = "red4", shape = 4, na.rm = T) +
+      geom_point(aes(y=orig.lower), color = "palegreen4", shape = 4, na.rm = T) +
+      ylab(bounds.list[[i]]$long.name) +
+      ggtitle(bounds.list[[i]]$long.name)
+    
+    if (span > 0) {
+      gg <- gg +  
         geom_line(aes(y = lower), na.rm = T) +
         geom_line(aes(y = upper), na.rm = T) +
-        geom_point(aes(y=orig.upper), color = "red4", shape = 4, na.rm = T) +
-        geom_point(aes(y=orig.lower), color = "palegreen4", shape = 4, na.rm = T) +
-        labs(title = "Pre and Post Data Smoothing", subtitle = paste("loess.span = ", span)) +
-        ylab(bounds.list[[i]]$long.name)
-      print(gg)
+        labs(subtitle = paste("Pre and Post Data Smoothing (loess.span = ", span, ")"))
       bounds.list[[i]]$bounds <- bounds[, .(date, lower, upper)]
     } else {
-      cat("No smoothing for", bounds.list[[i]]$long.name, "- span = 0\n")
+      gg <- gg + labs(subtitle = "No Smoothing (loess.span = 0)")
     }
+    print(gg)
   }
+
   return(bounds.list)
 } 
 
