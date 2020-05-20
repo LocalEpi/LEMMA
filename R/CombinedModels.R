@@ -138,7 +138,7 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
  
   cum.admits <- empty.compartment
   for (i in 1:num.init.exp) {
-    cum.admits[, , i] <- colCumsums(adrop(new.admits.output[, , i, drop = F], 3))
+    cum.admits[, , i] <- colCumsums(abind::adrop(new.admits.output[, , i, drop = F], 3))
   }
   icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
   vent <- as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
