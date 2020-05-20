@@ -74,8 +74,14 @@ SmoothBounds <- function(bounds.list) {
     
     if (span > 0) {
       bounds[, date.index := 1:.N]
-      bounds$lower <- predict(loess(lower ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
-      bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude), newdata = bounds)
+      bounds$lower <- predict(loess(lower ~ date.index, data = bounds, span = span, na.action = na.exclude, degree = 1), newdata = bounds)
+      bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude, degree = 1), newdata = bounds)
+      negative.bounds <- (bounds$lower < 0) | (bounds$upper < 0)
+      if (any(negative.bounds)) {
+        warning("loess smoothing for all dates of ", bounds.list[[i]]$long.name, " would cause negative bounds.\nNo smoothing was applied for these dates: ", paste(bounds[negative.bounds, date], collapse = ", "), "\nPossible solutions are using a smaller loess span and smoothing the data before calling LEMMA.")
+        bounds[negative.bounds, lower := orig.lower]
+        bounds[negative.bounds, upper := orig.upper]
+      }
     }
     
     gg <- ggplot(bounds, aes(x = date)) +
