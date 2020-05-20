@@ -109,7 +109,22 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     internal$upper.bound.label <- "Probable COVID19"
   }
   
-  bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges", "cum.admits")
+  
+  valid.bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges", "cum.admits")
+  
+  data.columns <- setdiff(names(sheets$Data), "date")
+  for (i in data.columns) {
+    if (!sub(".lower|.upper", "", i) %in% valid.bounds.names) {
+      stop("unexpected data column: ", i)
+    }
+  }
+  bounds.args.columns <- setdiff(names(sheets$bounds.args), c("internal.name", "not.used"))
+  for (i in data.columns) {
+    if (!sub(".lower|.upper", "", i) %in% valid.bounds.names) {
+      stop("unexpected bounds.args column: ", i)
+    }
+  }
+  bounds.names <- sub(".lower|.upper", "", data.columns)
   bounds.list <- list()
   for (i in bounds.names) { 
     lb <- paste0(i, ".lower")
@@ -137,8 +152,6 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
                                upper.bound.label = upper.label,
                                bounds = bounds)
     }
-    
-    #TODO: stopifnot all are not null
   }
 
   set.seed(internal$random.seed)
