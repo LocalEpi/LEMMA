@@ -136,6 +136,10 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
     new.discharges.output[tt, , ] <- new.discharges
   }
  
+  cum.admits <- empty.compartment
+  for (i in 1:num.init.exp) {
+    cum.admits[, , i] <- colCumsums(adrop(new.admits.output[, , i, drop = F], 3))
+  }
   icu <- as.vector(matrix(p$prop.icu, nrow = num.days, ncol = num.param.sets, byrow = T)) * q$HP
   vent <- as.vector(matrix(p$prop.vent, nrow = num.days, ncol = num.param.sets, byrow = T)) * icu
   deaths <- as.vector(matrix(p[, prop.icu * prop.vent * prop.death], nrow = num.days, ncol = num.param.sets, byrow = T)) * q$DC #cumulative deaths
@@ -147,7 +151,8 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
                            active.cases = q$E + q$IR + q$IH + q$HP, #active.cases includes those in hospital whether or not infectious
                            total.cases = q$E + q$IR + q$IH + q$R + q$HP + q$DC, #everyone ever exposed (implicitly includes dead); same as N - S
                            new.admits = new.admits.output,
-                           new.discharges = new.discharges.output))
+                           new.discharges = new.discharges.output, 
+                           cum.admits = cum.admits))
   names(list.return)[names(list.return) == "R"] <- "R.nonhosp"
   names(list.return)[names(list.return) == "HP"] <- "hosp"
 
@@ -163,15 +168,12 @@ Seir <- function(initial.new.exposures, total.population, start.date, end.date, 
 }
 
 #initial.new.exposures (num.param.sets x num.init.exp) matrix
-FitSEIR <- function(initial.new.exposures, total.population, start.date, observed.data, params) {
+FitSEIR <- function(initial.new.exposures, total.population, start.date, observed.data, params, weights) {
   num.param.sets <- nrow(params)
   num.init.exp <- ncol(initial.new.exposures)
 
   seir <- SEIR(initial.new.exposures, total.population, start.date, end.date = max(observed.data$date) + 1, params) #add one day because new.admits is NA on the last day
 
-  # TODO: add weights if we're fitting data other than hospital (eg. ICU, total cases)
-  # weights <- lapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col)))
-  weights <- lapply(observed.data[, -"date"], function (obs.data.col) 1)
   error <- CalcError(seir, observed.data, weights)
 
   #a large fixed penalty caused numeric precision problems - this relative penalty works but means badness can only be compared within one param and set of initial.new.exposures (don't compare across params or within params across calls to FitSEIR)
@@ -337,8 +339,8 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp, max.possible.x) {
   return(list(x.set.next = x.set.next[!converged.out, , drop = F], converged = converged.out, hosp.span = hosp.span)) #note: x.set.next is among non-converged, others are not
 }
 
-
-RunSim <- function(total.population, observed.data, start.date, end.date, params, search.args) {
+# weights <- lapply(observed.data[, -"date"], function (obs.data.col) 1) #default?
+RunSim <- function(total.population, observed.data, start.date, end.date, params, search.args, weights) {
   ff <- function(xmin, xmax) {
     #temp for debugging - plot initial.new.exposure vs badness for single param
     stopifnot(num.param.sets == 1)
@@ -352,7 +354,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
   max.possible.x <- 0.2 * total.population
   num.param.sets <- nrow(params)
   best.dt <- data.table(converged = rep(F, num.param.sets))
-  fit <- FitSEIR(matrix(1e-30, nrow = num.param.sets, ncol = 1), total.population, start.date, observed.data, params)
+  fit <- FitSEIR(matrix(1e-30, nrow = num.param.sets, ncol = 1), total.population, start.date, observed.data, params, weights)
   # temp.hosp <- matrix(NA_real_, search.args$max.iter, num.param.sets)
   for (iter in 1:search.args$max.iter) {
     cat("---------- iter = ", iter, " -------------\n")
@@ -382,7 +384,7 @@ RunSim <- function(total.population, observed.data, start.date, end.date, params
     print(best.dt[, .(.N, median.initial.new.exposures = median(initial.new.exposures), median.hosp.span = median(hosp.span), max.hosp.span = max(hosp.span), mean.objective = mean(objective), med.est.opt = median(est.opt)), keyby= c("converged", "finite.span")])
     if (all(best.dt$converged)) break
 
-    fit <- FitSEIR(next.list$x.set.next, total.population, start.date, observed.data, params[!best.dt$converged])
+    fit <- FitSEIR(next.list$x.set.next, total.population, start.date, observed.data, params[!best.dt$converged], weights)
     
     # temp <- FitSEIR(as.matrix(fit$best$optimal.initial.new.exposures), total.population, start.date, observed.data, params[!best.dt$converged])
     # temp.hosp[iter, !best.dt$converged] <- temp$best$hosp

@@ -109,7 +109,7 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     internal$upper.bound.label <- "Probable COVID19"
   }
   
-  bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges")
+  bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges", "cum.admits")
   bounds.list <- list()
   for (i in bounds.names) { 
     lb <- paste0(i, ".lower")

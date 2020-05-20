@@ -81,17 +81,10 @@ PlotHist <- function(x, posterior.title, cap, xlab, in.bounds) {
   return(g.list)
 }
 
-GetYLabel <- function(compartment.name) {
+GetYLabel <- function(compartment.name, long.name) {
   switch(compartment.name, hosp = "Number of COVID19 Patients in Hospital", 
          deaths = "Number of COVID19 Deaths",
-         compartment.name)
-}
-
-GetCompartmentName <- function(compartment.name) {
-  switch(compartment.name, hosp = "Hospitalization", 
-         icu = "ICU", 
-         "deaths" = "Death", 
-         compartment.name)
+         long.name)
 }
 
 GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.observed.data, compartment.name, model.inputs, upp.sim) {
@@ -103,11 +96,11 @@ GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.ob
   if (short.term) {
     date.breaks <- "1 week"
     max.date <- bounds.list$bounds[!is.na(lower), max(date)] + 3
-    title1 <- paste("Short Term", GetCompartmentName(compartment.name), "Projections")
+    title1 <- paste("Short Term", bounds.list$long.name, "Projection")
   } else {
     date.breaks <- "1 month"
     max.date <- max(dt.plot$date) - 3 #makes it look a little nicer when ending on first of the month
-    title1 <- paste("Long Term", GetCompartmentName(compartment.name), "Projections")
+    title1 <- paste("Long Term", bounds.list$long.name, "Projection")
   }
   
   if (niter < 500) {
@@ -160,7 +153,7 @@ GetProjectionPlot <- function(short.term, niter, quantiles, bounds.list, plot.ob
   
   gg <- gg + 
     xlab("") + 
-    ylab(GetYLabel(compartment.name)) +
+    ylab(GetYLabel(compartment.name, bounds.list$long.name)) +
     labs(title = title1, subtitle = subtitle1) + 
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
@@ -177,7 +170,7 @@ GetPdfOutput <- function(quantiles, in.bounds, all.params, filestr, bounds, inte
   posterior.title <- GetPlotTitle(post.niter)
   filestr.out <- paste0(filestr, ".pdf")
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
-  print(ggplot() + labs(title = paste("LEMMA", getNamespaceVersion("LEMMA")), subtitle = "This page is left blank to facilitate viewing is Mac Preview 'Two Page' mode"))
+  print(ggplot() + labs(title = paste("LEMMA", getNamespaceVersion("LEMMA")), subtitle = "This page is left blank to facilitate viewing in Mac Preview 'Two Page' mode"))
   
   short.term <- long.term <- list()
   for (i in names(bounds)) {
