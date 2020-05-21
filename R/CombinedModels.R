@@ -29,9 +29,13 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
   gamma.h <- 1 / (p$exposed.to.hospital - p$latent.period) #infected.to.hospital = exposed.to.hospital - latent.period
   stopifnot(p$exposed.to.hospital > p$latent.period) #otherwise gamma.h is nonsense
 
-  exposed.to.hospital <- AsInteger(p$exposed.to.hospital) #these are used for indexing, avoids any problems with truncation
-  exposed.to.discharge <- AsInteger(p$exposed.to.hospital + p$hosp.length.of.stay)
-
+  exposed.to.hospital <- p$exposed.to.hospital
+  exposed.to.discharge <- p$exposed.to.hospital + p$hosp.length.of.stay
+  if (!all(params$use.hosp.rate)) {
+    exposed.to.hospital <- AsInteger(exposed.to.hospital) #these are used for indexing if use.hosp.rate = F, avoids any problems with truncation
+    exposed.to.discharge <- AsInteger(exposed.to.discharge)
+  }
+ 
   has.E <- p$latent.period > 0
 
   dates <- seq(start.date, end.date, by = "day")

@@ -66,6 +66,7 @@ GetParams <- function(param.dist, niter, get.upp) {
     params <- lapply(param.dist1, SampleParam, niter = niter, probs = probs)
   }
   params <- as.data.table(params)
+  params[latent.period > 0 & latent.period < 1, latent.period := round(latent.period)]
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
   return(params)
