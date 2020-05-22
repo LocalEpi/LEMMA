@@ -67,6 +67,9 @@ GetParams <- function(param.dist, niter, get.upp) {
   }
   params <- as.data.table(params)
   params[latent.period > 0 & latent.period < 1, latent.period := round(latent.period)]
+  params[illness.length.given.nonhosp < 1, illness.length.given.nonhosp := 1]
+  params[infectious.to.hospital < 1, infectious.to.hospital := 1]
+  params[hosp.length.of.stay < 1, hosp.length.of.stay := 1]
   params[, exposed.to.hospital := latent.period + infectious.to.hospital]
   params$infectious.to.hospital <- NULL
   return(params)
