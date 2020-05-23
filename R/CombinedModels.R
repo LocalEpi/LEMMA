@@ -29,11 +29,9 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
   gamma.h <- 1 / (p$exposed.to.hospital - p$latent.period) #infected.to.hospital = exposed.to.hospital - latent.period
   stopifnot(p$exposed.to.hospital > p$latent.period) #otherwise gamma.h is nonsense
 
-  exposed.to.hospital <- p$exposed.to.hospital
-  exposed.to.discharge <- p$exposed.to.hospital + p$hosp.length.of.stay
   if (!all(params$use.hosp.rate)) {
-    exposed.to.hospital <- AsInteger(exposed.to.hospital) #these are used for indexing if use.hosp.rate = F, avoids any problems with truncation
-    exposed.to.discharge <- AsInteger(exposed.to.discharge)
+    exposed.to.hospital <- AsInteger(p$exposed.to.hospital) #these are used for indexing if use.hosp.rate = F, avoids any problems with truncation
+    exposed.to.discharge <- AsInteger(p$exposed.to.hospital + p$hosp.length.of.stay)
   }
  
   has.E <- p$latent.period > 0
@@ -108,12 +106,14 @@ SEIR <- function(initial.new.exposures, total.population, start.date, end.date, 
     new.admits[uhr, ] <- gamma.h[uhr] * q$IH[tt, uhr, ]
     new.discharges[uhr] <- psi[uhr] * q$HP[tt, uhr, ]
 
-    admit.from.day[!uhr] <- (tt - exposed.to.hospital)[!uhr]
-    discharge.from.day[!uhr] <- (tt - exposed.to.discharge)[!uhr]
-
-    new.admits[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(admit.from.day)[!uhr]
-    new.discharges[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(discharge.from.day)[!uhr]
-
+    if (!all(uhr)) {
+      admit.from.day[!uhr] <- (tt - exposed.to.hospital)[!uhr]
+      discharge.from.day[!uhr] <- (tt - exposed.to.discharge)[!uhr]
+      
+      new.admits[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(admit.from.day)[!uhr]
+      new.discharges[!uhr, ] <- p$prop.hospitalized[!uhr] * GetNewExposures(discharge.from.day)[!uhr]
+    }
+    
     d$IR <- new.infections * (1 - p$prop.hospitalized) - new.nonhosp.recovered
     d$IH <- new.infections * p$prop.hospitalized - new.admits
     d$HP <- new.admits - new.discharges

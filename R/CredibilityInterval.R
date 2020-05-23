@@ -46,7 +46,7 @@ RunSim1 <- function(params1, model.inputs, internal.args, bounds.list) {
   if (!is.na(internal.args$max.obs.date.to.fit)) {
     observed.data <- observed.data[date <= internal.args$max.obs.date.to.fit]
   }
-  weights <- as.list(sapply(observed.data[, -"date"], function (obs.data.col) min(1, 1 / mean(obs.data.col, na.rm=T))) * sapply(bounds.list, function (z) z$required.in.bounds))
+  weights <- as.list(sapply(observed.data[, -"date"], function (obs.data.col) pmin(1, 1 / mean(obs.data.col, na.rm=T))) * sapply(bounds.list, function (z) z$required.in.bounds))
   
   sim <- RunSim(total.population = model.inputs$total.population, observed.data = observed.data, start.date = internal.args$simulation.start.date, end.date = model.inputs$end.date, params = params1, search.args = list(max.iter = internal.args$search.max.iter, expander = internal.args$search.expander, num.init.exp = internal.args$search.num.init.exp, max.nonconverge = internal.args$max.nonconverge), weights = weights)
   if (!internal.args$show.progress) {
