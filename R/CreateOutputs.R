@@ -175,7 +175,7 @@ GetPdfOutput <- function(quantiles, in.bounds, all.params, filestr, bounds, inte
   short.term <- long.term <- list()
   for (i in names(bounds)) {
     print(short.term[[i]] <- GetProjectionPlot(short.term = T, niter = post.niter, quantiles = quantiles[[i]], bounds.list = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.short.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
-    print(long.term[[i]] <- GetProjectionPlot(short.term = F, niter = post.niter, quantiles = quantiles[[i]], bounds = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.long.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
+    print(long.term[[i]] <- GetProjectionPlot(short.term = F, niter = post.niter, quantiles = quantiles[[i]], bounds.list = bounds[[i]], plot.observed.data = internal.args$plot.observed.data.long.term, compartment.name = i, model.inputs = model.inputs, upp.sim = upp.sim[[i]]))
   }
   
   intervention.multiplier.str <- grep("^intervention[[:digit:]]+\\.multiplier$", names(all.params), value = T)
