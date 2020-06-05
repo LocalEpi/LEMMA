@@ -322,6 +322,7 @@ GetNextX <- function(fit, first.iter, expander, num.init.exp, max.possible.x) {
       max.x <- x.set.prev[index + 1]
       max.hosp <- hosp.prev[index + 1]
     }
+    min.x <- pmin(min.x, max.possible.x)
     max.x <- pmin(max.x, max.possible.x)
 
     hosp.span[j] <- max.hosp - min.hosp
