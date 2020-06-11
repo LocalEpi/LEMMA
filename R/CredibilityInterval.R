@@ -1,139 +1,174 @@
 #' @import data.table
 #' @import matrixStats
 
-# upp = User's Prior Projection
+SimDataTypes <- function() c("hosp", "icu", "deaths", "cum.admits")
 
-
-#TRUE if at least required.in.bounds fraction of matrix x (dates x params) is in bounds
-#if both lower and upper are NA, ignore that bound
-#if one of lower/upper is NA but not the other, error
-#used for a single data type (hosp, active.cases, etc)
-InBounds1 <- function(x, bounds.obj) {
-  stopifnot(bounds.obj$bounds[xor(is.na(lower), is.na(upper)), .N] == 0)
-  if (is.vector(x)) {
-    x <- as.matrix(x)
-  }
-  stopifnot(!is.null(rownames(x)))
-  x <- x[as.character(bounds.obj$bounds$date), ]
-  in.bounds <- x >= (bounds.obj$bounds$lower * bounds.obj$lower.bound.multiplier) & 
-    x <= (bounds.obj$bounds$upper * bounds.obj$upper.bound.multiplier)
-  return(colMeans(in.bounds, na.rm = T) >= bounds.obj$required.in.bounds)
+ConvertNa <- function(dt) {
+  t(data.matrix(dt[, lapply(.SD, function (z) ifelse(is.na(z), -1, z))]))
 }
 
-InBounds <- function(sim, bounds.list) {
-  stopifnot(is.matrix(sim[[1]]))
-  num.param.sets <- ncol(sim[[1]]) #should be the same for all sim
-  in.bounds <- rep(T, num.param.sets)
-  for (i in names(bounds.list)) {
-    in.bounds <- in.bounds & InBounds1(sim[[i]], bounds.list[[i]])
-  }
-  return(in.bounds)
-}
-
-RunSim1 <- function(params1, model.inputs, internal.args, bounds.list) {
-  if (!internal.args$show.progress) {
-    sink("CredibilityInterval progress log.txt")
-  }
-  observed.data <- bounds.list[[1]]$bounds[, .(date)]
-  for (i in names(bounds.list)) {
-    temp.dt <- bounds.list[[i]]$bounds[, .(temp = (lower + upper) / 2)]
-    setnames(temp.dt, "temp", i)
-    observed.data <- cbind(observed.data, temp.dt)
-  }
-  if (!is.na(internal.args$min.obs.date.to.fit)) {
-    observed.data <- observed.data[date >= internal.args$min.obs.date.to.fit]
-  }
-  if (!is.na(internal.args$max.obs.date.to.fit)) {
-    observed.data <- observed.data[date <= internal.args$max.obs.date.to.fit]
-  }
-  weights <- as.list(sapply(observed.data[, -"date"], function (obs.data.col) pmin(1, 1 / mean(obs.data.col, na.rm=T))) * sapply(bounds.list, function (z) z$required.in.bounds))
+GetInputs <- function(upp.params, model.inputs, bounds.list, internal.args, obs.data) {
+  #List to fill with inputs for stan
+  seir_inputs <- list()
   
-  sim <- RunSim(total.population = model.inputs$total.population, observed.data = observed.data, start.date = internal.args$simulation.start.date, end.date = model.inputs$end.date, params = params1, search.args = list(max.iter = internal.args$search.max.iter, expander = internal.args$search.expander, num.init.exp = internal.args$search.num.init.exp, max.nonconverge = internal.args$max.nonconverge), weights = weights)
-  if (!internal.args$show.progress) {
-    sink()
-  }
-  return(sim)
+  # the start date at which to start the simulation
+  startdate = internal.args$simulation.start.date #this is day 0
+  
+  # the number of days to run the model for
+  seir_inputs[['nt']] = as.numeric(model.inputs$end.date - startdate)
+  
+  seir_inputs[['nobs_types']] <- 4  
+  seir_inputs[['nobs']] <- nrow(obs.data)
+  seir_inputs[['tobs']] <- as.numeric(obs.data$date - startdate)
+  
+  # int obs_hosp_census = 1;
+  # int obs_icu_census = 2;
+  # int obs_cum_deaths = 3;
+  # int obs_cum_admits = 4; 
+  seir_inputs[['obs_data_conf']] <- ConvertNa(obs.data[, .(hosp.lower, icu.lower, deaths.lower, cum.admits.lower)])
+  seir_inputs[['obs_data_pui']] <- ConvertNa(obs.data[, .(hosp.upper, icu.upper, deaths.upper, cum.admits.upper)])
+  
+  # the population for each age group
+  seir_inputs[['npop']] = model.inputs$total.population
+  
+  # the fraction of hospitalized cases (ICU + non-ICU)
+  seir_inputs[['mu_frac_hosp']] = upp.params$prop.hospitalized 
+  seir_inputs[['sigma_frac_hosp']] = 0.02 
+  
+  # the fraction of ICU cases of hosp
+  seir_inputs[['mu_frac_icu']] = upp.params$prop.icu
+  seir_inputs[['sigma_frac_icu']] = 0.02 
+  
+  # the death rate of ICU
+  seir_inputs[['mu_frac_mort']] = upp.params$prop.death
+  seir_inputs[['sigma_frac_mort']] = 0.04
+  
+  # mean duration in "exposed" stage
+  seir_inputs[['mu_duration_lat']] = upp.params$latent.period 
+  # standard deviation (sd) of duration in "exposed" stage
+  seir_inputs[['sigma_duration_lat']] = 1.5 
+  
+  # mean duration in "infectious" stage for mild cases
+  seir_inputs[['mu_duration_rec_mild']] = upp.params$illness.length.given.nonhosp 
+  # sd of duration in "infectious" stage for mild cases
+  seir_inputs[['sigma_duration_rec_mild']] = 2.0 
+  
+  # mean duration in "infectious" stage for hospitalized cases
+  seir_inputs[['mu_duration_pre_hosp']] = upp.params$exposed.to.hospital - upp.params$latent.period  
+  # sd of duration in "infectious" stage for hospitalized cases
+  seir_inputs[['sigma_duration_pre_hosp']] = 2.0 
+  
+  # mean duration in hospital for non-ICU cases
+  seir_inputs[['mu_duration_hosp_mod']] = upp.params$hosp.length.of.stay
+  # sd of duration in hospital for non-ICU cases
+  seir_inputs[['sigma_duration_hosp_mod']] = 2.0 
+  
+  # mean duration in hospital for ICU cases
+  seir_inputs[['mu_duration_hosp_icu']] = upp.params$hosp.length.of.stay  #TEMP
+  # sd of duration in hospital for ICU cases
+  seir_inputs[['sigma_duration_hosp_icu']] = 4.0
+  
+  # lambda parameter for initial conditions of "exposed"
+  seir_inputs[['lambda_ini_exposed']] = 0.3
+  
+  # mean initial beta estimate
+  seir_inputs[['mu_R0']] = upp.params$r0.initial
+  # sd initial beta estimate
+  seir_inputs[['sigma_R0']] = 0.5 
+  
+  # number of interventions
+  seir_inputs[['ninter']] = 3
+  
+  # Note: The inputs below must be lists or arrays, even if one intervention is specified 
+  
+  # start time of each interventions
+  intervention_date <- c(upp.params$intervention1.date, upp.params$intervention2.date, upp.params$intervention3.date)
+  seir_inputs[['mu_t_inter']] = array(as.numeric(intervention_date - startdate + 1))
+  # length of each intervention
+  seir_inputs[['mu_len_inter']] = array(c(upp.params$intervention1.smooth.days, upp.params$intervention2.smooth.days, upp.params$intervention3.smooth.days))
+  
+  # mean change in beta through intervention 
+  seir_inputs[['mu_beta_inter']] = array(c(upp.params$intervention1.multiplier, upp.params$intervention2.multiplier, upp.params$intervention3.multiplier))
+  # sd change in beta through intervention
+  seir_inputs[['sigma_beta_inter']] = array(rep(0.2, seir_inputs[['ninter']]))
+  return(seir_inputs)
 }
 
-GetQuantiles <- function(sim, in.bounds) {
-  quantile.list <- lapply(sim, function (z) {
-    sim.accepted <- z[, in.bounds, drop = F]
-    rowQuantiles(sim.accepted, probs = seq(0, 1, by = 0.05))
+RunSim <- function(upp.params, model.inputs, bounds.list, internal.args, obs.data) {
+  seir_inputs <- GetInputs(upp.params, model.inputs, bounds.list, internal.args, obs.data)
+  
+  quick_test <- F
+  if (quick_test) {
+    chains <- 100 
+    cores <- 1
+    iter <- 1
+    control <- NULL
+    refresh <- 0
+    algorithm <- "Fixed_param"
+    init = function(chain_id) list(beta_multiplier = seir_inputs[['mu_beta_inter']], R0 = chain_id/30)
+  } else {
+    extra_iter <- F
+    chains <- cores <- 4
+    iter <- if (extra_iter) 2000 else 1000
+    control <- if (extra_iter) list(max_treedepth = 15, adapt_delta = 0.9) else NULL
+    init <- "random"
+    algorithm <- "NUTS"
+    refresh <-  250
+  }
+  
+  cat("Starting Stan\n")
+  run_time <- system.time({
+    stan_seir_fit <- stan(
+      file = "LEMMA.stan",
+      data = seir_inputs,
+      #seed = 75624,
+      chains = chains,
+      iter = iter,
+      cores = cores,
+      refresh = refresh,
+      algorithm = algorithm,
+      init = init,
+      control = control,
+      pars = c("error", "beta", "ini_exposed", "sigma_obs", "x"), 
+      include = FALSE
+    )
   })
-  attr(quantile.list, "posterior.niter") <- sum(in.bounds)
-  return(quantile.list)
+  print(run_time)
+  
+  return(stan_seir_fit)
 }
 
-SmoothBounds <- function(bounds.list) {
-  for (i in names(bounds.list)) {
-    span <- bounds.list[[i]]$loess.span
-    
-    bounds <- copy(bounds.list[[i]]$bounds)
-    bounds[, orig.lower := lower]
-    bounds[, orig.upper := upper]
-    
-    if (span > 0) {
-      bounds[, date.index := 1:.N]
-      bounds$lower <- predict(loess(lower ~ date.index, data = bounds, span = span, na.action = na.exclude, degree = 1), newdata = bounds)
-      bounds$upper <- predict(loess(upper ~ date.index, data = bounds, span = span, na.action = na.exclude, degree = 1), newdata = bounds)
-      negative.bounds <- bounds[, (!is.na(lower) & lower < 0) | (!is.na(upper) & upper <= 0)]
-      if (any(negative.bounds)) {
-        warning("loess smoothing for all dates of ", bounds.list[[i]]$long.name, " would cause negative bounds.\nNo smoothing was applied for these dates: ", paste(bounds[negative.bounds, date], collapse = ", "), "\nPossible solutions are using a smaller loess span and smoothing the data before calling LEMMA.")
-        bounds[negative.bounds, lower := orig.lower]
-        bounds[negative.bounds, upper := orig.upper]
-      }
-    }
-    
-    gg <- ggplot(bounds, aes(x = date)) +
-      geom_point(aes(y=orig.upper), color = "red4", shape = 4, na.rm = T) +
-      geom_point(aes(y=orig.lower), color = "palegreen4", shape = 4, na.rm = T) +
-      ylab(bounds.list[[i]]$long.name) +
-      ggtitle(bounds.list[[i]]$long.name)
-    
-    if (span > 0) {
-      gg <- gg +  
-        geom_line(aes(y = lower), na.rm = T) +
-        geom_line(aes(y = upper), na.rm = T) +
-        labs(subtitle = paste("Pre and Post Data Smoothing (loess.span = ", span, ")"))
-      bounds.list[[i]]$bounds <- bounds[, .(date, lower, upper)]
-    } else {
-      gg <- gg + labs(subtitle = "No Smoothing (loess.span = 0)")
-    }
-    print(gg)
+GetQuantiles <- function(fit, dates) {
+  sim.data <- extract(fit, pars = "sim_data")[[1]]
+  quantiles <- list()
+  for (i in SimDataTypes()) {
+    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
+    quantiles[[i]] <- colQuantiles(sim.data[, sim.data.index, ], probs = seq(0, 1, by = 0.05))
+    rownames(quantiles[[i]]) <- as.character(dates)
   }
-
-  return(bounds.list)
-} 
+  return(quantiles)
+}
 
 #` Main function to calculate credibility interval
-CredibilityInterval <- function(all.params, model.inputs, bounds.list, upp.params, internal.args, extras) {
+CredibilityInterval <- function(upp.params, model.inputs, bounds.list, internal.args, extras, obs.data) {
   options("openxlsx.numFmt" = "0.0")
   devlist <- grDevices::dev.list()
   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
-  sapply(seq_len(sink.number()), sink, file=NULL) #same for sink
   
-  all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
+  all.inputs.str <- "fixme" #the old code is pretty slow
+  #all.inputs.str <- utils::capture.output(print(sapply(ls(), function(z) get(z)))) #I'm sure there's a better way to do this
   rm(extras) #extra is only used to save extra information to output file
   
   filestr <- paste0(internal.args$output.filestr, if (internal.args$add.timestamp.to.filestr) date() else "")
   TestOutputFile(filestr)
   
-  bounds.list <- SmoothBounds(bounds.list)
+  fit <- RunSim(upp.params, model.inputs, bounds.list, internal.args, obs.data)
+  dates <- seq(internal.args$simulation.start.date + 1, model.inputs$end.date, by = "day")
+  posterior.quantiles <- GetQuantiles(fit, dates)
+  excel.output <- GetExcelOutput(posterior.quantiles, model.inputs, filestr, all.inputs.str)
   
-  cat("\nProjecting single User's Prior Projection scenario:\n")
-  upp.sim <- RunSim1(params1 = upp.params, model.inputs = model.inputs, internal.args = internal.args, bounds.list = bounds.list)
-  if (nrow(all.params) > 1) {
-    cat("\nProjecting", nrow(all.params), "scenarios based on priors:\n")
-    sim <- RunSim1(params1 = all.params, model.inputs = model.inputs, internal.args = internal.args, bounds.list = bounds.list)
-    in.bounds <- InBounds(sim, bounds.list)
-    posterior.quantiles <- GetQuantiles(sim[union(c("hosp", "icu", "vent", "active.cases", "total.cases"), names(bounds.list))], in.bounds)
-    excel.output <- GetExcelOutput(posterior.quantiles, model.inputs, filestr, all.inputs.str)
-  } else {
-    sim <- posterior.quantiles <- excel.output <- NULL
-    in.bounds <- FALSE
-  }
-  gplot <- GetPdfOutput(posterior.quantiles, in.bounds, all.params, filestr, bounds.list, internal.args, model.inputs, upp.sim)
-  return(list(sim = sim, gplot = gplot, excel.output = excel.output, upp.sim = upp.sim, in.bounds = in.bounds, filestr = filestr, all.inputs.str = all.inputs.str))
+  gplot <- GetPdfOutput(fit, posterior.quantiles, filestr, bounds.list, internal.args, model.inputs)
+  return(list(fit = fit, gplot = gplot, excel.output = excel.output, filestr = filestr, all.inputs.str = all.inputs.str))
 }
 
 

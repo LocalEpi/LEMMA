@@ -28,31 +28,6 @@ Unlist <- function(zz) {
   do.call(c, zz)
 }
 
-SampleParam <- function(p, probs, niter) {
-  p <- Unlist(p)
-  if (class(p) == "logical") {
-    return(sample(p, size = niter, replace = T, prob = probs))
-  }
-  discrete <- sample(p, size = 1000, replace = T, prob = probs)
-  cont <- rnorm(niter, mean = mean(discrete), sd = sd(discrete))
-  if (class(p) == "Date") {
-   x <- as.Date(round(cont), origin = "1970-01-01")
-  } else if (class(p) == "numeric") {
-    x <- pmax(0, cont) #all parameters are >= 0
-    if (all(p == round(p))) {
-      x <- round(x) #if inputs are integers, return integers
-      if (all(p > 0)) {
-        x <- pmax(1, x) #don't return 0 unless it was an input
-      }
-    } else {
-      x <- pmax(min(p) / 10, x) #don't return 0 unless it was an input
-    }
-  } else {
-    stop("unexpected class in SampleParam")
-  }
-  return(x)
-}
-
 GetParams <- function(param.dist, niter, get.upp) {
   probs <- unlist(param.dist$parameter.weights)
   stopifnot(sum(probs) == 1)
@@ -60,11 +35,7 @@ GetParams <- function(param.dist, niter, get.upp) {
   weight.labels <- param.dist$weight.labels
   param.dist1 <- param.dist
   param.dist1$parameter.weights <- param.dist1$weight.labels <-  NULL
-  if (get.upp) {
-    params <- lapply(param.dist1, function (z) z$mid)
-  } else {
-    params <- lapply(param.dist1, SampleParam, niter = niter, probs = probs)
-  }
+  params <- lapply(param.dist1, function (z) z$mid)
   params <- as.data.table(params)
   params[latent.period > 0 & latent.period < 1, latent.period := round(latent.period)]
   params[illness.length.given.nonhosp < 1, illness.length.given.nonhosp := 1]
@@ -80,10 +51,10 @@ ReadInputs <- function(path) {
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  # ReadExcel(path, col_types = c("date", "numeric", "numeric", "skip"), sheet = "Hospitilization Data"),
                  
-                 ReadExcel(path, sheet = "Data", col_types = "guess", skip = 8),
+                 ReadExcel(path, sheet = "Data", col_types = "guess", skip = 5),
                  ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "Internal"))
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
-  sheets$bounds.args <- ReadExcel(path, sheet = "Data", col_types = "guess", n_max = 7)
+  sheets$bounds.args <- ReadExcel(path, sheet = "Data", col_types = "guess", n_max = 4)
   sheets$`Parameters with Distributions` <- sheets$`Parameters with Distributions`[1:(which.max(is.na(internal.name)) - 1)]
   
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
@@ -114,7 +85,7 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   }
   
   
-  valid.bounds.names <- c("hosp", "icu", "deaths", "active.cases", "total.cases", "new.admits", "new.discharges", "cum.admits")
+  valid.bounds.names <- SimDataTypes()
   
   data.columns <- setdiff(names(sheets$Data), "date")
   for (i in data.columns) {
@@ -143,10 +114,10 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
     upper.label <- sheets$bounds.args[internal.name == "bound.label", get(ub)]
     if (!(all(is.na(bounds$lower)) && all(is.na(bounds$upper)))) {
       bounds.arguments <- c(req.in.bounds, lower.mult, upper.mult, loess.span)
-      if (anyNA(bounds.arguments) || length(bounds.arguments) != 4) {
-        print(bounds.arguments)
-        stop("required.in.bounds, lower.bound.multiplier, upper.bound.multiplier, loess.span, must all be specified for ", i)
-      }
+      # if (anyNA(bounds.arguments) || length(bounds.arguments) != 4) {
+      #   print(bounds.arguments)
+      #   stop("required.in.bounds, lower.bound.multiplier, upper.bound.multiplier, loess.span, must all be specified for ", i)
+      # }
       bounds.list[[i]] <- list(required.in.bounds = req.in.bounds, 
                                lower.bound.multiplier = lower.mult, 
                                upper.bound.multiplier = upper.mult,
@@ -159,11 +130,6 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   }
 
   set.seed(internal$random.seed)
-  if (generate.params) {
-    params <- GetParams(param.dist, internal$main.iterations, get.upp = F)
-  } else {
-    params <- data.table()
-  }
   upp <- GetParams(param.dist, internal$main.iterations, get.upp = T)
 
   if (is.na(internal$output.filestr)) {
@@ -172,7 +138,7 @@ ProcessSheets <- function(sheets, path, generate.params = TRUE) {
   sheets$time.of.run <- as.character(Sys.time())
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
  
-  return(list(all.params = params, model.inputs = model.inputs, bounds.list = bounds.list, internal.args = internal, upp.params = upp, excel.input = sheets, param.dist = param.dist))
+  return(list(all.params = NA, model.inputs = model.inputs, bounds.list = bounds.list, internal.args = internal, upp.params = upp, excel.input = sheets, param.dist = param.dist))
 }
 
 #' Run Credibility Interval based on Excel inputs
@@ -184,7 +150,7 @@ CredibilityIntervalFromExcel <- function(input.file) {
   sheets <- ReadInputs(input.file)
   inputs <- ProcessSheets(sheets, input.file)
 
-  cred.int <- CredibilityInterval(all.params = inputs$all.params, model.inputs = inputs$model.inputs, bounds.list = inputs$bounds.list, upp.params = inputs$upp.params, internal.args = inputs$internal.args, extras = inputs$excel.input)
+  cred.int <- CredibilityInterval(model.inputs = inputs$model.inputs, bounds.list = inputs$bounds.list, upp.params = inputs$upp.params, internal.args = inputs$internal.args, extras = inputs$excel.input, obs.data = sheets$Data)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", inputs$excel.input$LEMMA.version, "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
