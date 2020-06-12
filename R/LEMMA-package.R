@@ -1,11 +1,18 @@
-#' Local Epidemic Modeling for Management & Action (LEMMA)
+#' The 'LEMMA' package. Local Epidemic Modeling for Management & Action
 #'
-#' LEMMA projects hospital utilization from COVID-19.
+#' @description LEMMA projects hospital utilization from COVID-19.
 #'
-#' @name LEMMA
-#' @docType package
 #' @author Joshua Schwab
+#' @docType package
+#' @name LEMMA-package
+#' @aliases LEMMA
+#' @useDynLib LEMMA, .registration = TRUE
+#' @import methods
+#' @import Rcpp
+#' @importFrom rstan sampling
 #'
-#' Maintainer: Joshua Schwab \email{jschwab77@berkeley.edu}
+#' @references
+#' Stan Development Team (2020). RStan: the R interface to Stan. R package version 2.19.3. https://mc-stan.org
+#' Jann Paul Mattern and Mikala Caton. The Santa Cruz County COVID-19 Model, https://github.com/jpmattern/seir-covid19
 #'
 NULL

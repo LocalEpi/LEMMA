@@ -9,25 +9,29 @@ Authors@R:
            email = "jschwab77@berkeley.edu",
            comment = c(ORCID = "0000-0002-9436-1805"))
 Description: LEMMA projects hospital utilization from COVID-19.
-Depends: R (>= 3.5.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
-Language: es
 LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+Biarch: true
+Depends: 
+    R (>= 3.4.0)
 Imports: 
+    methods,
+    Rcpp (>= 0.12.0),
+    rstan (>= 2.18.1),
+    rstantools (>= 2.0.0),
     ggplot2,
     data.table,
     matrixStats,
     readxl,
     openxlsx,
-    pracma,
     grDevices,
-    stats,
-    graphics,
-    abind
-Suggests: 
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    stats
+LinkingTo: 
+    BH (>= 1.66.0),
+    Rcpp (>= 0.12.0),
+    RcppEigen (>= 0.3.3.3.0),
+    rstan (>= 2.18.1),
+    StanHeaders (>= 2.18.0)
+SystemRequirements: GNU make
+RoxygenNote: 7.1.0
