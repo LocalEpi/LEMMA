@@ -97,38 +97,17 @@ GetInputs <- function(upp.params, model.inputs, bounds.list, internal.args, obs.
 RunSim <- function(upp.params, model.inputs, bounds.list, internal.args, obs.data) {
   seir_inputs <- GetInputs(upp.params, model.inputs, bounds.list, internal.args, obs.data)
 
-  quick_test <- F
-  if (quick_test) {
-    chains <- cores <- 4
-    iter <- 100
-    control <- NULL
-    refresh <- 0
-    init <- "random"
-    algorithm <- "NUTS"
-    # algorithm <- "Fixed_param"
-    # init = function(chain_id) list(beta_multiplier = seir_inputs[['mu_beta_inter']], R0 = chain_id/30)
-  } else {
-    extra_iter <- F
-    chains <- cores <- 4
-    iter <- if (extra_iter) 2000 else 1000
-    control <- if (extra_iter) list(max_treedepth = 15, adapt_delta = 0.9) else NULL
-    init <- "random"
-    algorithm <- "NUTS"
-    refresh <-  250
-  }
-
   cat("Starting Stan\n")
+  cores <- pmin(4, internal.args$cores)
+  if (!(cores %in% 1:4)) cores <- pmin(4, parallel::detectCores())
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
       data = seir_inputs,
-      #seed = 75624,
-      chains = chains,
-      iter = iter,
+      seed = internal.args$random.seed,
+      iter = internal.args$iter,
       cores = cores,
-      refresh = refresh,
-      algorithm = algorithm,
-      init = init,
-      control = control,
+      refresh = internal.args$refresh,
+      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
       pars = c("error", "beta", "ini_exposed", "sigma_obs", "x"),
       include = FALSE
     )
