@@ -14,8 +14,30 @@ GetExcelOutput <- function(quantile.list, inputs) {
   return(output.list)
 }
 
-PlotHist <- function(fit, pars) {
-  g <- rstan::stan_hist(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30)
+stan_hist_date <- function (object, pars, include = TRUE, unconstrain = FALSE,
+                            inc_warmup = FALSE, nrow = NULL, ncol = NULL, base.date, ...) {
+  rstan:::.check_object(object, unconstrain)
+  dots <- rstan:::.add_aesthetics(list(...), c("fill", "color"))
+  plot_data <- rstan:::.make_plot_data(object, pars, include, inc_warmup,
+                                       unconstrain)
+  plot_data$samp$value <- base.date + plot_data$samp$value
+  thm <- rstan:::rstanvis_hist_theme()
+  base <- ggplot2::ggplot(plot_data$samp, ggplot2::aes_string(x = "value",
+                                                              y = "..density.."))
+  graph <- base + do.call(ggplot2::geom_histogram, dots) +
+    ggplot2::xlab("") + thm
+  if (plot_data$nparams == 1)
+    graph + ggplot2::xlab(unique(plot_data$samp$parameter))
+  else graph + ggplot2::facet_wrap(~parameter, nrow = nrow,
+                                   ncol = ncol, scales = "free")
+}
+
+PlotHist <- function(fit, pars, base.date) {
+  if (pars == "t_inter") {
+    g <- stan_hist_date(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30, base.date = base.date)
+  } else {
+    g <- rstan::stan_hist(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30)
+  }
   return(g)
 }
 
@@ -118,6 +140,13 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   }
 
   rt.date <- Sys.Date() - 14
+
+  rt.all <- extract(fit, pars = "Rt")[[1]]
+  sim.dates <- as.Date(rownames(quantiles[[1]]))
+  dt <- data.table(date = sim.dates, colQuantiles(rt.all, probs = c(0.1, 0.5, 0.9)))
+  dt <- dt[date >= as.Date("2020/3/29") & date <= rt.date]
+  print(ggplot(dt, aes(x=date)) + geom_line(aes(y=`50%`), lty = 2) + ylab("Median Rt") + xlab("") + ggtitle("Median Rt"))
+
   date.index <- as.numeric(rt.date - inputs$internal.args$simulation.start.date)
   rt.pars <- paste0("Rt[", date.index, "]")
   rt <- rstan::extract(fit, pars = rt.pars)[[1]]
@@ -130,7 +159,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
             "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort",
             "beta_multiplier", "t_inter", "len_inter", "frac_PUI")
-  lapply(pars, function (p) print(PlotHist(fit, p)))
+  lapply(pars, function (p) print(PlotHist(fit, p, base.date = inputs$internal.args$simulation.start.date)))
 
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")

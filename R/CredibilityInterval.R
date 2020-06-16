@@ -8,7 +8,7 @@ CredibilityInterval <- function(inputs) {
   posterior.quantiles <- GetQuantiles(fit, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit, posterior.quantiles, inputs)
-  return(list(fit = fit, gplot = gplot, excel.output = excel.output))
+  return(list(fit = fit, gplot = gplot, excel.output = excel.output, inputs = inputs))
 }
 
 #order needs to match LEMMA.stan:

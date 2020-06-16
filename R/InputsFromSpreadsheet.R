@@ -11,7 +11,7 @@ CredibilityIntervalFromExcel <- function(input.file) {
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", getNamespaceVersion("LEMMA"), "\n")
   cat("LEMMA is in early development. Please reinstall from github daily.\n")
-  invisible(c(cred.int, inputs))
+  invisible(cred.int)
 }
 
 ReadExcel <- function(path, col_types = "guess", sheet, ...) {
