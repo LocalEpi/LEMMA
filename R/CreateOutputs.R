@@ -141,7 +141,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   rt.date <- Sys.Date() - 14
 
-  rt.all <- extract(fit, pars = "Rt")[[1]]
+  rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   sim.dates <- as.Date(rownames(quantiles[[1]]))
   dt <- data.table(date = sim.dates, colQuantiles(rt.all, probs = c(0.1, 0.5, 0.9)))
   dt <- dt[date >= as.Date("2020/3/29") & date <= rt.date]
