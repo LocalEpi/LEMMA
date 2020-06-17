@@ -56,5 +56,9 @@ You can have up to 9 interventions. To add more to the existing xlsx template:
 1. In Excel, unprotect the Parameters with Distributions sheet.
 2. Unhide Column A
 3. Add rows, e.g `internal.name` = `intervention4.date`, `intervention4.multiplier`, `intervention4.smooth.days` 
-4. Make sure there is at least one blank line after the end of all the parameters
+4. Make sure there is at least one blank line after the end of all the parameters.
+
+## What if I get an error message `failed to converge`? 
+
+On the Internal Tab, try increasing search.max.iter to 40 and serach.num.init.exp to 13. 
 
