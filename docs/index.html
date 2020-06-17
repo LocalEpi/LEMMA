@@ -99,6 +99,7 @@
 <li>James Peng - UC San Francisco</li>
 <li>Maya L. Petersen - UC Berkeley</li>
 </ul>
+<p>We are in the process of moving our model fitting from R to Stan. Our Stan implementation is based on the “Santa Cruz County COVID-19 Model” (<a href="https://github.com/jpmattern/seir-covid19" class="uri">https://github.com/jpmattern/seir-covid19</a>) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.</p>
 </div>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
@@ -112,6 +113,11 @@
 remotes::install_github("LocalEpi/LEMMA")
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")</a></code></pre>
+<p>If you would like to try our significantly improved version (currently in beta):</p>
+<pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("remotes")  
+remotes::install_github("LocalEpi/LEMMA@Stan")
+setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")</a></code></pre>
 <p>** LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day. **</p>
 <p>If you get an error something like “lazy-load database ‘Library/R/3.6/library/LEMMA/R/LEMMA.rdb’ is corrupt” restart R and try step 3 again.</p>
 </div>
