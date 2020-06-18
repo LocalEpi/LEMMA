@@ -10,6 +10,8 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 - James Peng - UC San Francisco
 - Maya L. Petersen - UC Berkeley
 
+We are in the process of moving our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
+
 ## Installation
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
 2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
@@ -19,6 +21,14 @@ install.packages("remotes")
 remotes::install_github("LocalEpi/LEMMA")
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
 file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
+```
+
+If you would like to try our significantly improved version (currently in beta):
+```{r}
+install.packages("remotes")  
+remotes::install_github("LocalEpi/LEMMA@Stan")
+setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
 ** LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day. **
