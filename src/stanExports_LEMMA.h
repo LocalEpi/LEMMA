@@ -731,7 +731,7 @@ public:
         size_t beta_multiplier_i_0_max__ = ninter;
         for (size_t i_0__ = 0; i_0__ < beta_multiplier_i_0_max__; ++i_0__) {
             try {
-                writer__.scalar_lub_unconstrain(0.0, 2.0, beta_multiplier[i_0__]);
+                writer__.scalar_lb_unconstrain(0.0, beta_multiplier[i_0__]);
             } catch (const std::exception& e) {
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable beta_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
             }
@@ -907,9 +907,9 @@ public:
             beta_multiplier.reserve(beta_multiplier_d_0_max__);
             for (size_t d_0__ = 0; d_0__ < beta_multiplier_d_0_max__; ++d_0__) {
                 if (jacobian__)
-                    beta_multiplier.push_back(in__.scalar_lub_constrain(0.0, 2.0, lp__));
+                    beta_multiplier.push_back(in__.scalar_lb_constrain(0.0, lp__));
                 else
-                    beta_multiplier.push_back(in__.scalar_lub_constrain(0.0, 2.0));
+                    beta_multiplier.push_back(in__.scalar_lb_constrain(0.0));
             }
             current_statement_begin__ = 108;
             std::vector<local_scalar_t__> t_inter;
@@ -1199,6 +1199,7 @@ public:
             size_t beta_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < beta_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
+                check_less_or_equal(function__, "beta[i_0__]", beta[i_0__], 2.0);
             }
             current_statement_begin__ = 117;
             size_t Hadmits_j_1_max__ = nt;
@@ -1439,7 +1440,7 @@ public:
         size_t beta_multiplier_d_0_max__ = ninter;
         beta_multiplier.reserve(beta_multiplier_d_0_max__);
         for (size_t d_0__ = 0; d_0__ < beta_multiplier_d_0_max__; ++d_0__) {
-            beta_multiplier.push_back(in__.scalar_lub_constrain(0.0, 2.0));
+            beta_multiplier.push_back(in__.scalar_lb_constrain(0.0));
         }
         size_t beta_multiplier_k_0_max__ = ninter;
         for (size_t k_0__ = 0; k_0__ < beta_multiplier_k_0_max__; ++k_0__) {
@@ -1710,6 +1711,7 @@ public:
             size_t beta_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < beta_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
+                check_less_or_equal(function__, "beta[i_0__]", beta[i_0__], 2.0);
             }
             current_statement_begin__ = 117;
             check_greater_or_equal(function__, "Hadmits", Hadmits, 0.0);

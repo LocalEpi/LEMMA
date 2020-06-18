@@ -14,31 +14,29 @@ GetExcelOutput <- function(quantile.list, inputs) {
   return(output.list)
 }
 
-stan_hist_date <- function (object, pars, include = TRUE, unconstrain = FALSE,
-                            inc_warmup = FALSE, nrow = NULL, ncol = NULL, base.date, ...) {
-  rstan:::.check_object(object, unconstrain)
+#modification of rstan::stan_hist to deal with dates (also rstan::stan_hist crashes when using ExtendSim)
+StanHist <- function (object, pars, base.date, ...) {
   dots <- rstan:::.add_aesthetics(list(...), c("fill", "color"))
-  plot_data <- rstan:::.make_plot_data(object, pars, include, inc_warmup,
-                                       unconstrain)
-  plot_data$samp$value <- base.date + plot_data$samp$value
+  samp <- melt(as.data.table(as.matrix(object, pars = pars)), id.vars = integer(0))
+
+  if (!is.null(base.date)) {
+    samp$value <- base.date + samp$value
+  }
   thm <- rstan:::rstanvis_hist_theme()
-  base <- ggplot2::ggplot(plot_data$samp, ggplot2::aes_string(x = "value",
+  base <- ggplot2::ggplot(samp, ggplot2::aes_string(x = "value",
                                                               y = "..density.."))
   graph <- base + do.call(ggplot2::geom_histogram, dots) +
     ggplot2::xlab("") + thm
-  if (plot_data$nparams == 1)
-    graph + ggplot2::xlab(unique(plot_data$samp$parameter))
-  else graph + ggplot2::facet_wrap(~parameter, nrow = nrow,
-                                   ncol = ncol, scales = "free")
+  if (uniqueN(samp$variable) == 1) {
+    graph + ggplot2::xlab(unique(samp$variable))
+  } else {
+    graph + ggplot2::facet_wrap(~variable, scales = "free")
+  }
 }
 
 PlotHist <- function(fit, pars, base.date) {
-  if (pars == "t_inter") {
-    g <- stan_hist_date(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30, base.date = base.date)
-  } else {
-    g <- rstan::stan_hist(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30)
-  }
-  return(g)
+  base.date <- if (pars == "t_inter") base.date else NULL
+  return(StanHist(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30, base.date = base.date))
 }
 
 GetYLabel <- function(data.type, long.name) {
@@ -139,7 +137,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }
 
-  rt.date <- Sys.Date() - 14
+  rt.date <- max(inputs$obs.data$date) - 14
 
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   sim.dates <- as.Date(rownames(quantiles[[1]]))
