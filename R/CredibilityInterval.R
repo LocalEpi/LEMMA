@@ -7,7 +7,7 @@ CredibilityInterval <- function(inputs) {
   cat("Fitting to observed data\n")
   fit.to.data <- RunSim(inputs)
   cat("Projecting\n")
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions = NULL)
+  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions = NULL, extend.iter = NULL)
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
@@ -22,14 +22,14 @@ CredibilityInterval <- function(inputs) {
 #                sigma_t_inter = 2, mu_beta_inter = 1.5, sigma_beta_inter = 1e-04,
 #                mu_len_inter = 7, sigma_len_inter = 2), row.names = c(NA, -1L), class = "data.frame")
 # ProjectScenario(z, new.int, "~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1-new1.5")
-ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL) {
+ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL, extend.iter = NULL) {
   inputs <- lemma.object$inputs
   fit.to.data <- lemma.object$fit.to.data
   if (!is.null(new.output.filestr)) {
     inputs$internal.args$output.filestr <- new.output.filestr
   }
   TestOutputFile(inputs$internal.args$output.filestr)
-  fit.extended <- ExtendSim(lemma.object, new.interventions)
+  fit.extended <- ExtendSim(lemma.object, new.interventions, extend.iter)
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
@@ -125,7 +125,7 @@ RunSim <- function(inputs) {
   return(stan_seir_fit)
 }
 
-ExtendSim <- function(lemma.object, new.interventions) {
+ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
   ExtractIter <- function(fit_element, chain_id) {
     ndim <- length(dim(fit_element))
     if (ndim == 1) {
@@ -166,6 +166,18 @@ ExtendSim <- function(lemma.object, new.interventions) {
   params <- rstan::extract(fit.to.data)
   seir_inputs <- GetStanInputs(inputs)
   internal.args <- inputs$internal.args
+  total.chains <- nrow(as.matrix(fit.to.data))
+  if (is.null(extend.iter)) {
+    extend.iter <- total.chains
+    chain.id <- 1:total.chains
+  } else {
+    if (extend.iter > total.chains) {
+      stop("extend.iter cannot be greater than total.chains")
+    }
+    chain.id <- sample.int(total.chains, extend.iter)
+  }
+
+
   out <- capture.output(
     run_time <- system.time({
       stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
@@ -173,7 +185,8 @@ ExtendSim <- function(lemma.object, new.interventions) {
                                        seed = internal.args$random.seed,
                                        iter = 1,
                                        algorithm = "Fixed_param",
-                                       chains = nrow(as.array(fit.to.data)),
+                                       chains = extend.iter,
+                                       chain_id = chain.id,
                                        cores = 1,
                                        refresh = internal.args$refresh,
                                        pars = c("error", "beta", "x"),
