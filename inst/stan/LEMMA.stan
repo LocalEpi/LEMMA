@@ -104,7 +104,7 @@ parameters {
 
 
   real<lower=0.0> r0;
-  real<lower=0.0, upper=2.0> beta_multiplier[ninter];
+  real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
@@ -113,7 +113,7 @@ parameters {
 transformed parameters {
   matrix[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
-  real<lower=0.0> beta[nt];
+  real<lower=0.0, upper=2.0> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   {
     // variables in curly brackets will not have output, they are local variables

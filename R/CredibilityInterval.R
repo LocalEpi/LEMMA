@@ -4,11 +4,36 @@
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
-  fit <- RunSim(inputs)
-  posterior.quantiles <- GetQuantiles(fit, inputs)
+  cat("Fitting to observed data\n")
+  fit.to.data <- RunSim(inputs)
+  cat("Projecting\n")
+  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions = NULL)
+  posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
-  gplot <- GetPdfOutput(fit, posterior.quantiles, inputs)
-  return(list(fit = fit, gplot = gplot, excel.output = excel.output, inputs = inputs))
+  gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
+  invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, posterior.quantiles = posterior.quantiles, gplot = gplot, excel.output = excel.output, inputs = inputs))
+}
+
+
+#Example:
+# z <- LEMMA::CredibilityIntervalFromExcel("~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1.xlsx")
+# #new.interventions is the same structure as sheets$Interventions (it can have more than one row)
+# new.int <- structure(list(mu_t_inter = structure(18437, class = "Date"),
+#                sigma_t_inter = 2, mu_beta_inter = 1.5, sigma_beta_inter = 1e-04,
+#                mu_len_inter = 7, sigma_len_inter = 2), row.names = c(NA, -1L), class = "data.frame")
+# ProjectScenario(z, new.int, "~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1-new1.5")
+ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL) {
+  inputs <- lemma.object$inputs
+  fit.to.data <- lemma.object$fit.to.data
+  if (!is.null(new.output.filestr)) {
+    inputs$internal.args$output.filestr <- new.output.filestr
+  }
+  TestOutputFile(inputs$internal.args$output.filestr)
+  fit.extended <- ExtendSim(lemma.object, new.interventions)
+  posterior.quantiles <- GetQuantiles(fit.extended, inputs)
+  excel.output <- GetExcelOutput(posterior.quantiles, inputs)
+  gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
+  invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, posterior.quantiles = posterior.quantiles, gplot = gplot, excel.output = excel.output, inputs = inputs))
 }
 
 #order needs to match LEMMA.stan:
@@ -57,7 +82,7 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
   # interventions
-  inputs$interventions[, mu_t_inter := as.numeric(mu_t_inter - day0)]
+  inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
   seir_inputs <- c(seir_inputs, inputs$interventions)
 
   # fraction of PUI that are true positive
@@ -68,24 +93,103 @@ GetStanInputs <- function(inputs) {
 }
 
 RunSim <- function(inputs) {
+  inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
   internal.args <- inputs$internal.args
-  cat("Starting Stan\n")
+
+  GetInit <- function(chain_id) {
+    init.names <- grep("^mu_", names(seir_inputs), value = T)
+    init <- seir_inputs[init.names]
+    names(init) <- sub("mu_", "", init.names)
+    names(init) <- sub("beta_inter", "beta_multiplier", names(init)) #beta_multiplier is inconsistently named
+    names(init) <- sub("frac_pui", "frac_PUI", names(init)) #frac_PUI is inconsistently named
+    init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    return(init)
+  }
+
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-      data = seir_inputs,
-      seed = internal.args$random.seed,
-      iter = internal.args$iter,
-      cores = internal.args$cores,
-      refresh = internal.args$refresh,
-      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-      pars = c("error", "beta", "ini_exposed", "sigma_obs", "x"),
-      include = FALSE
+    # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+                                     data = seir_inputs,
+                                     seed = internal.args$random.seed,
+                                     iter = internal.args$iter,
+                                     cores = internal.args$cores,
+                                     refresh = internal.args$refresh,
+                                     control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
+                                     pars = c("error", "beta", "x"),
+                                     init = GetInit,
+                                     include = FALSE
     )
   })
   print(run_time)
   return(stan_seir_fit)
 }
+
+ExtendSim <- function(lemma.object, new.interventions) {
+  ExtractIter <- function(fit_element, chain_id) {
+    ndim <- length(dim(fit_element))
+    if (ndim == 1) {
+      fit_element[chain_id]
+    } else if (ndim == 2) {
+      fit_element[chain_id, ]
+    } else if (ndim == 3) {
+      fit_element[chain_id, , ]
+    } else {
+      stop("unexpected ndim")
+    }
+  }
+  GetInit <- function(chain_id) {
+    init <- lapply(params, ExtractIter, chain_id)
+    if (!is.null(new.interventions)) {
+      n <- nrow(new.interventions)
+      new_beta_multiplier <- pmax(0.01, rnorm(n, new.interventions$mu_beta_inter, new.interventions$sigma_beta_inter))
+      new_t_inter <- pmax(1.01, rnorm(n, new.interventions$mu_t_inter - day0, new.interventions$sigma_t_inter))
+      new_len_inter <- pmax(1.01, rnorm(n, new.interventions$mu_len_inter, new.interventions$sigma_len_inter))
+      init$beta_multiplier <- c(init$beta_multiplier, new_beta_multiplier)
+      init$t_inter <- c(init$t_inter, new_t_inter)
+      init$len_inter <- c(init$len_inter, new_len_inter)
+    }
+    return(init)
+  }
+
+  inputs <- lemma.object$inputs
+  if (!is.null(new.interventions)) {
+    max.obs.data.date <- max(inputs$obs.data$date)
+    if (any(new.interventions$mu_t_inter <= max.obs.data.date)) {
+      stop("dates in new.interventions must be after last observed data")
+    }
+  }
+  inputs$interventions <- rbind(inputs$interventions, new.interventions)
+  day0 <- inputs$internal.args$simulation.start.date
+
+  fit.to.data <- lemma.object$fit.to.data
+  params <- rstan::extract(fit.to.data)
+  seir_inputs <- GetStanInputs(inputs)
+  internal.args <- inputs$internal.args
+  out <- capture.output(
+    run_time <- system.time({
+      stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+                                       data = seir_inputs,
+                                       seed = internal.args$random.seed,
+                                       iter = 1,
+                                       algorithm = "Fixed_param",
+                                       chains = nrow(as.array(fit.to.data)),
+                                       cores = 1,
+                                       refresh = internal.args$refresh,
+                                       pars = c("error", "beta", "x"),
+                                       include = FALSE,
+                                       refresh = 0,
+                                       init = GetInit
+      )
+    })
+  )
+  if (any(grepl("error", out, ignore.case = T))) {
+    print(out)
+  }
+  print(run_time)
+  return(stan_seir_fit)
+}
+
 
 GetQuantiles <- function(fit, inputs) {
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
