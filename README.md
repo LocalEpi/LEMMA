@@ -10,28 +10,38 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 - James Peng - UC San Francisco
 - Maya L. Petersen - UC Berkeley
 
-We are in the process of moving our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
+We have moved our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
 
 ## Installation
+
+There are two possibilities for installing LEMMA:
+
+### Installing From Source (available for all platforms, but requires a C/C++ compiler)
+
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
-2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-3. Copy and paste these lines into the RStudio console, one at a time:
+2. If you do not have a toolchain including a C/C++ compiler, see here for installing one:
+https://support.rstudio.com/hc/en-us/articles/200486498
+3. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
+4. Copy and paste these lines into the RStudio console, one at a time:
 ```{r}
 install.packages("remotes")  
 remotes::install_github("LocalEpi/LEMMA")
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
-```
-
-If you would like to try our significantly improved version (currently in beta):
-```{r}
-install.packages("remotes")  
-remotes::install_github("LocalEpi/LEMMA@Stan")
-setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
 file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
-** LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day. **
+### Installing From Binary (currently only available for MacOS using R 3.6.3)
+
+1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
+2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
+3. Copy and paste these lines into the RStudio console, one at a time:
+```{r}
+install.packages("http://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA.tgz?raw=true", repos = NULL, type = "binary")
+setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
+file.copy(system.file("extdata", "SF-April13.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
+```
+
+LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3/4 once per day.
 
 If you get an error something like 
 "lazy-load database 'Library/R/3.6/library/LEMMA/R/LEMMA.rdb' is corrupt"
