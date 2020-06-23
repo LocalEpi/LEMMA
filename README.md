@@ -14,34 +14,44 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
 
 ## Installation
 
-There are two possibilities for installing LEMMA:
 
-### Installing From Source (available for all platforms, but requires a C/C++ compiler)
-
-1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
-2. If you do not have a toolchain including a C/C++ compiler, see here for installing one:
-https://support.rstudio.com/hc/en-us/articles/200486498
-3. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-4. Copy and paste these lines into the RStudio console, one at a time:
-```{r}
-install.packages("remotes")  
-remotes::install_github("LocalEpi/LEMMA")
-setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
-```
-
-### Installing From Binary (currently only available for MacOS using R 3.6.3)
 
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
 2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-3. Copy and paste these lines into the RStudio console, one at a time:
+3. For this step there are several choices, depending on your local machine.
+
+    **Installing From Source (available for all platforms, but requires a C/C++ compiler)**
+    
+    If you do not have a toolchain including a C/C++ compiler, see here for installing one:
+    
+    https://support.rstudio.com/hc/en-us/articles/200486498
 ```{r}
-install.packages("https://github.com/LocalEpi/LEMMA/blob/Stan/inst/extdata/LEMMA_MacOS_R-3-6-3.tgz?raw=true", repos = NULL, type = "binary")
+install.packages("remotes")  #if you do not already have the remotes package
+remotes::install_github("LocalEpi/LEMMA")`
+```
+    **Installing From Binary (for MacOS using R 3.6)**
+```{r}
+install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-3-6-3.tgz?raw=true", repos = NULL, type = "binary")
+```
+    
+    **Installing From Binary (for Windows using R 3.6)**
+```{r}
+install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-3-6-3.zip?raw=true", repos = NULL, type = "binary")
+```
+    
+    **Installing From Binary (for Windows using R 4.0)**
+```{r}
+install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-4-0.zip?raw=true", repos = NULL, type = "binary")
+```
+
+4. Copy and paste these lines into the RStudio console:
+    
+```{r}
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
 file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
 ```
 
-LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3/4 once per day.
+LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.
 
 If you get an error something like 
 "lazy-load database 'Library/R/3.6/library/LEMMA/R/LEMMA.rdb' is corrupt"
@@ -55,7 +65,7 @@ restart R and try step 3 again.
 LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
 
-## Documentation 
+## Additional Documentation 
 (work in progress)
 
 https://localepi.github.io/LEMMA/articles/case-studies.html
