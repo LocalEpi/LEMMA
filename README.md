@@ -1,3 +1,7 @@
+If you are viewing this on github.com, we recommend instead for better formatting:
+
+https://localepi.github.io/LEMMA/
+
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use, ventilator use, active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospitalizations.
 
