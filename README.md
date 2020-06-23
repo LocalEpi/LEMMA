@@ -68,10 +68,9 @@ LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
 ## Additional Documentation 
 (work in progress)
 
-https://localepi.github.io/LEMMA/articles/case-studies.html
+https://localepi.github.io/LEMMA/articles/case_study.html
 
 https://localepi.github.io/LEMMA/articles/faq.html
-
 
 ## Input
 The provided spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in four tabs.
