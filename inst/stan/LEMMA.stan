@@ -51,9 +51,9 @@ data {
 
   int<lower=0> ninter;                      // number of interventions
   real<lower=1.0> mu_t_inter[ninter];       // mean start time of each interventions
-  real<lower=1.0> sigma_t_inter[ninter];    // sd start time of each interventions
+  real<lower=0.0> sigma_t_inter[ninter];    // sd start time of each interventions
   real<lower=1.0> mu_len_inter[ninter];     // mean length of each intervention
-  real<lower=1.0> sigma_len_inter[ninter];  // sd length of each intervention
+  real<lower=0.0> sigma_len_inter[ninter];  // sd length of each intervention
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 

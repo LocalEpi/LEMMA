@@ -1,6 +1,6 @@
 Package: LEMMA
 Title: Local Epidemic Modeling for Management & Action 
-Version: 0.5.0.9002
+Version: 0.5.0.9003
 URL: https://github.com/LocalEpi/LEMMA/
 Authors@R: 
     person(given = "Joshua",
@@ -35,3 +35,7 @@ LinkingTo:
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
 RoxygenNote: 7.1.0
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

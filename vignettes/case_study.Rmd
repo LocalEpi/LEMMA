@@ -1,0 +1,81 @@
+---
+title: "Case Study"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case Study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+eval.all <- F
+```
+
+```{r, include = F} 
+CachePlot <- function(filename) {
+  if (eval.all) {
+    gplot <- list(result$gplot$short.term$hosp, result$gplot$long.term$hosp)
+    saveRDS(gplot, filename)
+  } else {
+    gplot <- readRDS(filename)
+  }
+  return(gplot)
+}
+```
+
+```{r setup}
+library(LEMMA)
+library(data.table)
+library(ggplot2)
+```
+
+In this Case Studies we show how to use LEMMA to model COVID-19 hospitalizations in Alameda County. In previous versions of LEMMA, fitting Alameda County required substantial user intervention. In the current version, minimal user intervention is required.
+
+1. Set up an Excel input file
+Open the template Excel file (the original is `system.file("extdata", "template.xlsx", package = "LEMMA")` but the installation instructions on GitHub suggest copying it to example.xlsx in your local directory). In Excel, Save As as "Alameda.xlsx".
+
+2. Get raw data from chhs.ca.gov
+```{r}
+dt <- fread("https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv")
+dt <- dt[`County Name` == "Alameda"]
+```
+
+3. Write the data
+```{r, eval=F}
+write.table(dt[, c(2, 5:8, 4)], sep = ",", row.names = F)
+```
+```{r, echo=F}
+write.table(dt[1:4, c(2, 5:8, 4)], sep = ",", row.names = F)
+cat("...\n")
+```
+Copy and paste the observed data to the Data tab in Alameda.xlsx.
+
+4. Choose your prior distributions in the Parameters with Distributions sheet.
+The existing priors are fine for Alameda but they could be adjusted for a different county. For example, in a significantly older population, the hospitalization rate could be higher.
+
+5. Choose your interventions in the Interventions sheet.
+Note that if automatic.interventions (on Internal sheet) is true (the default), interventions with mean 1 and sd 0.1 are added whenever there are no interventions for 14 days. 
+
+Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. As an example, suppose we want to consider the effect of a third intervention which multiplies Re by 1.4 on July 1. Add the following row:  
+Intervention Date mean = "7/1/2020" standard deviation = 0  
+Re Multiplier mean = 1.4, standard deviation = 0  
+Days to Reach New Re mean = 7, standard deviation = 0
+
+6. Run CredibilityIntervalFromExcel
+```{r, eval = eval.all}
+result <- LEMMA::CredibilityIntervalFromExcel("Alameda.xlsx")
+```
+```{r, echo=FALSE}
+gplot <- CachePlot("Alameda.rds")
+print(gplot[[1]])
+```
+```{r, echo=FALSE}
+gplot[[2]] <- gplot[[2]] + labs(subtitle = "Scenario: Re increases 40% on June 1")
+print(gplot[[2]])
+```
+
+7. In this case there are several warnings. These can be eliminated by changing max_treedepth to 15 and adapt_delta to 0.99 on the Internals sheet, which increases run time. In this example, the results are not significantly different from those using the defaults, but this is not guaranteed in general. See the FAQ for more details on such warnings. 

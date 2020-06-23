@@ -4,10 +4,15 @@
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
+
+  new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
+  inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
+
   cat("Fitting to observed data\n")
   fit.to.data <- RunSim(inputs)
   cat("Projecting\n")
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions = NULL, extend.iter = NULL)
+
+  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
@@ -78,12 +83,12 @@ GetStanInputs <- function(inputs) {
   # lambda parameter for initial conditions of "exposed"
   seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed
 
-  # number of interventions
-  seir_inputs[['ninter']] = nrow(inputs$interventions)
-
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
   seir_inputs <- c(seir_inputs, inputs$interventions)
+
+  # number of interventions
+  seir_inputs[['ninter']] = nrow(inputs$interventions)
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
@@ -151,7 +156,6 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
     }
     return(init)
   }
-
   inputs <- lemma.object$inputs
   if (!is.null(new.interventions)) {
     max.obs.data.date <- max(inputs$obs.data$date)
