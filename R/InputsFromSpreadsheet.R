@@ -1,16 +1,11 @@
 #' Run Credibility Interval based on Excel inputs
 #'
-#' @param input.file A .xlsx file
+#' @param input.file1 A .xlsx file for population1
+#' @param input.file2 A .xlsx file for population2
 #' @return list with all outputs (invisible)
 #' @export
-CredibilityIntervalFromExcel <- function(input.file) {
-  sheets <- ReadInputs(input.file)
-  inputs <- ProcessSheets(sheets, input.file)
-
-  cred.int <- CredibilityInterval(inputs)
-  cat("\nDone\n\n")
-  cat("Current LEMMA version: ", getNamespaceVersion("LEMMA"), "\n")
-  cat("LEMMA is in early development. Please reinstall from github daily.\n")
+CredibilityIntervalFromExcel <- function(input.file1, input.file2) {
+  cred.int <- TwoPop(input.file1, input.file2)
   invisible(cred.int)
 }
 
