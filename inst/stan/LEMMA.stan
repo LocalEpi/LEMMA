@@ -115,6 +115,7 @@ transformed parameters {
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=2.0> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
+  real<lower=1e-10> newE_temp[nt-1];
   {
     // variables in curly brackets will not have output, they are local variables
 
@@ -153,7 +154,15 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newE = fmin(x[S,it], beta[it]/npop * (x[Imild,it] + x[Ipreh,it]) * x[S,it]);
+      newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
+
+      if (it > 1) {
+        newE_temp[it] = newE;
+      } else {
+        newE_temp[it] = 1 + zero; //ignore this
+      }
+
+
       newI = 1.0/duration_latent * x[E, it];
       newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
       newrec_mild = 1.0/duration_rec_mild * x[Imild,it];
