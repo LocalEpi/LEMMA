@@ -64,7 +64,7 @@ AddInterventions <- function(interventions, max.date) {
       if (i == 1) {
         sd1 <- 0.1
       } else {
-        sd1 <- 0.5
+        sd1 <- 0.3
       }
       new.int <- data.table(mu_t_inter = d, sigma_t_inter = 2, mu_beta_inter = 1, sigma_beta_inter = sd1, mu_len_inter = 7, sigma_len_inter = 2)
       interventions <- rbind(interventions, new.int)

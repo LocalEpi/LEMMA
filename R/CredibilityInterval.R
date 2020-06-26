@@ -100,6 +100,7 @@ GetStanInputs <- function(inputs) {
 RunSim <- function(inputs) {
   inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
+  seir_inputs$extend <- 0L
   internal.args <- inputs$internal.args
 
   GetInit <- function(chain_id) {
@@ -169,6 +170,7 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
   fit.to.data <- lemma.object$fit.to.data
   params <- rstan::extract(fit.to.data)
   seir_inputs <- GetStanInputs(inputs)
+  seir_inputs$extend <- 1L
   internal.args <- inputs$internal.args
   total.chains <- nrow(as.matrix(fit.to.data))
   if (is.null(extend.iter)) {

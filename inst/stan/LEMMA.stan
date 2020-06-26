@@ -17,6 +17,7 @@ data {
 
   int<lower=0> nt;                       // number of time steps
   real npop;                             // total population
+  int<lower=0, upper=1> extend;
 
   //////////////////////////////////////////
   // prior parameter distributions
@@ -156,7 +157,7 @@ transformed parameters {
       // set transition variables
       newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
 
-      if (it > 1) {
+      if (it > 1 && extend == 0) {
         newE_temp[it] = newE;
       } else {
         newE_temp[it] = 1 + zero; //ignore this
