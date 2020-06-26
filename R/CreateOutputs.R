@@ -123,6 +123,35 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   return(gg)
 }
 
+GetRtPlot <- function(quantiles, inputs) {
+  sim.dates <- inputs$internal.args$simulation.start.date + 1:nrow(quantiles)
+  min.date <- as.Date("2020/4/1") #inputs$model.inputs$start.display.date - 7
+  dt.plot <- data.table(date = sim.dates, quantiles)[date > min.date]
+
+  gg <- ggplot(dt.plot, aes(x=date)) +
+    theme_light() +
+    geom_line(aes(y = `50%`, color = "Median"))
+  gg <- gg + geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%"), fill = "blue") +
+    geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%"), fill = "blue") +
+    geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%"), fill = "blue")
+
+  gg <- gg +
+    xlab("") +
+    ylab("Re") +
+    labs(title = "Effective Reproduction Number") +
+    scale_color_manual("", values = "blue") +
+    scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
+    theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+    scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = expansion()) +
+    guides(color = guide_legend("", order = 1), alpha = guide_legend("", order = 2)) +
+    theme(legend.position = "bottom", plot.margin = margin(0.1, 0.2, 0, 0.1, "in"),
+          axis.text.x=element_text(hjust = 0.7)) +
+    geom_hline(yintercept = 1, lty = "dashed")
+  print(gg)
+  return(gg)
+}
+
+
 GetPdfOutput <- function(fit, quantiles, inputs) {
   devlist <- grDevices::dev.list()
   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
@@ -139,10 +168,8 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   rt.date <- max(inputs$obs.data$date) - 14
 
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
-  sim.dates <- as.Date(rownames(quantiles[[1]]))
-  dt <- data.table(date = sim.dates, colQuantiles(rt.all, probs = c(0.1, 0.5, 0.9)))
-  dt <- dt[date >= as.Date("2020/3/29") & date <= rt.date]
-  print(ggplot(dt, aes(x=date)) + geom_line(aes(y=`50%`), lty = 2) + ylab("Median Rt") + xlab("") + ggtitle("Median Rt"))
+  rt.quantiles <- colQuantiles(rt.all, probs = c(0.05, 0.15, 0.25, 0.5, 0.75, 0.85, 0.95))
+  GetRtPlot(rt.quantiles, inputs)
 
   date.index <- as.numeric(rt.date - inputs$internal.args$simulation.start.date)
   rt.pars <- paste0("Rt[", date.index, "]")
