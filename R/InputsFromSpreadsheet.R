@@ -34,9 +34,10 @@ ToString <- function(sheets) {
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
 
   prev.width <- getOption("width")
-  options(width = 300)
+  prev.print.nrows <- getOption("datatable.print.nrows")
+  options(width = 300, datatable.print.nrows = 300)
   all.inputs.str <- utils::capture.output(print(sheets))
-  options(width = prev.width)
+  options(width = prev.width, datatable.print.nrows = prev.print.nrows)
   all.inputs.str <- c("NOTE: set font to Courier to read", all.inputs.str)
   return(all.inputs.str)
 }
