@@ -99,14 +99,20 @@ GetStanInputs <- function(inputs) {
 }
 
 RunSim <- function(inputs) {
-  inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
   seir_inputs$extend <- 0L
   internal.args <- inputs$internal.args
 
+  start.decline <- start.decline.date - inputs$internal.args$simulation.start.date
+  decline.days <- 14
+  decline.range <- start.decline:(start.decline + decline.days - 1)
+
   nt <- seir_inputs$nt
   seir_inputs$mu_frac_hosp <- rep(seir_inputs$mu_frac_hosp, nt)
-  seir_inputs$mu_frac_hosp[nt > 75] <- seir_inputs$mu_frac_hosp[nt > 75] + hosp.change
+  seir_inputs$mu_frac_hosp[decline.range] <- seir_inputs$mu_frac_hosp[decline.range] - seq(hosp.change, 0, length.out = decline.days)
+
+  increase.range <- (as.Date("2020/7/1") - inputs$internal.args$simulation.start.date):nt
+  seir_inputs$mu_frac_hosp[increase.range] <- seir_inputs$mu_frac_hosp[increase.range] + hosp.change
 
   GetInit <- function(chain_id) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)
