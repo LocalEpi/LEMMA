@@ -12,7 +12,8 @@ CredibilityInterval <- function(inputs) {
   fit.to.data <- RunSim(inputs)
   cat("Projecting\n")
 
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
+  fit.extended <- fit.to.data
+  #fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
@@ -102,6 +103,10 @@ RunSim <- function(inputs) {
   seir_inputs <- GetStanInputs(inputs)
   seir_inputs$extend <- 0L
   internal.args <- inputs$internal.args
+
+  nt <- seir_inputs$nt
+  seir_inputs$mu_frac_hosp <- rep(seir_inputs$mu_frac_hosp, nt)
+  seir_inputs$mu_frac_hosp[nt > 75] <- seir_inputs$mu_frac_hosp[nt > 75] + hosp.change
 
   GetInit <- function(chain_id) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)

@@ -38,7 +38,7 @@ data {
   real<lower=0.0> mu_frac_pui[nobs_types];     // mean fraction of PUI that are true COVID+
   real<lower=0.0> sigma_frac_pui[nobs_types];  // sd fraction of PUI that are true COVID+
 
-  real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
+  real<lower=0.0> mu_frac_hosp[nt];           // mean ICU + non-ICU
   real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
   real<lower=0.0> mu_frac_icu;            // mean ICU as fraction of hosp
   real<lower=0.0> sigma_frac_icu;         // sd ICU as fraction of hosp
@@ -95,7 +95,7 @@ parameters {
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
 
-  real<lower=0.0, upper=1.0> frac_hosp;
+  real<lower=0.0, upper=1.0> frac_hosp_eps;
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
 
@@ -115,6 +115,7 @@ transformed parameters {
   matrix[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=2.0> beta[nt];
+  real<lower=0.0, upper=1.0> frac_hosp[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
   {
@@ -131,9 +132,13 @@ transformed parameters {
     real sim;
     real zero;
 
+    for (it in 1:nt) {
+      frac_hosp[it] = mu_frac_hosp[it] + frac_hosp_eps;
+    }
+
     //////////////////////////////////////////
     // Calculate beta for each time point
-    beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
+    beta_0 = r0 / (frac_hosp[1] * duration_pre_hosp + (1 - frac_hosp[1]) * duration_rec_mild);
     for (it in 1:nt) {
       beta[it] = beta_0;
       for (iinter in 1:ninter) {
@@ -163,7 +168,6 @@ transformed parameters {
         newE_temp[it] = 1 + zero; //ignore this
       }
 
-
       newI = 1.0/duration_latent * x[E, it];
       newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
       newrec_mild = 1.0/duration_rec_mild * x[Imild,it];
@@ -175,8 +179,8 @@ transformed parameters {
 
       x[S, it+1] = x[S, it] - newE;
       x[E, it+1] = x[E, it] + newE - newI;
-      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild;
-      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp - newhosp;
+      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp[it]) - newrec_mild;
+      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp[it] - newhosp;
       x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
       x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
       x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort);
@@ -226,7 +230,7 @@ model {
   duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
   duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
 
-  frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_hosp_eps ~ normal(0.0, sigma_frac_hosp);
   frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
   frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
 
@@ -261,6 +265,6 @@ model {
 generated quantities{
   real<lower=0.0> Rt[nt];
   for (it in 1:nt) {
-    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
+    Rt[it] = beta[it] * (frac_hosp[it] * duration_pre_hosp + (1 - frac_hosp[it]) * duration_rec_mild) * x[S, it] / npop;
   }
 }
