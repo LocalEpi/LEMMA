@@ -123,10 +123,9 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   return(gg)
 }
 
-GetRtPlot <- function(quantiles, inputs) {
+GetRtPlot <- function(quantiles, inputs, max.date = NULL) {
   sim.dates <- inputs$internal.args$simulation.start.date + 1:nrow(quantiles)
   min.date <- as.Date("2020/4/1")
-  max.date <- max(inputs$obs.data$date)
   dt.plot <- data.table(date = sim.dates, quantiles)[date > min.date & date <= max.date]
 
   gg <- ggplot(dt.plot, aes(x=date)) +
@@ -170,7 +169,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   rt.quantiles <- colQuantiles(rt.all, probs = c(0.05, 0.15, 0.25, 0.5, 0.75, 0.85, 0.95))
-  GetRtPlot(rt.quantiles, inputs)
+  rt.plot <- GetRtPlot(rt.quantiles, inputs, rt.date)
 
   date.index <- as.numeric(rt.date - inputs$internal.args$simulation.start.date)
   rt.pars <- paste0("Rt[", date.index, "]")
@@ -188,7 +187,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")
-  return(list(short.term = short.term, long.term = long.term))
+  return(list(short.term = short.term, long.term = long.term, rt = rt.plot))
 }
 
 TestOutputFile <- function(filestr) {
