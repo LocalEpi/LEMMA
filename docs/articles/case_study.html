@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0.9003</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0.9006</span>
       </span>
     </div>
 
@@ -101,27 +101,30 @@
 <p>In this Case Studies we show how to use LEMMA to model COVID-19 hospitalizations in Alameda County. In previous versions of LEMMA, fitting Alameda County required substantial user intervention. In the current version, minimal user intervention is required.</p>
 <ol style="list-style-type: decimal">
 <li><p>Set up an Excel input file Open the template Excel file (the original is <code><a href="https://rdrr.io/r/base/system.file.html">system.file("extdata", "template.xlsx", package = "LEMMA")</a></code> but the installation instructions on GitHub suggest copying it to example.xlsx in your local directory). In Excel, Save As as “Alameda.xlsx”.</p></li>
-<li><p>Get raw data from chhs.ca.gov</p></li>
+<li><p>Get raw data from<br><a href="https://data.ca.gov/dataset/529ac907-6ba1-4cb7-9aae-8966fc96aeef/resource/42d33765-20fd-44b8-a978-b083b7542225/download/hospitals_by_county.csv" class="uri">https://data.ca.gov/dataset/529ac907-6ba1-4cb7-9aae-8966fc96aeef/resource/42d33765-20fd-44b8-a978-b083b7542225/download/hospitals_by_county.csv</a></p></li>
 </ol>
-<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">dt</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html">fread</a></span>(<span class="st">"https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv"</span>)
-<span class="no">dt</span> <span class="kw">&lt;-</span> <span class="no">dt</span>[<span class="no">`County Name`</span> <span class="kw">==</span> <span class="st">"Alameda"</span>]</pre></body></html></div>
+<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="no">dt</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html">fread</a></span>(<span class="st">"hospitals_by_county_June30.csv"</span>)
+<span class="no">dt</span> <span class="kw">&lt;-</span> <span class="no">dt</span>[<span class="no">county</span> <span class="kw">==</span> <span class="st">"Alameda"</span>]</pre></body></html></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Write the data</li>
 </ol>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span>(<span class="no">dt</span>[, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">2</span>, <span class="fl">5</span>:<span class="fl">8</span>, <span class="fl">4</span>)], <span class="kw">sep</span> <span class="kw">=</span> <span class="st">","</span>, <span class="kw">row.names</span> <span class="kw">=</span> <span class="no">F</span>)</pre></body></html></div>
-<pre><code>#&gt; "Most Recent Date","COVID-19 Positive Patients","Suspected COVID-19 Positive Patients","ICU COVID-19 Positive Patients","ICU COVID-19 Suspected Patients","Total Count Deaths"
-#&gt; "4/1/2020",52,76,27,15,8
-#&gt; "4/2/2020",57,76,29,17,10
-#&gt; "4/3/2020",64,74,32,13,11
-#&gt; "4/4/2020",60,95,35,18,12
+<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span>(<span class="no">dt</span>[, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">2</span>:<span class="fl">4</span>, <span class="fl">7</span>:<span class="fl">8</span>)], <span class="kw">sep</span> <span class="kw">=</span> <span class="st">","</span>, <span class="kw">row.names</span> <span class="kw">=</span> <span class="no">F</span>)</pre></body></html></div>
+<pre><code>#&gt; "todays_date","hospitalized_covid_confirmed_patients","hospitalized_suspected_covid_patients","icu_covid_confirmed_patients","icu_suspected_covid_patients"
+#&gt; "3/29/20",36,91,20,16
+#&gt; "3/30/20",59,89,27,18
+#&gt; "3/31/20",56,94,27,17
+#&gt; "4/1/20",52,76,27,15
 #&gt; ...</code></pre>
 <p>Copy and paste the observed data to the Data tab in Alameda.xlsx.</p>
 <ol start="4" style="list-style-type: decimal">
 <li><p>Choose your prior distributions in the Parameters with Distributions sheet. The existing priors are fine for Alameda but they could be adjusted for a different county. For example, in a significantly older population, the hospitalization rate could be higher.</p></li>
-<li><p>Choose your interventions in the Interventions sheet. Note that if automatic.interventions (on Internal sheet) is true (the default), interventions with mean 1 and sd 0.1 are added whenever there are no interventions for 14 days.</p></li>
+<li><p>Choose your interventions in the Interventions sheet. Note that if automatic.interventions (on Internal sheet) is true (the default), interventions with mean 1 and sd 0.3 are added whenever there are no interventions for 14 days.</p></li>
 </ol>
-<p>Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. As an example, suppose we want to consider the effect of a third intervention which multiplies Re by 1.4 on July 1. Add the following row:<br>
-Intervention Date mean = “7/1/2020” standard deviation = 0<br>
+<p>We may want to give the model additional ability to adapt to possible changes in transmission. To account for the possibility that increased mobility, decreased social distancing, etc increased transmission, add a intervention with mean 1 and standard deviation 0.5 on June 1. A mean of 1 indicates that our prior is no change, but the large standard deviation allows for possibility of significant change. The standard deviation of 4 days on the intervention date allows for flexibility on the date of change. Add the following row:<br>
+Intervention Date mean = “6/1/2020” standard deviation = 4<br>
+Re Multiplier mean = 1, standard deviation = 0.5 Days to Reach New Re mean = 7, standard deviation = 2</p>
+<p>Future changes in public health interventions (for example, relaxing/replacing current Shelter In Place ordinances) can be modelled as a future intervention which multiplies Re by a factor greater than 1. As an example, suppose we want to consider the effect of a third intervention which multiplies Re by 1.4 on July 15. Add the following row:<br>
+Intervention Date mean = “7/15/2020” standard deviation = 0<br>
 Re Multiplier mean = 1.4, standard deviation = 0<br>
 Days to Reach New Re mean = 7, standard deviation = 0</p>
 <ol start="6" style="list-style-type: decimal">

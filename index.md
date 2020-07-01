@@ -1,6 +1,3 @@
-We recommend instead for easier reading of documentation:  
-https://localepi.github.io/LEMMA/
-
 Forecasts for California counties:  
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts
 
