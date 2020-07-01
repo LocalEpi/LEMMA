@@ -1,10 +1,12 @@
 #' @import ggplot2
 
 GetExcelOutput <- function(quantile.list, inputs) {
-  options("openxlsx.numFmt" = "0.0")
-  display.date.range <- as.character(seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day"))
+  options("openxlsx.numFmt" = "0.00")
+
   output.list <- lapply(quantile.list, function (quant) {
-    output <- data.table(date = display.date.range, quant[display.date.range, ])
+    display.date.range <- as.character(seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day"))
+    index <- rownames(quant) %in% display.date.range
+    output <- data.table(date = rownames(quant)[index], quant[index, ])
     return(output)
   })
   output.list$all.inputs = inputs$all.inputs.str
@@ -123,10 +125,10 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   return(gg)
 }
 
-GetRtPlot <- function(quantiles, inputs, max.date = NULL) {
+GetRtPlot <- function(quantiles, inputs) {
   sim.dates <- inputs$internal.args$simulation.start.date + 1:nrow(quantiles)
   min.date <- as.Date("2020/4/1")
-  dt.plot <- data.table(date = sim.dates, quantiles)[date > min.date & date <= max.date]
+  dt.plot <- data.table(date = sim.dates, quantiles)[date > min.date]
 
   gg <- ggplot(dt.plot, aes(x=date)) +
     theme_light() +
@@ -160,21 +162,16 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
 
   short.term <- long.term <- list()
-  for (i in names(quantiles)) {
+  for (i in setdiff(names(quantiles), "rt")) {
     short.term[[i]] <- GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }
 
-  rt.date <- max(inputs$obs.data$date) - 14
-
-  rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
-  rt.quantiles <- colQuantiles(rt.all, probs = c(0.05, 0.15, 0.25, 0.5, 0.75, 0.85, 0.95))
-  rt.plot <- GetRtPlot(rt.quantiles, inputs, rt.date)
-
-  date.index <- as.numeric(rt.date - inputs$internal.args$simulation.start.date)
+  rt.plot <- GetRtPlot(quantiles$rt, inputs)
+  rt.date <- rownames(quantiles$rt)[nrow(quantiles$rt)]
+  date.index <- as.numeric(as.Date(rt.date) - inputs$internal.args$simulation.start.date)
   rt.pars <- paste0("Rt[", date.index, "]")
-  rt <- rstan::extract(fit, pars = rt.pars)[[1]]
-  rt.quantiles <- round(quantile(rt, c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
+  rt.quantiles <- round(quantile(rstan::extract(fit, pars = rt.pars)[[1]], c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
   print(rt.quantiles)
   subtitl <- paste0(capture.output(print(rt.quantiles)), collapse = "\n")
   g <- PlotHist(fit, rt.pars) + xlab(NULL) + labs(title = paste("Rt as of", rt.date), subtitle = subtitl) + theme(plot.subtitle=element_text(family="Courier"))

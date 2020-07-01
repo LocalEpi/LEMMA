@@ -221,6 +221,13 @@ GetQuantiles <- function(fit, inputs) {
     rownames(q) <- as.character(dates)
     return(q)
   }, simplify = FALSE)
+
+  rt.date <- max(inputs$obs.data$date) - 14
+  rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
+  rt.quantiles <- colQuantiles(rt.all, probs = seq(0, 1, by = 0.05))
+  rownames(rt.quantiles) <- as.character(dates)
+  rt.quantiles <- rt.quantiles[dates <= rt.date, ]
+  quantiles <- c(quantiles, list(rt = rt.quantiles))
   return(quantiles)
 }
 
