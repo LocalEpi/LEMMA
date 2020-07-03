@@ -112,17 +112,22 @@ RunSim <- function(inputs) {
     init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
-
+  if (is.null(inputs$internal.args$warmup) || is.na(inputs$internal.args$warmup)) {
+    warmup <- floor(internal.args$iter / 2)
+  } else {
+    warmup <- inputs$internal.args$warmup
+  }
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-    # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+  # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
                                      data = seir_inputs,
                                      seed = internal.args$random.seed,
                                      iter = internal.args$iter,
+                                     warmup = warmup,
                                      cores = internal.args$cores,
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     pars = c("error", "beta", "x"),
+                                     pars = c("error", "x"),
                                      init = GetInit,
                                      include = FALSE
     )
@@ -195,7 +200,7 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
                                        chain_id = chain.id,
                                        cores = 1,
                                        refresh = internal.args$refresh,
-                                       pars = c("error", "beta", "x"),
+                                       pars = c("error", "x"),
                                        include = FALSE,
                                        refresh = 0,
                                        init = GetInit
