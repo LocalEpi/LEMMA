@@ -79,12 +79,20 @@ transformed data {
 
   int nobs_notmissing = 0;
 
+  real beta_limit;
+
   for (iobs in 1:nobs){
     for (itype in 1:nobs_types) {
       if (obs_data_conf[itype, iobs] > 0) {
         nobs_notmissing = nobs_notmissing + 1;
       }
     }
+  }
+
+  if (extend == 1) {
+    beta_limit = 9999; // no limit on beta if extending simulation
+  } else {
+    beta_limit = 2.0;
   }
 }
 parameters {
@@ -114,7 +122,7 @@ parameters {
 transformed parameters {
   matrix[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
-  real<lower=0.0, upper=2.0> beta[nt];
+  real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
   {
