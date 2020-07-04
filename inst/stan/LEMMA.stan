@@ -103,7 +103,7 @@ parameters {
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
 
-  real<lower=0.0, upper=1.0> frac_hosp;
+  real<lower=0.005, upper=1.0> frac_hosp;
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
 

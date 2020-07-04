@@ -661,7 +661,7 @@ public:
         double frac_hosp(0);
         frac_hosp = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0.0, 1.0, frac_hosp);
+            writer__.scalar_lub_unconstrain(0.005, 1.0, frac_hosp);
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_hosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
@@ -881,9 +881,9 @@ public:
             local_scalar_t__ frac_hosp;
             (void) frac_hosp;  // dummy to suppress unused var warning
             if (jacobian__)
-                frac_hosp = in__.scalar_lub_constrain(0.0, 1.0, lp__);
+                frac_hosp = in__.scalar_lub_constrain(0.005, 1.0, lp__);
             else
-                frac_hosp = in__.scalar_lub_constrain(0.0, 1.0);
+                frac_hosp = in__.scalar_lub_constrain(0.005, 1.0);
             current_statement_begin__ = 107;
             local_scalar_t__ frac_icu;
             (void) frac_icu;  // dummy to suppress unused var warning
@@ -1473,7 +1473,7 @@ public:
         vars__.push_back(duration_hosp_mod);
         double duration_hosp_icu = in__.scalar_lb_constrain(1.0);
         vars__.push_back(duration_hosp_icu);
-        double frac_hosp = in__.scalar_lub_constrain(0.0, 1.0);
+        double frac_hosp = in__.scalar_lub_constrain(0.005, 1.0);
         vars__.push_back(frac_hosp);
         double frac_icu = in__.scalar_lub_constrain(0.0, 1.0);
         vars__.push_back(frac_icu);
