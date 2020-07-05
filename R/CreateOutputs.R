@@ -113,7 +113,7 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   gg <- gg +
     xlab("") +
     ylab(GetYLabel(data.type)) +
-    labs(title = title1) +
+    labs(title = title1, caption = "localepi.github.io/LEMMA") +
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
