@@ -90,6 +90,13 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
+  seir_inputs$len_inter_icu <- 60
+  seir_inputs$t_inter_icu <- 59
+  seir_inputs$mu_frac_icu_multiplier <- 1
+  seir_inputs$sigma_frac_icu_multiplier <- 0.2
+  seir_inputs$mu_frac_mort_multiplier <- 1
+  seir_inputs$sigma_frac_mort_multiplier <- 0.2
+
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)

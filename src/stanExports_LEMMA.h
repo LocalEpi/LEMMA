@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(276, 274, "end", "model_LEMMA");
+    reader.add_event(299, 297, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -75,6 +75,12 @@ private:
         std::vector<double> sigma_len_inter;
         std::vector<double> mu_beta_inter;
         std::vector<double> sigma_beta_inter;
+        double len_inter_icu;
+        double t_inter_icu;
+        double mu_frac_icu_multiplier;
+        double sigma_frac_icu_multiplier;
+        double mu_frac_mort_multiplier;
+        double sigma_frac_mort_multiplier;
         int S;
         int E;
         int Imild;
@@ -451,123 +457,169 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_beta_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_beta_inter[i_0__]", sigma_beta_inter[i_0__], 0.0);
             }
-            // initialize transformed data variables
+            current_statement_begin__ = 62;
+            context__.validate_dims("data initialization", "len_inter_icu", "double", context__.to_vec());
+            len_inter_icu = double(0);
+            vals_r__ = context__.vals_r("len_inter_icu");
+            pos__ = 0;
+            len_inter_icu = vals_r__[pos__++];
+            check_greater_or_equal(function__, "len_inter_icu", len_inter_icu, 0.0);
+            current_statement_begin__ = 63;
+            context__.validate_dims("data initialization", "t_inter_icu", "double", context__.to_vec());
+            t_inter_icu = double(0);
+            vals_r__ = context__.vals_r("t_inter_icu");
+            pos__ = 0;
+            t_inter_icu = vals_r__[pos__++];
+            check_greater_or_equal(function__, "t_inter_icu", t_inter_icu, 0.0);
             current_statement_begin__ = 64;
+            context__.validate_dims("data initialization", "mu_frac_icu_multiplier", "double", context__.to_vec());
+            mu_frac_icu_multiplier = double(0);
+            vals_r__ = context__.vals_r("mu_frac_icu_multiplier");
+            pos__ = 0;
+            mu_frac_icu_multiplier = vals_r__[pos__++];
+            check_greater_or_equal(function__, "mu_frac_icu_multiplier", mu_frac_icu_multiplier, 0.0);
+            current_statement_begin__ = 65;
+            context__.validate_dims("data initialization", "sigma_frac_icu_multiplier", "double", context__.to_vec());
+            sigma_frac_icu_multiplier = double(0);
+            vals_r__ = context__.vals_r("sigma_frac_icu_multiplier");
+            pos__ = 0;
+            sigma_frac_icu_multiplier = vals_r__[pos__++];
+            check_greater_or_equal(function__, "sigma_frac_icu_multiplier", sigma_frac_icu_multiplier, 0.0);
+            current_statement_begin__ = 66;
+            context__.validate_dims("data initialization", "mu_frac_mort_multiplier", "double", context__.to_vec());
+            mu_frac_mort_multiplier = double(0);
+            vals_r__ = context__.vals_r("mu_frac_mort_multiplier");
+            pos__ = 0;
+            mu_frac_mort_multiplier = vals_r__[pos__++];
+            check_greater_or_equal(function__, "mu_frac_mort_multiplier", mu_frac_mort_multiplier, 0.0);
+            current_statement_begin__ = 67;
+            context__.validate_dims("data initialization", "sigma_frac_mort_multiplier", "double", context__.to_vec());
+            sigma_frac_mort_multiplier = double(0);
+            vals_r__ = context__.vals_r("sigma_frac_mort_multiplier");
+            pos__ = 0;
+            sigma_frac_mort_multiplier = vals_r__[pos__++];
+            check_greater_or_equal(function__, "sigma_frac_mort_multiplier", sigma_frac_mort_multiplier, 0.0);
+            // initialize transformed data variables
+            current_statement_begin__ = 71;
             S = int(0);
             stan::math::fill(S, std::numeric_limits<int>::min());
             stan::math::assign(S,1);
-            current_statement_begin__ = 65;
+            current_statement_begin__ = 72;
             E = int(0);
             stan::math::fill(E, std::numeric_limits<int>::min());
             stan::math::assign(E,2);
-            current_statement_begin__ = 66;
+            current_statement_begin__ = 73;
             Imild = int(0);
             stan::math::fill(Imild, std::numeric_limits<int>::min());
             stan::math::assign(Imild,3);
-            current_statement_begin__ = 67;
+            current_statement_begin__ = 74;
             Ipreh = int(0);
             stan::math::fill(Ipreh, std::numeric_limits<int>::min());
             stan::math::assign(Ipreh,4);
-            current_statement_begin__ = 68;
+            current_statement_begin__ = 75;
             Hmod = int(0);
             stan::math::fill(Hmod, std::numeric_limits<int>::min());
             stan::math::assign(Hmod,5);
-            current_statement_begin__ = 69;
+            current_statement_begin__ = 76;
             Hicu = int(0);
             stan::math::fill(Hicu, std::numeric_limits<int>::min());
             stan::math::assign(Hicu,6);
-            current_statement_begin__ = 70;
+            current_statement_begin__ = 77;
             Rlive = int(0);
             stan::math::fill(Rlive, std::numeric_limits<int>::min());
             stan::math::assign(Rlive,7);
-            current_statement_begin__ = 71;
+            current_statement_begin__ = 78;
             Rmort = int(0);
             stan::math::fill(Rmort, std::numeric_limits<int>::min());
             stan::math::assign(Rmort,8);
-            current_statement_begin__ = 73;
+            current_statement_begin__ = 80;
             ncompartments = int(0);
             stan::math::fill(ncompartments, std::numeric_limits<int>::min());
             stan::math::assign(ncompartments,8);
-            current_statement_begin__ = 75;
+            current_statement_begin__ = 82;
             obs_hosp_census = int(0);
             stan::math::fill(obs_hosp_census, std::numeric_limits<int>::min());
             stan::math::assign(obs_hosp_census,1);
-            current_statement_begin__ = 76;
+            current_statement_begin__ = 83;
             obs_icu_census = int(0);
             stan::math::fill(obs_icu_census, std::numeric_limits<int>::min());
             stan::math::assign(obs_icu_census,2);
-            current_statement_begin__ = 77;
+            current_statement_begin__ = 84;
             obs_cum_deaths = int(0);
             stan::math::fill(obs_cum_deaths, std::numeric_limits<int>::min());
             stan::math::assign(obs_cum_deaths,3);
-            current_statement_begin__ = 78;
+            current_statement_begin__ = 85;
             obs_cum_admits = int(0);
             stan::math::fill(obs_cum_admits, std::numeric_limits<int>::min());
             stan::math::assign(obs_cum_admits,4);
-            current_statement_begin__ = 80;
+            current_statement_begin__ = 87;
             nobs_notmissing = int(0);
             stan::math::fill(nobs_notmissing, std::numeric_limits<int>::min());
             stan::math::assign(nobs_notmissing,0);
-            current_statement_begin__ = 82;
+            current_statement_begin__ = 89;
             beta_limit = double(0);
             stan::math::fill(beta_limit, DUMMY_VAR__);
             // execute transformed data statements
-            current_statement_begin__ = 84;
+            current_statement_begin__ = 91;
             for (int iobs = 1; iobs <= nobs; ++iobs) {
-                current_statement_begin__ = 85;
+                current_statement_begin__ = 92;
                 for (int itype = 1; itype <= nobs_types; ++itype) {
-                    current_statement_begin__ = 86;
+                    current_statement_begin__ = 93;
                     if (as_bool(logical_gt(get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1), 0))) {
-                        current_statement_begin__ = 87;
+                        current_statement_begin__ = 94;
                         stan::math::assign(nobs_notmissing, (nobs_notmissing + 1));
                     }
                 }
             }
-            current_statement_begin__ = 92;
+            current_statement_begin__ = 99;
             if (as_bool(logical_eq(extend, 1))) {
-                current_statement_begin__ = 93;
+                current_statement_begin__ = 100;
                 stan::math::assign(beta_limit, 9999);
             } else {
-                current_statement_begin__ = 95;
+                current_statement_begin__ = 102;
                 stan::math::assign(beta_limit, 2.0);
             }
             // validate transformed data
             // validate, set parameter ranges
             num_params_r__ = 0U;
             param_ranges_i__.clear();
-            current_statement_begin__ = 100;
-            num_params_r__ += 1;
-            current_statement_begin__ = 101;
-            num_params_r__ += 1;
-            current_statement_begin__ = 102;
-            num_params_r__ += 1;
-            current_statement_begin__ = 103;
-            num_params_r__ += 1;
-            current_statement_begin__ = 104;
-            num_params_r__ += 1;
-            current_statement_begin__ = 106;
-            num_params_r__ += 1;
             current_statement_begin__ = 107;
             num_params_r__ += 1;
             current_statement_begin__ = 108;
             num_params_r__ += 1;
+            current_statement_begin__ = 109;
+            num_params_r__ += 1;
             current_statement_begin__ = 110;
             num_params_r__ += 1;
-            current_statement_begin__ = 112;
-            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-            num_params_r__ += (1 * nobs_types);
+            current_statement_begin__ = 111;
+            num_params_r__ += 1;
+            current_statement_begin__ = 113;
+            num_params_r__ += 1;
+            current_statement_begin__ = 114;
+            num_params_r__ += 1;
             current_statement_begin__ = 115;
             num_params_r__ += 1;
             current_statement_begin__ = 116;
+            num_params_r__ += 1;
+            current_statement_begin__ = 118;
+            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
+            num_params_r__ += (1 * nobs_types);
+            current_statement_begin__ = 121;
+            num_params_r__ += 1;
+            current_statement_begin__ = 122;
             validate_non_negative_index("beta_multiplier", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 117;
+            current_statement_begin__ = 123;
             validate_non_negative_index("t_inter", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 118;
+            current_statement_begin__ = 124;
             validate_non_negative_index("len_inter", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 120;
+            current_statement_begin__ = 126;
+            num_params_r__ += 1;
+            current_statement_begin__ = 127;
+            num_params_r__ += 1;
+            current_statement_begin__ = 129;
             validate_non_negative_index("frac_PUI", "nobs_types", nobs_types);
             num_params_r__ += (1 * nobs_types);
         } catch (const std::exception& e) {
@@ -587,7 +639,7 @@ public:
         (void) pos__; // dummy call to supress warning
         std::vector<double> vals_r__;
         std::vector<int> vals_i__;
-        current_statement_begin__ = 100;
+        current_statement_begin__ = 107;
         if (!(context__.contains_r("duration_latent")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_latent missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_latent");
@@ -600,7 +652,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_latent: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 101;
+        current_statement_begin__ = 108;
         if (!(context__.contains_r("duration_rec_mild")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_rec_mild missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_rec_mild");
@@ -613,7 +665,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_rec_mild: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 102;
+        current_statement_begin__ = 109;
         if (!(context__.contains_r("duration_pre_hosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_pre_hosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_pre_hosp");
@@ -626,7 +678,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_pre_hosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 103;
+        current_statement_begin__ = 110;
         if (!(context__.contains_r("duration_hosp_mod")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_hosp_mod missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_hosp_mod");
@@ -639,7 +691,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_hosp_mod: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 104;
+        current_statement_begin__ = 111;
         if (!(context__.contains_r("duration_hosp_icu")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_hosp_icu missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_hosp_icu");
@@ -652,7 +704,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_hosp_icu: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 106;
+        current_statement_begin__ = 113;
         if (!(context__.contains_r("frac_hosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_hosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_hosp");
@@ -665,33 +717,33 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_hosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 107;
-        if (!(context__.contains_r("frac_icu")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_icu missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("frac_icu");
+        current_statement_begin__ = 114;
+        if (!(context__.contains_r("frac_icu_0")))
+            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_icu_0 missing")), current_statement_begin__, prog_reader__());
+        vals_r__ = context__.vals_r("frac_icu_0");
         pos__ = 0U;
-        context__.validate_dims("parameter initialization", "frac_icu", "double", context__.to_vec());
-        double frac_icu(0);
-        frac_icu = vals_r__[pos__++];
+        context__.validate_dims("parameter initialization", "frac_icu_0", "double", context__.to_vec());
+        double frac_icu_0(0);
+        frac_icu_0 = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0.0, 1.0, frac_icu);
+            writer__.scalar_lub_unconstrain(0.0, 1.0, frac_icu_0);
         } catch (const std::exception& e) {
-            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_icu: ") + e.what()), current_statement_begin__, prog_reader__());
+            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_icu_0: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 108;
-        if (!(context__.contains_r("frac_mort")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_mort missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("frac_mort");
+        current_statement_begin__ = 115;
+        if (!(context__.contains_r("frac_mort_0")))
+            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_mort_0 missing")), current_statement_begin__, prog_reader__());
+        vals_r__ = context__.vals_r("frac_mort_0");
         pos__ = 0U;
-        context__.validate_dims("parameter initialization", "frac_mort", "double", context__.to_vec());
-        double frac_mort(0);
-        frac_mort = vals_r__[pos__++];
+        context__.validate_dims("parameter initialization", "frac_mort_0", "double", context__.to_vec());
+        double frac_mort_0(0);
+        frac_mort_0 = vals_r__[pos__++];
         try {
-            writer__.scalar_lub_unconstrain(0.0, 1.0, frac_mort);
+            writer__.scalar_lub_unconstrain(0.0, 1.0, frac_mort_0);
         } catch (const std::exception& e) {
-            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_mort: ") + e.what()), current_statement_begin__, prog_reader__());
+            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_mort_0: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 110;
+        current_statement_begin__ = 116;
         if (!(context__.contains_r("ini_exposed")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable ini_exposed missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("ini_exposed");
@@ -704,7 +756,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable ini_exposed: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 112;
+        current_statement_begin__ = 118;
         if (!(context__.contains_r("sigma_obs")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable sigma_obs missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("sigma_obs");
@@ -724,7 +776,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable sigma_obs: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 115;
+        current_statement_begin__ = 121;
         if (!(context__.contains_r("r0")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable r0 missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("r0");
@@ -737,7 +789,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable r0: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 116;
+        current_statement_begin__ = 122;
         if (!(context__.contains_r("beta_multiplier")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable beta_multiplier missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("beta_multiplier");
@@ -757,7 +809,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable beta_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 117;
+        current_statement_begin__ = 123;
         if (!(context__.contains_r("t_inter")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable t_inter missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("t_inter");
@@ -777,7 +829,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable t_inter: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 118;
+        current_statement_begin__ = 124;
         if (!(context__.contains_r("len_inter")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable len_inter missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("len_inter");
@@ -797,7 +849,33 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable len_inter: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 120;
+        current_statement_begin__ = 126;
+        if (!(context__.contains_r("frac_icu_multiplier")))
+            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_icu_multiplier missing")), current_statement_begin__, prog_reader__());
+        vals_r__ = context__.vals_r("frac_icu_multiplier");
+        pos__ = 0U;
+        context__.validate_dims("parameter initialization", "frac_icu_multiplier", "double", context__.to_vec());
+        double frac_icu_multiplier(0);
+        frac_icu_multiplier = vals_r__[pos__++];
+        try {
+            writer__.scalar_lb_unconstrain(0.0, frac_icu_multiplier);
+        } catch (const std::exception& e) {
+            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_icu_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
+        }
+        current_statement_begin__ = 127;
+        if (!(context__.contains_r("frac_mort_multiplier")))
+            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_mort_multiplier missing")), current_statement_begin__, prog_reader__());
+        vals_r__ = context__.vals_r("frac_mort_multiplier");
+        pos__ = 0U;
+        context__.validate_dims("parameter initialization", "frac_mort_multiplier", "double", context__.to_vec());
+        double frac_mort_multiplier(0);
+        frac_mort_multiplier = vals_r__[pos__++];
+        try {
+            writer__.scalar_lb_unconstrain(0.0, frac_mort_multiplier);
+        } catch (const std::exception& e) {
+            stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_mort_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
+        }
+        current_statement_begin__ = 129;
         if (!(context__.contains_r("frac_PUI")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_PUI missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_PUI");
@@ -842,70 +920,70 @@ public:
         try {
             stan::io::reader<local_scalar_t__> in__(params_r__, params_i__);
             // model parameters
-            current_statement_begin__ = 100;
+            current_statement_begin__ = 107;
             local_scalar_t__ duration_latent;
             (void) duration_latent;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_latent = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_latent = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 101;
+            current_statement_begin__ = 108;
             local_scalar_t__ duration_rec_mild;
             (void) duration_rec_mild;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_rec_mild = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_rec_mild = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 102;
+            current_statement_begin__ = 109;
             local_scalar_t__ duration_pre_hosp;
             (void) duration_pre_hosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_pre_hosp = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_pre_hosp = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 103;
+            current_statement_begin__ = 110;
             local_scalar_t__ duration_hosp_mod;
             (void) duration_hosp_mod;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_hosp_mod = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_hosp_mod = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 104;
+            current_statement_begin__ = 111;
             local_scalar_t__ duration_hosp_icu;
             (void) duration_hosp_icu;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_hosp_icu = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_hosp_icu = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 106;
+            current_statement_begin__ = 113;
             local_scalar_t__ frac_hosp;
             (void) frac_hosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_hosp = in__.scalar_lub_constrain(0.005, 1.0, lp__);
             else
                 frac_hosp = in__.scalar_lub_constrain(0.005, 1.0);
-            current_statement_begin__ = 107;
-            local_scalar_t__ frac_icu;
-            (void) frac_icu;  // dummy to suppress unused var warning
+            current_statement_begin__ = 114;
+            local_scalar_t__ frac_icu_0;
+            (void) frac_icu_0;  // dummy to suppress unused var warning
             if (jacobian__)
-                frac_icu = in__.scalar_lub_constrain(0.0, 1.0, lp__);
+                frac_icu_0 = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
-                frac_icu = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 108;
-            local_scalar_t__ frac_mort;
-            (void) frac_mort;  // dummy to suppress unused var warning
+                frac_icu_0 = in__.scalar_lub_constrain(0.0, 1.0);
+            current_statement_begin__ = 115;
+            local_scalar_t__ frac_mort_0;
+            (void) frac_mort_0;  // dummy to suppress unused var warning
             if (jacobian__)
-                frac_mort = in__.scalar_lub_constrain(0.0, 1.0, lp__);
+                frac_mort_0 = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
-                frac_mort = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 110;
+                frac_mort_0 = in__.scalar_lub_constrain(0.0, 1.0);
+            current_statement_begin__ = 116;
             local_scalar_t__ ini_exposed;
             (void) ini_exposed;  // dummy to suppress unused var warning
             if (jacobian__)
                 ini_exposed = in__.scalar_lb_constrain(0, lp__);
             else
                 ini_exposed = in__.scalar_lb_constrain(0);
-            current_statement_begin__ = 112;
+            current_statement_begin__ = 118;
             std::vector<local_scalar_t__> sigma_obs;
             size_t sigma_obs_d_0_max__ = nobs_types;
             sigma_obs.reserve(sigma_obs_d_0_max__);
@@ -915,14 +993,14 @@ public:
                 else
                     sigma_obs.push_back(in__.scalar_lb_constrain(0));
             }
-            current_statement_begin__ = 115;
+            current_statement_begin__ = 121;
             local_scalar_t__ r0;
             (void) r0;  // dummy to suppress unused var warning
             if (jacobian__)
                 r0 = in__.scalar_lb_constrain(0.0, lp__);
             else
                 r0 = in__.scalar_lb_constrain(0.0);
-            current_statement_begin__ = 116;
+            current_statement_begin__ = 122;
             std::vector<local_scalar_t__> beta_multiplier;
             size_t beta_multiplier_d_0_max__ = ninter;
             beta_multiplier.reserve(beta_multiplier_d_0_max__);
@@ -932,7 +1010,7 @@ public:
                 else
                     beta_multiplier.push_back(in__.scalar_lb_constrain(0.0));
             }
-            current_statement_begin__ = 117;
+            current_statement_begin__ = 123;
             std::vector<local_scalar_t__> t_inter;
             size_t t_inter_d_0_max__ = ninter;
             t_inter.reserve(t_inter_d_0_max__);
@@ -942,7 +1020,7 @@ public:
                 else
                     t_inter.push_back(in__.scalar_lb_constrain(1.0));
             }
-            current_statement_begin__ = 118;
+            current_statement_begin__ = 124;
             std::vector<local_scalar_t__> len_inter;
             size_t len_inter_d_0_max__ = ninter;
             len_inter.reserve(len_inter_d_0_max__);
@@ -952,7 +1030,21 @@ public:
                 else
                     len_inter.push_back(in__.scalar_lb_constrain(1.0));
             }
-            current_statement_begin__ = 120;
+            current_statement_begin__ = 126;
+            local_scalar_t__ frac_icu_multiplier;
+            (void) frac_icu_multiplier;  // dummy to suppress unused var warning
+            if (jacobian__)
+                frac_icu_multiplier = in__.scalar_lb_constrain(0.0, lp__);
+            else
+                frac_icu_multiplier = in__.scalar_lb_constrain(0.0);
+            current_statement_begin__ = 127;
+            local_scalar_t__ frac_mort_multiplier;
+            (void) frac_mort_multiplier;  // dummy to suppress unused var warning
+            if (jacobian__)
+                frac_mort_multiplier = in__.scalar_lb_constrain(0.0, lp__);
+            else
+                frac_mort_multiplier = in__.scalar_lb_constrain(0.0);
+            current_statement_begin__ = 129;
             std::vector<local_scalar_t__> frac_PUI;
             size_t frac_PUI_d_0_max__ = nobs_types;
             frac_PUI.reserve(frac_PUI_d_0_max__);
@@ -963,201 +1055,227 @@ public:
                     frac_PUI.push_back(in__.scalar_lub_constrain(0, 1));
             }
             // transformed parameters
-            current_statement_begin__ = 123;
+            current_statement_begin__ = 133;
             validate_non_negative_index("x", "ncompartments", ncompartments);
             validate_non_negative_index("x", "nt", nt);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, Eigen::Dynamic> x(ncompartments, nt);
             stan::math::initialize(x, DUMMY_VAR__);
             stan::math::fill(x, DUMMY_VAR__);
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 134;
             validate_non_negative_index("sim_data", "nobs_types", nobs_types);
             validate_non_negative_index("sim_data", "nt", nt);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, Eigen::Dynamic> sim_data(nobs_types, nt);
             stan::math::initialize(sim_data, DUMMY_VAR__);
             stan::math::fill(sim_data, DUMMY_VAR__);
-            current_statement_begin__ = 125;
+            current_statement_begin__ = 135;
             validate_non_negative_index("beta", "nt", nt);
             std::vector<local_scalar_t__> beta(nt, local_scalar_t__(0));
             stan::math::initialize(beta, DUMMY_VAR__);
             stan::math::fill(beta, DUMMY_VAR__);
-            current_statement_begin__ = 126;
+            current_statement_begin__ = 136;
             validate_non_negative_index("Hadmits", "nt", nt);
             Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> Hadmits(nt);
             stan::math::initialize(Hadmits, DUMMY_VAR__);
             stan::math::fill(Hadmits, DUMMY_VAR__);
-            current_statement_begin__ = 127;
+            current_statement_begin__ = 137;
             validate_non_negative_index("newE_temp", "(nt - 1)", (nt - 1));
             std::vector<local_scalar_t__> newE_temp((nt - 1), local_scalar_t__(0));
             stan::math::initialize(newE_temp, DUMMY_VAR__);
             stan::math::fill(newE_temp, DUMMY_VAR__);
+            current_statement_begin__ = 138;
+            validate_non_negative_index("frac_icu", "nt", nt);
+            std::vector<local_scalar_t__> frac_icu(nt, local_scalar_t__(0));
+            stan::math::initialize(frac_icu, DUMMY_VAR__);
+            stan::math::fill(frac_icu, DUMMY_VAR__);
+            current_statement_begin__ = 139;
+            validate_non_negative_index("frac_mort", "nt", nt);
+            std::vector<local_scalar_t__> frac_mort(nt, local_scalar_t__(0));
+            stan::math::initialize(frac_mort, DUMMY_VAR__);
+            stan::math::fill(frac_mort, DUMMY_VAR__);
             // transformed parameters block statements
             {
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 143;
             local_scalar_t__ newE(DUMMY_VAR__);
             (void) newE;  // dummy to suppress unused var warning
             stan::math::initialize(newE, DUMMY_VAR__);
             stan::math::fill(newE, DUMMY_VAR__);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 144;
             local_scalar_t__ newI(DUMMY_VAR__);
             (void) newI;  // dummy to suppress unused var warning
             stan::math::initialize(newI, DUMMY_VAR__);
             stan::math::fill(newI, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 145;
             local_scalar_t__ newrec_mild(DUMMY_VAR__);
             (void) newrec_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mild, DUMMY_VAR__);
             stan::math::fill(newrec_mild, DUMMY_VAR__);
-            current_statement_begin__ = 134;
+            current_statement_begin__ = 146;
             local_scalar_t__ newrec_mod(DUMMY_VAR__);
             (void) newrec_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mod, DUMMY_VAR__);
             stan::math::fill(newrec_mod, DUMMY_VAR__);
-            current_statement_begin__ = 135;
+            current_statement_begin__ = 147;
             local_scalar_t__ newhosp(DUMMY_VAR__);
             (void) newhosp;  // dummy to suppress unused var warning
             stan::math::initialize(newhosp, DUMMY_VAR__);
             stan::math::fill(newhosp, DUMMY_VAR__);
-            current_statement_begin__ = 136;
+            current_statement_begin__ = 148;
             local_scalar_t__ leave_icu(DUMMY_VAR__);
             (void) leave_icu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icu, DUMMY_VAR__);
             stan::math::fill(leave_icu, DUMMY_VAR__);
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 149;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 150;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 151;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 152;
             local_scalar_t__ zero(DUMMY_VAR__);
             (void) zero;  // dummy to suppress unused var warning
             stan::math::initialize(zero, DUMMY_VAR__);
             stan::math::fill(zero, DUMMY_VAR__);
-            current_statement_begin__ = 144;
+            current_statement_begin__ = 156;
             stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
-            current_statement_begin__ = 145;
+            current_statement_begin__ = 157;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 146;
+                current_statement_begin__ = 158;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             beta_0, 
                             "assigning variable beta");
-                current_statement_begin__ = 147;
+                current_statement_begin__ = 159;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 150;
+                    current_statement_begin__ = 162;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 155;
+            current_statement_begin__ = 166;
+            for (int it = 1; it <= nt; ++it) {
+                current_statement_begin__ = 167;
+                stan::model::assign(frac_icu, 
+                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
+                            (frac_icu_0 * pow(frac_icu_multiplier, inv_logit(((9.19024 / len_inter_icu) * (it - (t_inter_icu + (len_inter_icu / 2))))))), 
+                            "assigning variable frac_icu");
+            }
+            current_statement_begin__ = 169;
+            for (int it = 1; it <= nt; ++it) {
+                current_statement_begin__ = 170;
+                stan::model::assign(frac_mort, 
+                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
+                            (frac_icu_0 * pow(frac_mort_multiplier, inv_logit(((9.19024 / len_inter_icu) * (it - (t_inter_icu + (len_inter_icu / 2))))))), 
+                            "assigning variable frac_mort");
+            }
+            current_statement_begin__ = 174;
             stan::math::assign(zero, (ini_exposed * 1e-15));
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 175;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(zero, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 157;
+            current_statement_begin__ = 176;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 177;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 178;
             stan::model::assign(Hadmits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         zero, 
                         "assigning variable Hadmits");
-            current_statement_begin__ = 163;
+            current_statement_begin__ = 183;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 166;
+                current_statement_begin__ = 186;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
-                current_statement_begin__ = 168;
+                current_statement_begin__ = 188;
                 if (as_bool((primitive_value(logical_gt(it, 1)) && primitive_value(logical_eq(extend, 0))))) {
-                    current_statement_begin__ = 169;
+                    current_statement_begin__ = 189;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 newE, 
                                 "assigning variable newE_temp");
                 } else {
-                    current_statement_begin__ = 171;
+                    current_statement_begin__ = 191;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (1 + zero), 
                                 "assigning variable newE_temp");
                 }
-                current_statement_begin__ = 175;
+                current_statement_begin__ = 195;
                 stan::math::assign(newI, ((1.0 / duration_latent) * get_base1(x, E, it, "x", 1)));
-                current_statement_begin__ = 176;
+                current_statement_begin__ = 196;
                 stan::math::assign(newhosp, ((1.0 / duration_pre_hosp) * get_base1(x, Ipreh, it, "x", 1)));
-                current_statement_begin__ = 177;
+                current_statement_begin__ = 197;
                 stan::math::assign(newrec_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imild, it, "x", 1)));
-                current_statement_begin__ = 178;
+                current_statement_begin__ = 198;
                 stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
-                current_statement_begin__ = 179;
+                current_statement_begin__ = 199;
                 stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
-                current_statement_begin__ = 184;
+                current_statement_begin__ = 204;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, S, it, "x", 1) - newE), 
                             "assigning variable x");
-                current_statement_begin__ = 185;
+                current_statement_begin__ = 205;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, E, it, "x", 1) + newE) - newI), 
                             "assigning variable x");
-                current_statement_begin__ = 186;
+                current_statement_begin__ = 206;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imild), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imild, it, "x", 1) + (newI * (1 - frac_hosp))) - newrec_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 187;
+                current_statement_begin__ = 207;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ipreh), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ipreh, it, "x", 1) + (newI * frac_hosp)) - newhosp), 
                             "assigning variable x");
-                current_statement_begin__ = 188;
+                current_statement_begin__ = 208;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmod), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - frac_icu))) - newrec_mod), 
+                            ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - get_base1(frac_icu, it, "frac_icu", 1)))) - newrec_mod), 
                             "assigning variable x");
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 209;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicu, it, "x", 1) + (newhosp * frac_icu)) - leave_icu), 
+                            ((get_base1(x, Hicu, it, "x", 1) + (newhosp * get_base1(frac_icu, it, "frac_icu", 1))) - leave_icu), 
                             "assigning variable x");
-                current_statement_begin__ = 190;
+                current_statement_begin__ = 210;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlive), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - frac_mort))), 
+                            (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - get_base1(frac_mort, it, "frac_mort", 1)))), 
                             "assigning variable x");
-                current_statement_begin__ = 191;
+                current_statement_begin__ = 211;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (get_base1(x, Rmort, it, "x", 1) + (leave_icu * frac_mort)), 
+                            (get_base1(x, Rmort, it, "x", 1) + (leave_icu * get_base1(frac_mort, it, "frac_mort", 1))), 
                             "assigning variable x");
-                current_statement_begin__ = 194;
+                current_statement_begin__ = 214;
                 stan::model::assign(Hadmits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (get_base1(Hadmits, it, "Hadmits", 1) + newhosp), 
                             "assigning variable Hadmits");
-                current_statement_begin__ = 198;
+                current_statement_begin__ = 218;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 199;
+                    current_statement_begin__ = 219;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -1165,35 +1283,35 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 205;
+            current_statement_begin__ = 225;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 206;
+                current_statement_begin__ = 226;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 207;
+                    current_statement_begin__ = 227;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hmod, "x", 1), get_base1(x, Hicu, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 209;
+                    current_statement_begin__ = 229;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Hicu, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 211;
+                    current_statement_begin__ = 231;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Rmort, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 213;
+                    current_statement_begin__ = 233;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 Hadmits, 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 215;
+                    current_statement_begin__ = 235;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
@@ -1202,7 +1320,7 @@ public:
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 123;
+            current_statement_begin__ = 133;
             size_t x_j_1_max__ = ncompartments;
             size_t x_j_2_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < x_j_1_max__; ++j_1__) {
@@ -1214,7 +1332,7 @@ public:
                     }
                 }
             }
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 134;
             size_t sim_data_j_1_max__ = nobs_types;
             size_t sim_data_j_2_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < sim_data_j_1_max__; ++j_1__) {
@@ -1227,7 +1345,7 @@ public:
                 }
             }
             check_greater_or_equal(function__, "sim_data", sim_data, 0.0);
-            current_statement_begin__ = 125;
+            current_statement_begin__ = 135;
             size_t beta_k_0_max__ = nt;
             for (size_t k_0__ = 0; k_0__ < beta_k_0_max__; ++k_0__) {
                 if (stan::math::is_uninitialized(beta[k_0__])) {
@@ -1241,7 +1359,7 @@ public:
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
                 check_less_or_equal(function__, "beta[i_0__]", beta[i_0__], beta_limit);
             }
-            current_statement_begin__ = 126;
+            current_statement_begin__ = 136;
             size_t Hadmits_j_1_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < Hadmits_j_1_max__; ++j_1__) {
                 if (stan::math::is_uninitialized(Hadmits(j_1__))) {
@@ -1251,7 +1369,7 @@ public:
                 }
             }
             check_greater_or_equal(function__, "Hadmits", Hadmits, 0.0);
-            current_statement_begin__ = 127;
+            current_statement_begin__ = 137;
             size_t newE_temp_k_0_max__ = (nt - 1);
             for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                 if (stan::math::is_uninitialized(newE_temp[k_0__])) {
@@ -1264,80 +1382,112 @@ public:
             for (size_t i_0__ = 0; i_0__ < newE_temp_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "newE_temp[i_0__]", newE_temp[i_0__], 1e-10);
             }
+            current_statement_begin__ = 138;
+            size_t frac_icu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_icu_k_0_max__; ++k_0__) {
+                if (stan::math::is_uninitialized(frac_icu[k_0__])) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: frac_icu" << "[" << k_0__ << "]";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable frac_icu: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            size_t frac_icu_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_icu_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_icu[i_0__]", frac_icu[i_0__], 0.0);
+                check_less_or_equal(function__, "frac_icu[i_0__]", frac_icu[i_0__], 1.0);
+            }
+            current_statement_begin__ = 139;
+            size_t frac_mort_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_mort_k_0_max__; ++k_0__) {
+                if (stan::math::is_uninitialized(frac_mort[k_0__])) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: frac_mort" << "[" << k_0__ << "]";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable frac_mort: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            size_t frac_mort_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_mort_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_mort[i_0__]", frac_mort[i_0__], 0.0);
+                check_less_or_equal(function__, "frac_mort[i_0__]", frac_mort[i_0__], 1.0);
+            }
             // model body
-            current_statement_begin__ = 222;
+            current_statement_begin__ = 242;
             lp_accum__.add(normal_log<propto__>(r0, mu_r0, sigma_r0));
-            current_statement_begin__ = 223;
+            current_statement_begin__ = 243;
             lp_accum__.add(normal_log<propto__>(frac_PUI, mu_frac_pui, sigma_frac_pui));
-            current_statement_begin__ = 225;
+            current_statement_begin__ = 245;
             for (int iinter = 1; iinter <= ninter; ++iinter) {
-                current_statement_begin__ = 226;
+                current_statement_begin__ = 246;
                 lp_accum__.add(normal_log<propto__>(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1)));
-                current_statement_begin__ = 227;
+                current_statement_begin__ = 247;
                 lp_accum__.add(normal_log<propto__>(get_base1(t_inter, iinter, "t_inter", 1), get_base1(mu_t_inter, iinter, "mu_t_inter", 1), get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)));
-                current_statement_begin__ = 228;
+                current_statement_begin__ = 248;
                 lp_accum__.add(normal_log<propto__>(get_base1(len_inter, iinter, "len_inter", 1), get_base1(mu_len_inter, iinter, "mu_len_inter", 1), get_base1(sigma_len_inter, iinter, "sigma_len_inter", 1)));
             }
-            current_statement_begin__ = 231;
+            current_statement_begin__ = 251;
             lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
-            current_statement_begin__ = 232;
+            current_statement_begin__ = 252;
             lp_accum__.add(normal_log<propto__>(duration_rec_mild, mu_duration_rec_mild, sigma_duration_rec_mild));
-            current_statement_begin__ = 233;
+            current_statement_begin__ = 253;
             lp_accum__.add(normal_log<propto__>(duration_pre_hosp, mu_duration_pre_hosp, sigma_duration_pre_hosp));
-            current_statement_begin__ = 234;
+            current_statement_begin__ = 254;
             lp_accum__.add(normal_log<propto__>(duration_hosp_mod, mu_duration_hosp_mod, sigma_duration_hosp_mod));
-            current_statement_begin__ = 235;
+            current_statement_begin__ = 255;
             lp_accum__.add(normal_log<propto__>(duration_hosp_icu, mu_duration_hosp_icu, sigma_duration_hosp_icu));
-            current_statement_begin__ = 237;
+            current_statement_begin__ = 257;
             lp_accum__.add(normal_log<propto__>(frac_hosp, mu_frac_hosp, sigma_frac_hosp));
-            current_statement_begin__ = 238;
-            lp_accum__.add(normal_log<propto__>(frac_icu, mu_frac_icu, sigma_frac_icu));
-            current_statement_begin__ = 239;
-            lp_accum__.add(normal_log<propto__>(frac_mort, mu_frac_mort, sigma_frac_mort));
-            current_statement_begin__ = 241;
+            current_statement_begin__ = 258;
+            lp_accum__.add(normal_log<propto__>(frac_icu_0, mu_frac_icu, sigma_frac_icu));
+            current_statement_begin__ = 259;
+            lp_accum__.add(normal_log<propto__>(frac_mort_0, mu_frac_mort, sigma_frac_mort));
+            current_statement_begin__ = 261;
+            lp_accum__.add(normal_log<propto__>(frac_icu_multiplier, mu_frac_icu_multiplier, sigma_frac_icu_multiplier));
+            current_statement_begin__ = 262;
+            lp_accum__.add(normal_log<propto__>(frac_mort_multiplier, mu_frac_mort_multiplier, sigma_frac_mort_multiplier));
+            current_statement_begin__ = 264;
             lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
-            current_statement_begin__ = 245;
+            current_statement_begin__ = 268;
             lp_accum__.add(exponential_log<propto__>(sigma_obs, 1.0));
             {
-            current_statement_begin__ = 247;
+            current_statement_begin__ = 270;
             validate_non_negative_index("error", "nobs_notmissing", nobs_notmissing);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> error(nobs_notmissing);
             stan::math::initialize(error, DUMMY_VAR__);
             stan::math::fill(error, DUMMY_VAR__);
-            current_statement_begin__ = 248;
+            current_statement_begin__ = 271;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 249;
+            current_statement_begin__ = 272;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 250;
+            current_statement_begin__ = 273;
             int cnt(0);
             (void) cnt;  // dummy to suppress unused var warning
             stan::math::fill(cnt, std::numeric_limits<int>::min());
-            current_statement_begin__ = 252;
+            current_statement_begin__ = 275;
             stan::math::assign(cnt, 0);
-            current_statement_begin__ = 253;
+            current_statement_begin__ = 276;
             for (int iobs = 1; iobs <= nobs; ++iobs) {
-                current_statement_begin__ = 254;
+                current_statement_begin__ = 277;
                 for (int itype = 1; itype <= nobs_types; ++itype) {
-                    current_statement_begin__ = 255;
+                    current_statement_begin__ = 278;
                     if (as_bool(logical_gt(get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1), 0))) {
-                        current_statement_begin__ = 256;
+                        current_statement_begin__ = 279;
                         stan::math::assign(cnt, (cnt + 1));
-                        current_statement_begin__ = 257;
+                        current_statement_begin__ = 280;
                         stan::math::assign(obs, get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1));
-                        current_statement_begin__ = 258;
+                        current_statement_begin__ = 281;
                         if (as_bool(logical_gt(get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1), 0))) {
-                            current_statement_begin__ = 259;
+                            current_statement_begin__ = 282;
                             stan::math::assign(obs, (obs + (get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1) * get_base1(frac_PUI, itype, "frac_PUI", 1))));
                         }
-                        current_statement_begin__ = 261;
+                        current_statement_begin__ = 284;
                         stan::math::assign(sim, get_base1(sim_data, itype, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1));
-                        current_statement_begin__ = 262;
+                        current_statement_begin__ = 285;
                         stan::model::assign(error, 
                                     stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
                                     ((obs - sim) / get_base1(sigma_obs, itype, "sigma_obs", 1)), 
@@ -1345,7 +1495,7 @@ public:
                     }
                 }
             }
-            current_statement_begin__ = 266;
+            current_statement_begin__ = 289;
             lp_accum__.add(std_normal_log<propto__>(error));
             }
         } catch (const std::exception& e) {
@@ -1374,20 +1524,24 @@ public:
         names__.push_back("duration_hosp_mod");
         names__.push_back("duration_hosp_icu");
         names__.push_back("frac_hosp");
-        names__.push_back("frac_icu");
-        names__.push_back("frac_mort");
+        names__.push_back("frac_icu_0");
+        names__.push_back("frac_mort_0");
         names__.push_back("ini_exposed");
         names__.push_back("sigma_obs");
         names__.push_back("r0");
         names__.push_back("beta_multiplier");
         names__.push_back("t_inter");
         names__.push_back("len_inter");
+        names__.push_back("frac_icu_multiplier");
+        names__.push_back("frac_mort_multiplier");
         names__.push_back("frac_PUI");
         names__.push_back("x");
         names__.push_back("sim_data");
         names__.push_back("beta");
         names__.push_back("Hadmits");
         names__.push_back("newE_temp");
+        names__.push_back("frac_icu");
+        names__.push_back("frac_mort");
         names__.push_back("Rt");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
@@ -1426,6 +1580,10 @@ public:
         dims__.push_back(ninter);
         dimss__.push_back(dims__);
         dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
         dims__.push_back(nobs_types);
         dimss__.push_back(dims__);
         dims__.resize(0);
@@ -1444,6 +1602,12 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back((nt - 1));
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nt);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nt);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(nt);
@@ -1475,10 +1639,10 @@ public:
         vars__.push_back(duration_hosp_icu);
         double frac_hosp = in__.scalar_lub_constrain(0.005, 1.0);
         vars__.push_back(frac_hosp);
-        double frac_icu = in__.scalar_lub_constrain(0.0, 1.0);
-        vars__.push_back(frac_icu);
-        double frac_mort = in__.scalar_lub_constrain(0.0, 1.0);
-        vars__.push_back(frac_mort);
+        double frac_icu_0 = in__.scalar_lub_constrain(0.0, 1.0);
+        vars__.push_back(frac_icu_0);
+        double frac_mort_0 = in__.scalar_lub_constrain(0.0, 1.0);
+        vars__.push_back(frac_mort_0);
         double ini_exposed = in__.scalar_lb_constrain(0);
         vars__.push_back(ini_exposed);
         std::vector<double> sigma_obs;
@@ -1523,6 +1687,10 @@ public:
         for (size_t k_0__ = 0; k_0__ < len_inter_k_0_max__; ++k_0__) {
             vars__.push_back(len_inter[k_0__]);
         }
+        double frac_icu_multiplier = in__.scalar_lb_constrain(0.0);
+        vars__.push_back(frac_icu_multiplier);
+        double frac_mort_multiplier = in__.scalar_lb_constrain(0.0);
+        vars__.push_back(frac_mort_multiplier);
         std::vector<double> frac_PUI;
         size_t frac_PUI_d_0_max__ = nobs_types;
         frac_PUI.reserve(frac_PUI_d_0_max__);
@@ -1541,201 +1709,227 @@ public:
         if (!include_tparams__ && !include_gqs__) return;
         try {
             // declare and define transformed parameters
-            current_statement_begin__ = 123;
+            current_statement_begin__ = 133;
             validate_non_negative_index("x", "ncompartments", ncompartments);
             validate_non_negative_index("x", "nt", nt);
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> x(ncompartments, nt);
             stan::math::initialize(x, DUMMY_VAR__);
             stan::math::fill(x, DUMMY_VAR__);
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 134;
             validate_non_negative_index("sim_data", "nobs_types", nobs_types);
             validate_non_negative_index("sim_data", "nt", nt);
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> sim_data(nobs_types, nt);
             stan::math::initialize(sim_data, DUMMY_VAR__);
             stan::math::fill(sim_data, DUMMY_VAR__);
-            current_statement_begin__ = 125;
+            current_statement_begin__ = 135;
             validate_non_negative_index("beta", "nt", nt);
             std::vector<double> beta(nt, double(0));
             stan::math::initialize(beta, DUMMY_VAR__);
             stan::math::fill(beta, DUMMY_VAR__);
-            current_statement_begin__ = 126;
+            current_statement_begin__ = 136;
             validate_non_negative_index("Hadmits", "nt", nt);
             Eigen::Matrix<double, 1, Eigen::Dynamic> Hadmits(nt);
             stan::math::initialize(Hadmits, DUMMY_VAR__);
             stan::math::fill(Hadmits, DUMMY_VAR__);
-            current_statement_begin__ = 127;
+            current_statement_begin__ = 137;
             validate_non_negative_index("newE_temp", "(nt - 1)", (nt - 1));
             std::vector<double> newE_temp((nt - 1), double(0));
             stan::math::initialize(newE_temp, DUMMY_VAR__);
             stan::math::fill(newE_temp, DUMMY_VAR__);
+            current_statement_begin__ = 138;
+            validate_non_negative_index("frac_icu", "nt", nt);
+            std::vector<double> frac_icu(nt, double(0));
+            stan::math::initialize(frac_icu, DUMMY_VAR__);
+            stan::math::fill(frac_icu, DUMMY_VAR__);
+            current_statement_begin__ = 139;
+            validate_non_negative_index("frac_mort", "nt", nt);
+            std::vector<double> frac_mort(nt, double(0));
+            stan::math::initialize(frac_mort, DUMMY_VAR__);
+            stan::math::fill(frac_mort, DUMMY_VAR__);
             // do transformed parameters statements
             {
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 143;
             local_scalar_t__ newE(DUMMY_VAR__);
             (void) newE;  // dummy to suppress unused var warning
             stan::math::initialize(newE, DUMMY_VAR__);
             stan::math::fill(newE, DUMMY_VAR__);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 144;
             local_scalar_t__ newI(DUMMY_VAR__);
             (void) newI;  // dummy to suppress unused var warning
             stan::math::initialize(newI, DUMMY_VAR__);
             stan::math::fill(newI, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 145;
             local_scalar_t__ newrec_mild(DUMMY_VAR__);
             (void) newrec_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mild, DUMMY_VAR__);
             stan::math::fill(newrec_mild, DUMMY_VAR__);
-            current_statement_begin__ = 134;
+            current_statement_begin__ = 146;
             local_scalar_t__ newrec_mod(DUMMY_VAR__);
             (void) newrec_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mod, DUMMY_VAR__);
             stan::math::fill(newrec_mod, DUMMY_VAR__);
-            current_statement_begin__ = 135;
+            current_statement_begin__ = 147;
             local_scalar_t__ newhosp(DUMMY_VAR__);
             (void) newhosp;  // dummy to suppress unused var warning
             stan::math::initialize(newhosp, DUMMY_VAR__);
             stan::math::fill(newhosp, DUMMY_VAR__);
-            current_statement_begin__ = 136;
+            current_statement_begin__ = 148;
             local_scalar_t__ leave_icu(DUMMY_VAR__);
             (void) leave_icu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icu, DUMMY_VAR__);
             stan::math::fill(leave_icu, DUMMY_VAR__);
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 149;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 150;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 151;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 152;
             local_scalar_t__ zero(DUMMY_VAR__);
             (void) zero;  // dummy to suppress unused var warning
             stan::math::initialize(zero, DUMMY_VAR__);
             stan::math::fill(zero, DUMMY_VAR__);
-            current_statement_begin__ = 144;
+            current_statement_begin__ = 156;
             stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
-            current_statement_begin__ = 145;
+            current_statement_begin__ = 157;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 146;
+                current_statement_begin__ = 158;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             beta_0, 
                             "assigning variable beta");
-                current_statement_begin__ = 147;
+                current_statement_begin__ = 159;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 150;
+                    current_statement_begin__ = 162;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 155;
+            current_statement_begin__ = 166;
+            for (int it = 1; it <= nt; ++it) {
+                current_statement_begin__ = 167;
+                stan::model::assign(frac_icu, 
+                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
+                            (frac_icu_0 * pow(frac_icu_multiplier, inv_logit(((9.19024 / len_inter_icu) * (it - (t_inter_icu + (len_inter_icu / 2))))))), 
+                            "assigning variable frac_icu");
+            }
+            current_statement_begin__ = 169;
+            for (int it = 1; it <= nt; ++it) {
+                current_statement_begin__ = 170;
+                stan::model::assign(frac_mort, 
+                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
+                            (frac_icu_0 * pow(frac_mort_multiplier, inv_logit(((9.19024 / len_inter_icu) * (it - (t_inter_icu + (len_inter_icu / 2))))))), 
+                            "assigning variable frac_mort");
+            }
+            current_statement_begin__ = 174;
             stan::math::assign(zero, (ini_exposed * 1e-15));
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 175;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(zero, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 157;
+            current_statement_begin__ = 176;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 177;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 178;
             stan::model::assign(Hadmits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         zero, 
                         "assigning variable Hadmits");
-            current_statement_begin__ = 163;
+            current_statement_begin__ = 183;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 166;
+                current_statement_begin__ = 186;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
-                current_statement_begin__ = 168;
+                current_statement_begin__ = 188;
                 if (as_bool((primitive_value(logical_gt(it, 1)) && primitive_value(logical_eq(extend, 0))))) {
-                    current_statement_begin__ = 169;
+                    current_statement_begin__ = 189;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 newE, 
                                 "assigning variable newE_temp");
                 } else {
-                    current_statement_begin__ = 171;
+                    current_statement_begin__ = 191;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (1 + zero), 
                                 "assigning variable newE_temp");
                 }
-                current_statement_begin__ = 175;
+                current_statement_begin__ = 195;
                 stan::math::assign(newI, ((1.0 / duration_latent) * get_base1(x, E, it, "x", 1)));
-                current_statement_begin__ = 176;
+                current_statement_begin__ = 196;
                 stan::math::assign(newhosp, ((1.0 / duration_pre_hosp) * get_base1(x, Ipreh, it, "x", 1)));
-                current_statement_begin__ = 177;
+                current_statement_begin__ = 197;
                 stan::math::assign(newrec_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imild, it, "x", 1)));
-                current_statement_begin__ = 178;
+                current_statement_begin__ = 198;
                 stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
-                current_statement_begin__ = 179;
+                current_statement_begin__ = 199;
                 stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
-                current_statement_begin__ = 184;
+                current_statement_begin__ = 204;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, S, it, "x", 1) - newE), 
                             "assigning variable x");
-                current_statement_begin__ = 185;
+                current_statement_begin__ = 205;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, E, it, "x", 1) + newE) - newI), 
                             "assigning variable x");
-                current_statement_begin__ = 186;
+                current_statement_begin__ = 206;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imild), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imild, it, "x", 1) + (newI * (1 - frac_hosp))) - newrec_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 187;
+                current_statement_begin__ = 207;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ipreh), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ipreh, it, "x", 1) + (newI * frac_hosp)) - newhosp), 
                             "assigning variable x");
-                current_statement_begin__ = 188;
+                current_statement_begin__ = 208;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmod), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - frac_icu))) - newrec_mod), 
+                            ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - get_base1(frac_icu, it, "frac_icu", 1)))) - newrec_mod), 
                             "assigning variable x");
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 209;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicu, it, "x", 1) + (newhosp * frac_icu)) - leave_icu), 
+                            ((get_base1(x, Hicu, it, "x", 1) + (newhosp * get_base1(frac_icu, it, "frac_icu", 1))) - leave_icu), 
                             "assigning variable x");
-                current_statement_begin__ = 190;
+                current_statement_begin__ = 210;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlive), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - frac_mort))), 
+                            (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - get_base1(frac_mort, it, "frac_mort", 1)))), 
                             "assigning variable x");
-                current_statement_begin__ = 191;
+                current_statement_begin__ = 211;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (get_base1(x, Rmort, it, "x", 1) + (leave_icu * frac_mort)), 
+                            (get_base1(x, Rmort, it, "x", 1) + (leave_icu * get_base1(frac_mort, it, "frac_mort", 1))), 
                             "assigning variable x");
-                current_statement_begin__ = 194;
+                current_statement_begin__ = 214;
                 stan::model::assign(Hadmits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (get_base1(Hadmits, it, "Hadmits", 1) + newhosp), 
                             "assigning variable Hadmits");
-                current_statement_begin__ = 198;
+                current_statement_begin__ = 218;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 199;
+                    current_statement_begin__ = 219;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -1743,35 +1937,35 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 205;
+            current_statement_begin__ = 225;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 206;
+                current_statement_begin__ = 226;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 207;
+                    current_statement_begin__ = 227;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hmod, "x", 1), get_base1(x, Hicu, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 209;
+                    current_statement_begin__ = 229;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Hicu, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 211;
+                    current_statement_begin__ = 231;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Rmort, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 213;
+                    current_statement_begin__ = 233;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 Hadmits, 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 215;
+                    current_statement_begin__ = 235;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
@@ -1781,20 +1975,32 @@ public:
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 134;
             check_greater_or_equal(function__, "sim_data", sim_data, 0.0);
-            current_statement_begin__ = 125;
+            current_statement_begin__ = 135;
             size_t beta_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < beta_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
                 check_less_or_equal(function__, "beta[i_0__]", beta[i_0__], beta_limit);
             }
-            current_statement_begin__ = 126;
+            current_statement_begin__ = 136;
             check_greater_or_equal(function__, "Hadmits", Hadmits, 0.0);
-            current_statement_begin__ = 127;
+            current_statement_begin__ = 137;
             size_t newE_temp_i_0_max__ = (nt - 1);
             for (size_t i_0__ = 0; i_0__ < newE_temp_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "newE_temp[i_0__]", newE_temp[i_0__], 1e-10);
+            }
+            current_statement_begin__ = 138;
+            size_t frac_icu_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_icu_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_icu[i_0__]", frac_icu[i_0__], 0.0);
+                check_less_or_equal(function__, "frac_icu[i_0__]", frac_icu[i_0__], 1.0);
+            }
+            current_statement_begin__ = 139;
+            size_t frac_mort_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_mort_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_mort[i_0__]", frac_mort[i_0__], 0.0);
+                check_less_or_equal(function__, "frac_mort[i_0__]", frac_mort[i_0__], 1.0);
             }
             // write transformed parameters
             if (include_tparams__) {
@@ -1824,25 +2030,33 @@ public:
                 for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                     vars__.push_back(newE_temp[k_0__]);
                 }
+                size_t frac_icu_k_0_max__ = nt;
+                for (size_t k_0__ = 0; k_0__ < frac_icu_k_0_max__; ++k_0__) {
+                    vars__.push_back(frac_icu[k_0__]);
+                }
+                size_t frac_mort_k_0_max__ = nt;
+                for (size_t k_0__ = 0; k_0__ < frac_mort_k_0_max__; ++k_0__) {
+                    vars__.push_back(frac_mort[k_0__]);
+                }
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 270;
+            current_statement_begin__ = 293;
             validate_non_negative_index("Rt", "nt", nt);
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 271;
+            current_statement_begin__ = 294;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 272;
+                current_statement_begin__ = 295;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(x, S, it, "x", 1)) / npop), 
                             "assigning variable Rt");
             }
             // validate, write generated quantities
-            current_statement_begin__ = 270;
+            current_statement_begin__ = 293;
             size_t Rt_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "Rt[i_0__]", Rt[i_0__], 0.0);
@@ -1900,10 +2114,10 @@ public:
         param_name_stream__ << "frac_hosp";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_icu";
+        param_name_stream__ << "frac_icu_0";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_mort";
+        param_name_stream__ << "frac_mort_0";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
@@ -1935,6 +2149,12 @@ public:
             param_name_stream__ << "len_inter" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_icu_multiplier";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_mort_multiplier";
+        param_names__.push_back(param_name_stream__.str());
         size_t frac_PUI_k_0_max__ = nobs_types;
         for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
             param_name_stream__.str(std::string());
@@ -1977,6 +2197,18 @@ public:
             for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                 param_name_stream__.str(std::string());
                 param_name_stream__ << "newE_temp" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t frac_icu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_icu_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "frac_icu" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t frac_mort_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_mort_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "frac_mort" << '.' << k_0__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
@@ -2011,10 +2243,10 @@ public:
         param_name_stream__ << "frac_hosp";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_icu";
+        param_name_stream__ << "frac_icu_0";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_mort";
+        param_name_stream__ << "frac_mort_0";
         param_names__.push_back(param_name_stream__.str());
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
@@ -2046,6 +2278,12 @@ public:
             param_name_stream__ << "len_inter" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_icu_multiplier";
+        param_names__.push_back(param_name_stream__.str());
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_mort_multiplier";
+        param_names__.push_back(param_name_stream__.str());
         size_t frac_PUI_k_0_max__ = nobs_types;
         for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
             param_name_stream__.str(std::string());
@@ -2088,6 +2326,18 @@ public:
             for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                 param_name_stream__.str(std::string());
                 param_name_stream__ << "newE_temp" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t frac_icu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_icu_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "frac_icu" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t frac_mort_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_mort_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "frac_mort" << '.' << k_0__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
