@@ -52,7 +52,7 @@ install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Wi
     
 ```{r}
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)
 ```
 
 LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.

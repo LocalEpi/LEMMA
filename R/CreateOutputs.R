@@ -162,7 +162,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
 
   short.term <- long.term <- list()
-  for (i in setdiff(names(quantiles), "rt")) {
+  for (i in DataTypes()) {
     short.term[[i]] <- GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }

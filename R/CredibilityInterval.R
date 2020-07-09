@@ -127,7 +127,7 @@ RunSim <- function(inputs) {
                                      cores = internal.args$cores,
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     pars = c("error", "x"),
+                                     pars = c("error"),
                                      init = GetInit,
                                      include = FALSE
     )
@@ -200,7 +200,7 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
                                        chain_id = chain.id,
                                        cores = 1,
                                        refresh = internal.args$refresh,
-                                       pars = c("error", "x"),
+                                       pars = c("error"),
                                        include = FALSE,
                                        refresh = 0,
                                        init = GetInit
@@ -216,23 +216,42 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
 
 
 GetQuantiles <- function(fit, inputs) {
-  dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
+  GetQuant <- function(mat) {
+    q <- colQuantiles(mat, probs = seq(0, 1, by = 0.05))
+    rownames(q) <- as.character(dates)
+    return(q)
+  }
 
+  dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
 
   quantiles <- sapply(DataTypes(), function (i) {
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
-    q <- colQuantiles(sim.data[, sim.data.index, ], probs = seq(0, 1, by = 0.05))
-    rownames(q) <- as.character(dates)
+    q <- GetQuant(sim.data[, sim.data.index, ])
     return(q)
   }, simplify = FALSE)
 
   rt.date <- max(inputs$obs.data$date) - 14
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
-  rt.quantiles <- colQuantiles(rt.all, probs = seq(0, 1, by = 0.05))
-  rownames(rt.quantiles) <- as.character(dates)
+  rt.quantiles <- GetQuant(rt.all)
   rt.quantiles <- rt.quantiles[dates <= rt.date, ]
-  quantiles <- c(quantiles, list(rt = rt.quantiles))
+
+  # int S = 1;
+  # int E = 2;
+  # int Imild = 3;
+  # int Ipreh = 4;
+  # int Hmod  = 5;
+  # int Hicu  = 6;
+  # int Rlive = 7;
+  # int Rmort = 8;
+  x <- rstan::extract(fit, pars = "x")[[1]]
+
+  exposed <- GetQuant(x[, 2, ])
+  infected <- GetQuant(x[, 3, ] + x[, 4, ])
+  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
+  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
   return(quantiles)
 }
 
