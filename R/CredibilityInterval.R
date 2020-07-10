@@ -13,7 +13,9 @@ CredibilityInterval <- function(inputs) {
   cat("Projecting\n")
 
   fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
+
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
+
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
   invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, posterior.quantiles = posterior.quantiles, gplot = gplot, excel.output = excel.output, inputs = inputs))
@@ -231,7 +233,7 @@ GetQuantiles <- function(fit, inputs) {
     return(q)
   }, simplify = FALSE)
 
-  rt.date <- max(inputs$obs.data$date) - 14
+  rt.date <- max(inputs$obs.data$date) #output up to end of observed data here, but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   rt.quantiles <- GetQuant(rt.all)
   rt.quantiles <- rt.quantiles[dates <= rt.date, ]
@@ -252,6 +254,10 @@ GetQuantiles <- function(fit, inputs) {
   total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
 
   quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
+
+  if (!is.null(inputs$internal.args$inital.deaths) && !is.na(inputs$internal.args$inital.deaths)) {
+    quantiles$deaths <- quantiles$deaths + inputs$internal.args$inital.deaths
+  }
   return(quantiles)
 }
 
