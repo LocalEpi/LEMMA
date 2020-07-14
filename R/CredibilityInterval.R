@@ -92,12 +92,12 @@ GetStanInputs <- function(inputs) {
 
   seir_inputs$len_inter_age <- 60
   seir_inputs$t_inter_age <- 59
-  seir_inputs$mu_frac_hosp_multiplier <- 1
-  seir_inputs$sigma_frac_hosp_multiplier <- 0.2
-  seir_inputs$mu_frac_icu_multiplier <- 1
-  seir_inputs$sigma_frac_icu_multiplier <- 0.2
-  seir_inputs$mu_frac_mort_multiplier <- 1
-  seir_inputs$sigma_frac_mort_multiplier <- 0.2
+  seir_inputs$mu_frac_hosp_multiplier <- inputs$internal.args$mu_frac_hosp_multiplier
+  seir_inputs$sigma_frac_hosp_multiplier <- inputs$internal.args$sigma_frac_hosp_multiplier
+  seir_inputs$mu_frac_icu_multiplier <- inputs$internal.args$mu_frac_icu_multiplier
+  seir_inputs$sigma_frac_icu_multiplier <- inputs$internal.args$sigma_icu_hosp_multiplier
+  seir_inputs$mu_frac_mort_multiplier <- inputs$internal.args$mu_frac_mort_multiplier
+  seir_inputs$sigma_frac_mort_multiplier <- inputs$internal.args$sigma_mort_hosp_multiplier
 
 
   # fraction of PUI that are true positive
