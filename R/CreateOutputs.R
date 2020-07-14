@@ -162,13 +162,14 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
 
   short.term <- long.term <- list()
-  for (i in setdiff(names(quantiles), "rt")) {
+  for (i in DataTypes()) {
     short.term[[i]] <- GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }
 
-  rt.plot <- GetRtPlot(quantiles$rt, inputs)
-  rt.date <- rownames(quantiles$rt)[nrow(quantiles$rt)]
+  rt <- quantiles$rt[1:(nrow(quantiles$rt) - 14), ] #cutoff Rt plot 14 days before last observed data
+  rt.plot <- GetRtPlot(rt, inputs)
+  rt.date <- rownames(rt)[nrow(rt)]
   date.index <- as.numeric(as.Date(rt.date) - inputs$internal.args$simulation.start.date)
   rt.pars <- paste0("Rt[", date.index, "]")
   rt.quantiles <- round(quantile(rstan::extract(fit, pars = rt.pars)[[1]], c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
