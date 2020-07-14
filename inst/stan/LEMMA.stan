@@ -59,8 +59,10 @@ data {
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
 
-  real<lower=0.0> len_inter_icu;
-  real<lower=0.0> t_inter_icu;
+  real<lower=0.0> len_inter_age;
+  real<lower=0.0> t_inter_age;
+  real<lower=0.0> mu_frac_hosp_multiplier;
+  real<lower=0.0> sigma_frac_hosp_multiplier;
   real<lower=0.0> mu_frac_icu_multiplier;
   real<lower=0.0> sigma_frac_icu_multiplier;
   real<lower=0.0> mu_frac_mort_multiplier;
@@ -110,7 +112,7 @@ parameters {
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
 
-  real<lower=0.005, upper=1.0> frac_hosp;
+  real<lower=0.005, upper=1.0> frac_hosp_0;
   real<lower=0.0, upper=1.0> frac_icu_0;
   real<lower=0.0, upper=1.0> frac_mort_0;
   real<lower=0> ini_exposed;
@@ -123,6 +125,7 @@ parameters {
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
+  real<lower=0.0> frac_hosp_multiplier;
   real<lower=0.0> frac_icu_multiplier;
   real<lower=0.0> frac_mort_multiplier;
 
@@ -135,6 +138,7 @@ transformed parameters {
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
+  real<lower=0.0, upper=1.0> frac_hosp[nt];
   real<lower=0.0, upper=1.0> frac_icu[nt];
   real<lower=0.0, upper=1.0> frac_mort[nt];
   {
@@ -152,8 +156,17 @@ transformed parameters {
     real zero;
 
     //////////////////////////////////////////
+    for (it in 1:nt) {
+
+    }
+    for (it in 1:nt) {
+      frac_hosp[it] = frac_hosp_0 * frac_hosp_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+      frac_icu[it] = frac_icu_0 * frac_icu_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+      frac_mort[it] = frac_icu_0 * frac_mort_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+    }
+
     // Calculate beta for each time point
-    beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
+    beta_0 = r0 / (frac_hosp[1] * duration_pre_hosp + (1 - frac_hosp[1]) * duration_rec_mild);
     for (it in 1:nt) {
       beta[it] = beta_0;
       for (iinter in 1:ninter) {
@@ -163,12 +176,7 @@ transformed parameters {
       }
     }
 
-    for (it in 1:nt) {
-      frac_icu[it] = frac_icu_0 * frac_icu_multiplier ^ inv_logit(9.19024 / len_inter_icu * (it - (t_inter_icu + len_inter_icu / 2)));
-    }
-    for (it in 1:nt) {
-      frac_mort[it] = frac_icu_0 * frac_mort_multiplier ^ inv_logit(9.19024 / len_inter_icu * (it - (t_inter_icu + len_inter_icu / 2)));
-    }
+
 
     // initial cond
     zero = ini_exposed * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
@@ -203,8 +211,8 @@ transformed parameters {
 
       x[S, it+1] = x[S, it] - newE;
       x[E, it+1] = x[E, it] + newE - newI;
-      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild;
-      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp - newhosp;
+      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp[it]) - newrec_mild;
+      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp[it] - newhosp;
       x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu[it]) - newrec_mod;
       x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu[it] - leave_icu;
       x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort[it]);
@@ -254,10 +262,11 @@ model {
   duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
   duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
 
-  frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_hosp_0 ~ normal(mu_frac_hosp, sigma_frac_hosp);
   frac_icu_0 ~ normal(mu_frac_icu, sigma_frac_icu);
   frac_mort_0 ~ normal(mu_frac_mort, sigma_frac_mort);
 
+  frac_hosp_multiplier ~ normal(mu_frac_hosp_multiplier, sigma_frac_hosp_multiplier);
   frac_icu_multiplier ~ normal(mu_frac_icu_multiplier, sigma_frac_icu_multiplier);
   frac_mort_multiplier ~ normal(mu_frac_mort_multiplier, sigma_frac_mort_multiplier);
 
@@ -292,6 +301,6 @@ model {
 generated quantities{
   real<lower=0.0> Rt[nt];
   for (it in 1:nt) {
-    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
+    Rt[it] = beta[it] * (frac_hosp[it] * duration_pre_hosp + (1 - frac_hosp[it]) * duration_rec_mild) * x[S, it] / npop;
   }
 }
