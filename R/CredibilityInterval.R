@@ -92,8 +92,8 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-  seir_inputs$len_inter_age <- 60
-  seir_inputs$t_inter_age <- 59
+  seir_inputs$len_inter_age <- inputs$internal.args$len_inter_age
+  seir_inputs$t_inter_age <- as.numeric(inputs$internal.args$t_inter_age - day0)
   seir_inputs$mu_frac_hosp_multiplier <- inputs$internal.args$mu_frac_hosp_multiplier
   seir_inputs$sigma_frac_hosp_multiplier <- inputs$internal.args$sigma_frac_hosp_multiplier
   seir_inputs$mu_frac_icu_multiplier <- inputs$internal.args$mu_frac_icu_multiplier
