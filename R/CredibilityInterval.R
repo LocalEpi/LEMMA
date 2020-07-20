@@ -233,7 +233,7 @@ GetQuantiles <- function(fit, inputs) {
     return(q)
   }, simplify = FALSE)
 
-  rt.date <- max(inputs$obs.data$date) #output up to end of observed data here, but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
+  rt.date <- max(inputs$obs.data$date) + 2 #output up to end of observed data here (add 2 to make sure LEMMA Rt is included in Ensemble), but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   rt.quantiles <- GetQuant(rt.all)
   rt.quantiles <- rt.quantiles[dates <= rt.date, ]
