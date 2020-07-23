@@ -127,8 +127,12 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
 
 GetRtPlot <- function(quantiles, inputs) {
   sim.dates <- inputs$internal.args$simulation.start.date + 1:nrow(quantiles)
+  dt.plot <- data.table(date = sim.dates, quantiles)
+
   min.date <- as.Date("2020/4/1")
-  dt.plot <- data.table(date = sim.dates, quantiles)[date > min.date]
+  if (max(sim.dates) > min.date) {
+    dt.plot <- dt.plot[date >= min.date]
+  }
 
   gg <- ggplot(dt.plot, aes(x=date)) +
     theme_light() +

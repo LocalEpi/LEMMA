@@ -87,7 +87,7 @@ GetStanInputs <- function(inputs) {
 
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
-  seir_inputs <- c(seir_inputs, inputs$interventions)
+  seir_inputs <- c(seir_inputs, lapply(inputs$interventions, as.array)) #as.array fixes problems if only one intervention
 
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
