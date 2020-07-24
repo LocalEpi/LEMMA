@@ -4,11 +4,18 @@
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
+
+  new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
+  inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
+
   cat("Fitting to observed data\n")
   fit.to.data <- RunSim(inputs)
   cat("Projecting\n")
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions = NULL)
+
+  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
+
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
+
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
   invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, posterior.quantiles = posterior.quantiles, gplot = gplot, excel.output = excel.output, inputs = inputs))
@@ -22,14 +29,14 @@ CredibilityInterval <- function(inputs) {
 #                sigma_t_inter = 2, mu_beta_inter = 1.5, sigma_beta_inter = 1e-04,
 #                mu_len_inter = 7, sigma_len_inter = 2), row.names = c(NA, -1L), class = "data.frame")
 # ProjectScenario(z, new.int, "~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1-new1.5")
-ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL) {
+ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL, extend.iter = NULL) {
   inputs <- lemma.object$inputs
   fit.to.data <- lemma.object$fit.to.data
   if (!is.null(new.output.filestr)) {
     inputs$internal.args$output.filestr <- new.output.filestr
   }
   TestOutputFile(inputs$internal.args$output.filestr)
-  fit.extended <- ExtendSim(lemma.object, new.interventions)
+  fit.extended <- ExtendSim(lemma.object, new.interventions, extend.iter)
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
   excel.output <- GetExcelOutput(posterior.quantiles, inputs)
   gplot <- GetPdfOutput(fit.extended, posterior.quantiles, inputs)
@@ -78,12 +85,22 @@ GetStanInputs <- function(inputs) {
   # lambda parameter for initial conditions of "exposed"
   seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed
 
-  # number of interventions
-  seir_inputs[['ninter']] = nrow(inputs$interventions)
-
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
   seir_inputs <- c(seir_inputs, inputs$interventions)
+
+  # number of interventions
+  seir_inputs[['ninter']] = nrow(inputs$interventions)
+
+  seir_inputs$len_inter_age <- inputs$internal.args$len_inter_age
+  seir_inputs$t_inter_age <- as.numeric(inputs$internal.args$t_inter_age - day0)
+  seir_inputs$mu_frac_hosp_multiplier <- inputs$internal.args$mu_frac_hosp_multiplier
+  seir_inputs$sigma_frac_hosp_multiplier <- inputs$internal.args$sigma_frac_hosp_multiplier
+  seir_inputs$mu_frac_icu_multiplier <- inputs$internal.args$mu_frac_icu_multiplier
+  seir_inputs$sigma_frac_icu_multiplier <- inputs$internal.args$sigma_icu_hosp_multiplier
+  seir_inputs$mu_frac_mort_multiplier <- inputs$internal.args$mu_frac_mort_multiplier
+  seir_inputs$sigma_frac_mort_multiplier <- inputs$internal.args$sigma_mort_hosp_multiplier
+
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
@@ -95,6 +112,7 @@ GetStanInputs <- function(inputs) {
 RunSim <- function(inputs) {
   inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
+  seir_inputs$extend <- 0L
   internal.args <- inputs$internal.args
 
   GetInit <- function(chain_id) {
@@ -106,17 +124,22 @@ RunSim <- function(inputs) {
     init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
-
+  if (is.null(inputs$internal.args$warmup) || is.na(inputs$internal.args$warmup)) {
+    warmup <- floor(internal.args$iter / 2)
+  } else {
+    warmup <- inputs$internal.args$warmup
+  }
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-    # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+  # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
                                      data = seir_inputs,
                                      seed = internal.args$random.seed,
                                      iter = internal.args$iter,
+                                     warmup = warmup,
                                      cores = internal.args$cores,
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     pars = c("error", "beta", "x"),
+                                     pars = c("error"),
                                      init = GetInit,
                                      include = FALSE
     )
@@ -125,7 +148,7 @@ RunSim <- function(inputs) {
   return(stan_seir_fit)
 }
 
-ExtendSim <- function(lemma.object, new.interventions) {
+ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
   ExtractIter <- function(fit_element, chain_id) {
     ndim <- length(dim(fit_element))
     if (ndim == 1) {
@@ -151,7 +174,6 @@ ExtendSim <- function(lemma.object, new.interventions) {
     }
     return(init)
   }
-
   inputs <- lemma.object$inputs
   if (!is.null(new.interventions)) {
     max.obs.data.date <- max(inputs$obs.data$date)
@@ -165,7 +187,20 @@ ExtendSim <- function(lemma.object, new.interventions) {
   fit.to.data <- lemma.object$fit.to.data
   params <- rstan::extract(fit.to.data)
   seir_inputs <- GetStanInputs(inputs)
+  seir_inputs$extend <- 1L
   internal.args <- inputs$internal.args
+  total.chains <- nrow(as.matrix(fit.to.data))
+  if (is.null(extend.iter)) {
+    extend.iter <- total.chains
+    chain.id <- 1:total.chains
+  } else {
+    if (extend.iter > total.chains) {
+      stop("extend.iter cannot be greater than total.chains")
+    }
+    chain.id <- sample.int(total.chains, extend.iter)
+  }
+
+
   out <- capture.output(
     run_time <- system.time({
       stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
@@ -173,10 +208,11 @@ ExtendSim <- function(lemma.object, new.interventions) {
                                        seed = internal.args$random.seed,
                                        iter = 1,
                                        algorithm = "Fixed_param",
-                                       chains = nrow(as.array(fit.to.data)),
+                                       chains = extend.iter,
+                                       chain_id = chain.id,
                                        cores = 1,
                                        refresh = internal.args$refresh,
-                                       pars = c("error", "beta", "x"),
+                                       pars = c("error"),
                                        include = FALSE,
                                        refresh = 0,
                                        init = GetInit
@@ -192,16 +228,46 @@ ExtendSim <- function(lemma.object, new.interventions) {
 
 
 GetQuantiles <- function(fit, inputs) {
-  dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
+  GetQuant <- function(mat) {
+    q <- colQuantiles(mat, probs = seq(0, 1, by = 0.05))
+    rownames(q) <- as.character(dates)
+    return(q)
+  }
 
+  dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
 
   quantiles <- sapply(DataTypes(), function (i) {
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
-    q <- colQuantiles(sim.data[, sim.data.index, ], probs = seq(0, 1, by = 0.05))
-    rownames(q) <- as.character(dates)
+    q <- GetQuant(sim.data[, sim.data.index, ])
     return(q)
   }, simplify = FALSE)
+
+  rt.date <- max(inputs$obs.data$date) #output up to end of observed data here, but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
+  rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
+  rt.quantiles <- GetQuant(rt.all)
+  rt.quantiles <- rt.quantiles[dates <= rt.date, ]
+
+  # int S = 1;
+  # int E = 2;
+  # int Imild = 3;
+  # int Ipreh = 4;
+  # int Hmod  = 5;
+  # int Hicu  = 6;
+  # int Rlive = 7;
+  # int Rmort = 8;
+  x <- rstan::extract(fit, pars = "x")[[1]]
+
+  exposed <- GetQuant(x[, 2, ])
+  infected <- GetQuant(x[, 3, ] + x[, 4, ])
+  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
+  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
+
+  if (!is.null(inputs$internal.args$inital.deaths) && !is.na(inputs$internal.args$inital.deaths)) {
+    quantiles$deaths <- quantiles$deaths + inputs$internal.args$inital.deaths
+  }
   return(quantiles)
 }
 

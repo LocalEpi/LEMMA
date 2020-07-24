@@ -17,6 +17,7 @@ data {
   real<lower=-1.0> obs_data_pui[nobs_types, nobs, npops];   // observed PUI (-1 = NA)
   int<lower=0> nt;                       // number of time steps
   real<lower=0> population[npops];                             // total population
+  int<lower=0, upper=1> extend;
 
   //////////////////////////////////////////
   // prior parameter distributions
@@ -51,12 +52,20 @@ data {
 
   int<lower=0> ninter;                      // number of interventions
   real<lower=1.0> mu_t_inter[ninter];       // mean start time of each interventions
-  real<lower=1.0> sigma_t_inter[ninter];    // sd start time of each interventions
+  real<lower=0.0> sigma_t_inter[ninter];    // sd start time of each interventions
   real<lower=1.0> mu_len_inter[ninter];     // mean length of each intervention
   real<lower=1.0> sigma_len_inter[ninter];  // sd length of each intervention
   real<lower=0.0> mu_beta_inter[ninter, npops];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter, npops]; // sd change in beta through intervention
 
+  real<lower=0.0> len_inter_age;
+  real<lower=0.0> t_inter_age;
+  real<lower=0.0> mu_frac_hosp_multiplier;
+  real<lower=0.0> sigma_frac_hosp_multiplier;
+  real<lower=0.0> mu_frac_icu_multiplier;
+  real<lower=0.0> sigma_frac_icu_multiplier;
+  real<lower=0.0> mu_frac_mort_multiplier;
+  real<lower=0.0> sigma_frac_mort_multiplier;
 }
 transformed data {
   //assigning indices for state matrix x
@@ -77,6 +86,7 @@ transformed data {
   int obs_cum_admits = 4;
 
   int nobs_notmissing = 0;
+  real beta_limit;
 
   for (ipop in 1:npops) {
     for (iobs in 1:nobs){
@@ -87,18 +97,26 @@ transformed data {
       }
     }
   }
+
+  if (extend == 1) {
+    beta_limit = 9999; // no limit on beta if extending simulation
+  } else {
+    beta_limit = 2.0;
+  }
 }
 parameters {
 
   real<lower=1.0> duration_latent; // duration is a minimum of 1 which is the stepsize of this model
   real<lower=1.0> duration_rec_mild;
+
   real<lower=1.0> duration_pre_hosp[npops];
   real<lower=1.0> duration_hosp_mod[npops];
   real<lower=1.0> duration_hosp_icu[npops];
 
-  real<lower=0.0, upper=1.0> frac_hosp[npops];
-  real<lower=0.0, upper=1.0> frac_icu[npops];
-  real<lower=0.0, upper=1.0> frac_mort[npops];
+  real<lower=0.005, upper=1.0> frac_hosp_0[npops];
+  real<lower=0.0, upper=1.0> frac_icu_0[npops];
+  real<lower=0.0, upper=1.0> frac_mort_0[npops];
+
 
   real<lower=0> ini_exposed[npops];
 
@@ -109,18 +127,28 @@ parameters {
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
+  real<lower=0.0> frac_hosp_multiplier;
+  real<lower=0.0> frac_icu_multiplier;
+  real<lower=0.0> frac_mort_multiplier;
+
   real<lower=0, upper=1> frac_PUI[nobs_types];
 
   real<lower=0, upper=1> m[npops];
   simplex[4] s1;
   simplex[4] s2;
+
 }
 transformed parameters {
+
   real<lower=0.0> x[ncompartments,nt,npops];
   real<lower=0.0> sim_data[nobs_types,nt,npops];
   real<lower=0.0, upper=2.0> beta[nt,npops];
   real<lower=0.0> beta_mat[nt-1,npops,npops]; //could make local, drop nt
   real<lower=0.0> Hadmits[nt,npops];
+  real<lower=0.0, upper=1.0> frac_hosp[nt, npops];
+  real<lower=0.0, upper=1.0> frac_icu[nt, npops];
+  real<lower=0.0, upper=1.0> frac_mort[nt, npops];
+
   {
     // variables in curly brackets will not have output, they are local variables
 
@@ -137,9 +165,21 @@ transformed parameters {
     // real beta_mat[npops,npops];
 
     //////////////////////////////////////////
+    for (it in 1:nt) {
+
+    }
+    for (ipop in 1:npops) {
+      for (it in 1:nt) {
+        frac_hosp[it, ipop] = frac_hosp_0[ipop] * frac_hosp_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+        frac_icu[it, ipop] = frac_icu_0[ipop] * frac_icu_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+        frac_mort[it, ipop] = frac_icu_0[ipop] * frac_mort_multiplier ^ inv_logit(9.19024 / len_inter_age * (it - (t_inter_age + len_inter_age / 2)));
+      }
+    }
+
+
     // Calculate beta for each time point
     for (ipop in 1:npops) {
-      beta_0[ipop] = r0[ipop] / (frac_hosp[ipop] * duration_pre_hosp[ipop] + (1 - frac_hosp[ipop]) * duration_rec_mild);
+      beta_0[ipop] = r0[ipop] / (frac_hosp[1, ipop] * duration_pre_hosp[ipop] + (1 - frac_hosp[1, ipop]) * duration_rec_mild);
       for (it in 1:nt) {
         beta[it, ipop] = beta_0[ipop];
         for (iinter in 1:ninter) {
@@ -149,6 +189,8 @@ transformed parameters {
         }
       }
     }
+
+
 
     // initial cond
     zero = ini_exposed[1] * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
@@ -163,9 +205,11 @@ transformed parameters {
 
     //////////////////////////////////////////
     // the SEIR model
+    //print(frac_icu, change_frac_icu, frac_icu_0)
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
+
       beta_mat[it, 1, 1] = beta[it, 1] * ((N1 + N2) / N1 - (1 - m[1]) * N2 / N1);
       beta_mat[it, 2, 2] = beta[it, 2] * ((N1 + N2) / N2 - (1 - m[2]) * N1 / N2);
       beta_mat[it, 1, 2] = beta[it, 1] * (s1[1] * (1 - m[1]) + s1[2] * (1 - m[2])) + beta[it, 2] * (s1[3] * (1 - m[1]) + s1[4] * (1 - m[2]));
@@ -183,7 +227,6 @@ transformed parameters {
         newE[ipop] = fmin(newE[ipop], x[S,it,ipop]);
       }
 
-
       for (ipop in 1:npops) {
         newI[ipop] = 1.0/duration_latent * x[E, it, ipop];
         newhosp[ipop] = 1.0/duration_pre_hosp[ipop] * x[Ipreh,it,ipop];
@@ -196,12 +239,12 @@ transformed parameters {
 
         x[S, it+1, ipop] = x[S, it, ipop] - newE[ipop];
         x[E, it+1, ipop] = x[E, it, ipop] + newE[ipop] - newI[ipop];
-        x[Imild, it+1, ipop] = x[Imild, it, ipop] + newI[ipop] * (1 - frac_hosp[ipop]) - newrec_mild[ipop];
-        x[Ipreh, it+1, ipop] = x[Ipreh, it, ipop] + newI[ipop] * frac_hosp[ipop] - newhosp[ipop];
-        x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] * (1 - frac_icu[ipop]) - newrec_mod[ipop];
-        x[Hicu, it+1, ipop] = x[Hicu, it, ipop] + newhosp[ipop] * frac_icu[ipop] - leave_icu[ipop];
-        x[Rlive, it+1, ipop] = x[Rlive, it, ipop] + newrec_mild[ipop] + newrec_mod[ipop] + leave_icu[ipop] * (1 - frac_mort[ipop]);
-        x[Rmort, it+1, ipop] = x[Rmort, it, ipop] + leave_icu[ipop] * frac_mort[ipop];
+        x[Imild, it+1, ipop] = x[Imild, it, ipop] + newI[ipop] * (1 - frac_hosp[it, ipop]) - newrec_mild[ipop];
+        x[Ipreh, it+1, ipop] = x[Ipreh, it, ipop] + newI[ipop] * frac_hosp[it, ipop] - newhosp[ipop];
+        x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] * (1 - frac_icu[it, ipop]) - newrec_mod[ipop];
+        x[Hicu, it+1, ipop] = x[Hicu, it, ipop] + newhosp[ipop] * frac_icu[it, ipop] - leave_icu[ipop];
+        x[Rlive, it+1, ipop] = x[Rlive, it, ipop] + newrec_mild[ipop] + newrec_mod[ipop] + leave_icu[ipop] * (1 - frac_mort[it, ipop]);
+        x[Rmort, it+1, ipop] = x[Rmort, it, ipop] + leave_icu[ipop] * frac_mort[it, ipop];
 
         // cumulative hospital admissions
         Hadmits[it+1, ipop] = Hadmits[it, ipop] + newhosp[ipop];
@@ -245,9 +288,9 @@ model {
     duration_hosp_mod[ipop] ~ normal(mu_duration_hosp_mod[ipop], sigma_duration_hosp_mod[ipop]);
     duration_hosp_icu[ipop] ~ normal(mu_duration_hosp_icu[ipop], sigma_duration_hosp_icu[ipop]);
 
-    frac_hosp[ipop] ~ normal(mu_frac_hosp[ipop], sigma_frac_hosp[ipop]);
-    frac_icu[ipop] ~ normal(mu_frac_icu[ipop], sigma_frac_icu[ipop]);
-    frac_mort[ipop] ~ normal(mu_frac_mort[ipop], sigma_frac_mort[ipop]);
+    frac_hosp_0[ipop] ~ normal(mu_frac_hosp[ipop], sigma_frac_hosp[ipop]);
+    frac_icu_0[ipop] ~ normal(mu_frac_icu[ipop], sigma_frac_icu[ipop]);
+    frac_mort_0[ipop] ~ normal(mu_frac_mort[ipop], sigma_frac_mort[ipop]);
 
     ini_exposed[ipop] ~ exponential(lambda_ini_exposed[ipop]);
   }
@@ -265,6 +308,11 @@ model {
     len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
   }
 
+
+
+  frac_hosp_multiplier ~ normal(mu_frac_hosp_multiplier, sigma_frac_hosp_multiplier);
+  frac_icu_multiplier ~ normal(mu_frac_icu_multiplier, sigma_frac_icu_multiplier);
+  frac_mort_multiplier ~ normal(mu_frac_mort_multiplier, sigma_frac_mort_multiplier);
 
 
   // //////////////////////////////////////////

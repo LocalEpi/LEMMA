@@ -55,12 +55,11 @@ TwoPop <- function(input.file1, input.file2) {
 }
 
 
-GetInputs <- function(input.file) {
-  use.data <- "census"
-  cat("only census data is currently used\n")
+GetInputs <- function(input.file, use.data) {
   sheets <- LEMMA:::ReadInputs(input.file)
   if (use.data == "both") {
     #nothing
+
   } else if (use.data == "census") {
     sheets$Data$cum.admits.conf <- NA_integer_
   } else if (use.data == "admits") {

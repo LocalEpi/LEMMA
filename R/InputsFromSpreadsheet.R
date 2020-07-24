@@ -29,9 +29,10 @@ ToString <- function(sheets) {
   sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
 
   prev.width <- getOption("width")
-  options(width = 300)
+  prev.print.nrows <- getOption("datatable.print.nrows")
+  options(width = 300, datatable.print.nrows = 300)
   all.inputs.str <- utils::capture.output(print(sheets))
-  options(width = prev.width)
+  options(width = prev.width, datatable.print.nrows = prev.print.nrows)
   all.inputs.str <- c("NOTE: set font to Courier to read", all.inputs.str)
   return(all.inputs.str)
 }
@@ -48,15 +49,54 @@ ReadInputs <- function(path) {
   return(sheets)
 }
 
+AddInterventions <- function(interventions, max.date) {
+  interval <- 14
+
+  min.date <- min(interventions$mu_t_inter)
+  d.set <- seq(max.date, min.date, by = "-1 day")
+  for (i in seq_along(d.set)) {
+    d <- d.set[i]
+    if (min(abs(as.numeric(interventions$mu_t_inter - d))) > interval) {
+      if (i == 1) {
+        sd1 <- 0.1
+      } else {
+        sd1 <- 0.3
+      }
+      new.int <- data.table(mu_t_inter = d, sigma_t_inter = 2, mu_beta_inter = 1, sigma_beta_inter = sd1, mu_len_inter = 7, sigma_len_inter = 2)
+      interventions <- rbind(interventions, new.int)
+    }
+  }
+  setkey(interventions, "mu_t_inter")
+  return(interventions)
+}
+
 ProcessSheets <- function(sheets, path) {
   # seir_inputs <- list()
   params <- sheets$`Parameters with Distributions`[, .(name = internal.name, mu = Mean, sigma = `Standard Deviation`)]
+  params[, sigma := pmax(sigma, mu / 100)] #Stan crashes if sigma = 0
   frac_pui <- sheets$`PUI Details`[, .(name = internal.name, mu = Mean, sigma = `Standard Deviation`)]
+  frac_pui[, sigma := pmax(sigma, mu / 100)]
 
   model.inputs <- TableToList(sheets$`Model Inputs`)
   internal.args <- TableToList(sheets$Internal)
   interventions <- sheets$Interventions
   obs.data <- sheets$Data
+
+  all.na <- rowAlls(is.na(as.matrix(obs.data[, -"date"])))
+  obs.data <- obs.data[all.na == F]
+
+  if (is.null(internal.args$automatic.interventions)) {
+    internal.args$automatic.interventions <- T #this was left off early versions
+  }
+  if ("skip1" %in% names(interventions)) {
+    interventions$skip1 <- interventions$skip2 <- NULL #these are just notes, but not in all versions
+  }
+  interventions[, sigma_t_inter := pmax(sigma_t_inter, 0.01)]
+  interventions[, sigma_beta_inter := pmax(sigma_beta_inter, 0.001)]
+  interventions[, sigma_len_inter := pmax(sigma_len_inter, 0.01)]
+  if (internal.args$automatic.interventions) {
+    interventions <- AddInterventions(interventions, max.date = obs.data[, max(date)])
+  }
 
   if (is.na(internal.args$output.filestr)) {
     internal.args$output.filestr <- sub(".xlsx", " output", path, fixed = T)

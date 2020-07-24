@@ -1,0 +1,6 @@
+destination: docs
+
+home:
+  links:
+  - text: Forecasts for California counties
+    href: https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts
