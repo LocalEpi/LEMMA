@@ -4,10 +4,12 @@
 \alias{CredibilityIntervalFromExcel}
 \title{Run Credibility Interval based on Excel inputs}
 \usage{
-CredibilityIntervalFromExcel(input.file)
+CredibilityIntervalFromExcel(input.file1, input.file2)
 }
 \arguments{
-\item{input.file}{A .xlsx file}
+\item{input.file1}{A .xlsx file for population1}
+
+\item{input.file2}{A .xlsx file for population2}
 }
 \value{
 list with all outputs (invisible)
