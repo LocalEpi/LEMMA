@@ -47,6 +47,8 @@ data {
 
   real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
 
+//start testing date (fixed), number of tests (fixed), test enrichment (mu/sigma)
+
   //////////////////////////////////////////
   // interventions
 
@@ -69,6 +71,8 @@ transformed data {
   int Hicu  = 6;
   int Rlive = 7;
   int Rmort = 8;
+
+//Qmild, Qpreh
 
   int ncompartments = 8;
 
