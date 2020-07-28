@@ -4,7 +4,7 @@
 
 data {
   //////////////////////////////////////////
-  // data required to run model
+    // data required to run model
 
   // obs_data_conf = total hosp census, ICU census, cumulative deaths, cumulative total hosp
   // obs_data_pui =  same
@@ -20,7 +20,7 @@ data {
   int<lower=0, upper=1> extend;
 
   //////////////////////////////////////////
-  // prior parameter distributions
+    // prior parameter distributions
   real<lower=1.0> mu_duration_latent;     // mean duration in "exposed" stage
   real<lower=0.0> sigma_duration_latent;  // sd duration in "exposed" stage
   real<lower=1.0> mu_duration_rec_mild;   // mean duration in "infectious" stage for mild cases
@@ -36,9 +36,9 @@ data {
   real<lower=0.0> sigma_r0;               // sd initial beta estimate
 
   real<lower=0.0> mu_frac_pui[nobs_types];     // mean fraction of PUI that are true COVID+
-  real<lower=0.0> sigma_frac_pui[nobs_types];  // sd fraction of PUI that are true COVID+
+    real<lower=0.0> sigma_frac_pui[nobs_types];  // sd fraction of PUI that are true COVID+
 
-  real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
+    real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
   real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
   real<lower=0.0> mu_frac_icu;            // mean ICU as fraction of hosp
   real<lower=0.0> sigma_frac_icu;         // sd ICU as fraction of hosp
@@ -47,10 +47,14 @@ data {
 
   real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
 
-//start testing date (fixed), number of tests (fixed), test enrichment (mu/sigma)
+  int<lower=0> t_testing;
+  real<lower=0.0> num_tests;
+  real<lower=0.0> mu_test_enrichment;
+  real<lower=0.0> sigma_test_enrichment;
+  //start testing date (fixed), number of tests (fixed), test enrichment (mu/sigma)
 
   //////////////////////////////////////////
-  // interventions
+    // interventions
 
   int<lower=0> ninter;                      // number of interventions
   real<lower=1.0> mu_t_inter[ninter];       // mean start time of each interventions
@@ -72,7 +76,7 @@ transformed data {
   int Rlive = 7;
   int Rmort = 8;
 
-//Qmild, Qpreh
+  //Qmild, Qpreh
 
   int ncompartments = 8;
 
@@ -144,7 +148,7 @@ transformed parameters {
     real zero;
 
     //////////////////////////////////////////
-    // Calculate beta for each time point
+      // Calculate beta for each time point
     beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
     for (it in 1:nt) {
       beta[it] = beta_0;
@@ -163,10 +167,10 @@ transformed parameters {
     Hadmits[1] = zero;
 
     //////////////////////////////////////////
-    // the SEIR model
+      // the SEIR model
     for (it in 1:nt-1){
       //////////////////////////////////////////
-      // set transition variables
+        // set transition variables
       newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
 
       if (it > 1 && extend == 0) {
@@ -183,7 +187,7 @@ transformed parameters {
       leave_icu = 1.0/duration_hosp_icu * x[Hicu, it];
 
       //////////////////////////////////////////
-      // S -> E -> I
+        // S -> E -> I
 
       x[S, it+1] = x[S, it] - newE;
       x[E, it+1] = x[E, it] + newE - newI;
@@ -198,7 +202,7 @@ transformed parameters {
       Hadmits[it+1] = Hadmits[it] + newhosp;
 
       //////////////////////////////////////////
-      // test
+        // test
       if (fabs(sum(x[:,it+1])-npop) > 1e-1){
         reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop)
       }
@@ -222,7 +226,7 @@ transformed parameters {
 }
 model {
   //////////////////////////////////////////
-  // prior distributions
+    // prior distributions
   r0 ~ normal(mu_r0, sigma_r0);
   frac_PUI ~ normal(mu_frac_pui, sigma_frac_pui);
 
@@ -245,7 +249,7 @@ model {
   ini_exposed ~ exponential(lambda_ini_exposed);
 
   //////////////////////////////////////////
-  // fitting observations
+    // fitting observations
   sigma_obs ~ exponential(1.0);
   {
     vector[nobs_notmissing] error;
