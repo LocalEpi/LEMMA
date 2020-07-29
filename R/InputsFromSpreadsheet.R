@@ -5,7 +5,9 @@
 #' @return list with all outputs (invisible)
 #' @export
 CredibilityIntervalFromExcel <- function(input.file1, input.file2) {
-  cred.int <- TwoPop(input.file1, input.file2)
+  inputs1 <- GetInputs(input.file1)
+  inputs2 <- GetInputs(input.file2)
+  cred.int <- TwoPop(inputs1, inputs2)
   invisible(cred.int)
 }
 

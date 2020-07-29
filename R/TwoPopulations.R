@@ -1,10 +1,6 @@
-TwoPop <- function(input.file1, input.file2) {
-  inputs1 <- LEMMA:::GetInputs(input.file1)
-  inputs2 <- LEMMA:::GetInputs(input.file2)
-
-  seir_inputs1 <- LEMMA:::GetStanInputs(inputs1)
-  seir_inputs2 <- LEMMA:::GetStanInputs(inputs2)
-
+TwoPop <- function(input1, inputs) {
+  seir_inputs1 <- GetStanInputs(inputs1)
+  seir_inputs2 <- GetStanInputs(inputs2)
 
   same.params <- c("mu_duration_latent", "sigma_duration_latent", "mu_duration_rec_mild", "sigma_duration_rec_mild", "nt", "nobs_types", "nobs", "tobs", "ninter", "mu_t_inter", "sigma_t_inter", "mu_len_inter", "sigma_len_inter", "mu_frac_pui", "sigma_frac_pui")
   cat("The following are assumed equal in both populations:\n")
@@ -27,9 +23,14 @@ TwoPop <- function(input.file1, input.file2) {
       }
     }
   }
-  seir_inputs$npops <- 2
+  seir_inputs$extend <- 0L
+  seir_inputs$npops <- 2L
   seir_inputs$population <- seir_inputs$npop
   seir_inputs$npop <- NULL #this was renamed
+
+  for (j in c("len_inter_age", "t_inter_age", "mu_frac_hosp_multiplier", "sigma_frac_hosp_multiplier", "mu_frac_icu_multiplier", "sigma_frac_icu_multiplier", "mu_frac_mort_multiplier", "sigma_frac_mort_multiplier")) {
+    seir_inputs[[j]] <- seir_inputs[[j]][1]
+  }
 
   internal.args <- inputs1$internal.args
 
@@ -49,6 +50,8 @@ TwoPop <- function(input.file1, input.file2) {
   print(run_time)
   quantiles1 <- GetQuantiles2(stan_seir_fit, inputs1, 1)
   quantiles2 <- GetQuantiles2(stan_seir_fit, inputs1, 2)
+  GetExcelOutput(quantiles1, inputs1)
+  GetExcelOutput(quantiles1, inputs2)
   g1 <- GetPlots(quantiles1, inputs1, "white")
   g2 <- GetPlots(quantiles2, inputs2, "African American")
   return(list(fit = stan_seir_fit, g1 = g1, g2 = g2))
@@ -56,19 +59,8 @@ TwoPop <- function(input.file1, input.file2) {
 
 
 GetInputs <- function(input.file, use.data) {
-  sheets <- LEMMA:::ReadInputs(input.file)
-  if (use.data == "both") {
-    #nothing
-
-  } else if (use.data == "census") {
-    sheets$Data$cum.admits.conf <- NA_integer_
-  } else if (use.data == "admits") {
-    sheets$Data$hosp.conf <- NA_integer_
-  } else {
-    stop("??")
-  }
-
-  inputs <- LEMMA:::ProcessSheets(sheets, input.file)
+  sheets <- ReadInputs(input.file)
+  inputs <- ProcessSheets(sheets, input.file)
   return(inputs)
 }
 

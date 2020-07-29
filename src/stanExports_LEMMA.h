@@ -577,7 +577,7 @@ public:
             }
             size_t sigma_len_inter_i_0_max__ = ninter;
             for (size_t i_0__ = 0; i_0__ < sigma_len_inter_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "sigma_len_inter[i_0__]", sigma_len_inter[i_0__], 1.0);
+                check_greater_or_equal(function__, "sigma_len_inter[i_0__]", sigma_len_inter[i_0__], 0.0);
             }
             current_statement_begin__ = 58;
             validate_non_negative_index("mu_beta_inter", "ninter", ninter);
