@@ -2,6 +2,7 @@
 // https://github.com/jpmattern/seir-covid19
 // by Jann Paul Mattern and Mikala Caton
 
+
 data {
   //////////////////////////////////////////
   // data required to run model
@@ -9,14 +10,14 @@ data {
   // obs_data_conf = total hosp census, ICU census, cumulative deaths, cumulative total hosp
   // obs_data_pui =  same
 
-  int<lower=0> nobs_types;
   int<lower=0> nobs;                     // number of timesteps with observations
   int<lower=0> tobs[nobs];               // obs times; this is a vector
-  matrix<lower=-1.0>[nobs_types, nobs] obs_data_conf;  // observed confirmed (-1 = NA)
-  matrix<lower=-1.0>[nobs_types, nobs] obs_data_pui;   // observed PUI (-1 = NA)
-
+  int<lower=0> npops;
+  real<lower=-1.0> obs_data_conf[nobs, npops];  // observed confirmed (-1 = NA)
+  real<lower=-1.0> obs_data_pui[nobs, npops];   // observed PUI (-1 = NA)
   int<lower=0> nt;                       // number of time steps
-  real npop;                             // total population
+  real<lower=0, upper = 1> mobility[nt, npops, npops];
+  real<lower=0> population[npops];                             // total population
   int<lower=0, upper=1> extend;
 
   //////////////////////////////////////////
@@ -35,17 +36,14 @@ data {
   real<lower=0.0> mu_r0;                  // mean initial beta estimate
   real<lower=0.0> sigma_r0;               // sd initial beta estimate
 
-  real<lower=0.0> mu_frac_pui[nobs_types];     // mean fraction of PUI that are true COVID+
-  real<lower=0.0> sigma_frac_pui[nobs_types];  // sd fraction of PUI that are true COVID+
+  real<lower=0.0> frac_pui;     //fraction of PUI that are true COVID+
 
   real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
   real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
-  real<lower=0.0> mu_frac_icu;            // mean ICU as fraction of hosp
-  real<lower=0.0> sigma_frac_icu;         // sd ICU as fraction of hosp
-  real<lower=0.0> mu_frac_mort;           // mean mortality as fraction of ICU
-  real<lower=0.0> sigma_frac_mort;        // sd mortality as fraction of ICU
+  real<lower=0.0> frac_icu;            // mean ICU as fraction of hosp
+  real<lower=0.0> frac_mort;           // mean mortality as fraction of ICU
 
-  real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
+  real<lower=0.0> lambda_ini_exposed[npops];     // parameter for initial conditions of "exposed"
 
   //////////////////////////////////////////
   // interventions
@@ -55,8 +53,8 @@ data {
   real<lower=0.0> sigma_t_inter[ninter];    // sd start time of each interventions
   real<lower=1.0> mu_len_inter[ninter];     // mean length of each intervention
   real<lower=0.0> sigma_len_inter[ninter];  // sd length of each intervention
-  real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
-  real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
+  real<lower=0.0> mu_beta_inter[ninter, npops];    // mean change in beta through intervention
+  real<lower=0.0> sigma_beta_inter[ninter, npops]; // sd change in beta through intervention
 
 }
 transformed data {
@@ -78,12 +76,11 @@ transformed data {
   int obs_cum_admits = 4;
 
   int nobs_notmissing = 0;
-
   real beta_limit;
 
-  for (iobs in 1:nobs){
-    for (itype in 1:nobs_types) {
-      if (obs_data_conf[itype, iobs] > 0) {
+  for (ipop in 1:npops) {
+    for (iobs in 1:nobs){
+      if (obs_data_conf[iobs, ipop] > 0) {
         nobs_notmissing = nobs_notmissing + 1;
       }
     }
@@ -99,167 +96,183 @@ parameters {
 
   real<lower=1.0> duration_latent; // duration is a minimum of 1 which is the stepsize of this model
   real<lower=1.0> duration_rec_mild;
+
   real<lower=1.0> duration_pre_hosp;
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
 
   real<lower=0.005, upper=1.0> frac_hosp;
-  real<lower=0.0, upper=1.0> frac_icu;
-  real<lower=0.0, upper=1.0> frac_mort;
 
-  real<lower=0> ini_exposed;
 
-  real<lower=0> sigma_obs[nobs_types];
+  real<lower=0> ini_exposed[npops];
 
+  real<lower=0> sigma_obs;
 
   real<lower=0.0> r0;
-  real<lower=0.0> beta_multiplier[ninter];
+  real<lower=0.0> beta_multiplier[ninter,npops];
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
-  real<lower=0, upper=1> frac_PUI[nobs_types];
+  real mobility_coef0;
+  real mobility_coef1;
 }
 transformed parameters {
-  matrix[ncompartments,nt] x;
-  matrix<lower=0.0>[nobs_types,nt] sim_data;
-  real<lower=0.0, upper=beta_limit> beta[nt];
-  row_vector<lower=0.0>[nt] Hadmits;
-  real<lower=1e-10> newE_temp[nt-1];
+
+  real<lower=0.0> x[ncompartments,nt,npops];
+  real<lower=0.0> sim_data[nt,npops];
+  real<lower=0.0, upper=2.0> beta[nt,npops];
+  real<lower=0.0> beta_mat[nt-1,npops,npops]; //could make local, drop nt
+
   {
     // variables in curly brackets will not have output, they are local variables
 
-    real newE;
-    real newI;
-    real newrec_mild;
-    real newrec_mod;
-    real newhosp;
-    real leave_icu;
-    real beta_0;
-    real obs;
-    real sim;
+    real newE[npops];
+    real newI[npops];
+    real newrec_mild[npops];
+    real newrec_mod[npops];
+    real newhosp[npops];
+    real leave_icu[npops];
+    real beta_0[npops];
     real zero;
+    real total_population = sum(population);
+    real m;
+    // real beta_mat[npops,npops];
 
     //////////////////////////////////////////
+
     // Calculate beta for each time point
-    beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
-    for (it in 1:nt) {
-      beta[it] = beta_0;
-      for (iinter in 1:ninter) {
-        //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
-        //f <- m ^ plogis(k * (t - (d + s/2)))
-        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+    for (ipop in 1:npops) {
+      beta_0[ipop] = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
+      for (it in 1:nt) {
+        beta[it, ipop] = beta_0[ipop];
+        for (iinter in 1:ninter) {
+          //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
+          //f <- m ^ plogis(k * (t - (d + s/2)))
+          beta[it, ipop] = beta[it, ipop] * beta_multiplier[iinter, ipop] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+        }
       }
     }
 
     // initial cond
-    zero = ini_exposed * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
-    x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
-    x[S,1] = npop-ini_exposed;
-    x[E,1] = ini_exposed;
-    Hadmits[1] = zero;
+    zero = ini_exposed[1] * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
+    for (ipop in 1:npops) {
+      for (icompartment in 1:ncompartments) {
+        x[icompartment,1,ipop] = zero;
+      }
+      x[S,1,ipop] = population[ipop] - ini_exposed[ipop];
+      x[E,1,ipop] = ini_exposed[ipop];
+    }
 
     //////////////////////////////////////////
     // the SEIR model
+    //print(frac_icu, change_frac_icu, frac_icu_0)
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
+      for (ipop1 in 1:npops) {
+        newE[ipop1] = 0;
 
-      if (it > 1 && extend == 0) {
-        newE_temp[it] = newE;
-      } else {
-        newE_temp[it] = 1 + zero; //ignore this
+        for (ipop2 in 1:npops) {
+          m = inv_logit(mobility_coef0 + mobility_coef1 * mobility[it, ipop1, ipop2]);
+          if (ipop1 == ipop2) {
+            beta_mat[it, ipop1, ipop2] = beta[it, ipop1] * (1 + m * (total_population / population[ipop1] - 1));
+          } else {
+            beta_mat[it, ipop1, ipop2] = 0.5 * (beta[it, ipop1] + beta[it, ipop2]) * (1 - m);
+          }
+        }
       }
 
+      for (ipop1 in 1:npops) {
+        for (ipop2 in 1:npops) {
+          newE[ipop1] = newE[ipop1] + beta_mat[it, ipop1, ipop2] * x[S,it,ipop1] * (x[Imild,it,ipop2] + x[Ipreh,it,ipop2]) / total_population;
+        }
+      }
 
-      newI = 1.0/duration_latent * x[E, it];
-      newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
-      newrec_mild = 1.0/duration_rec_mild * x[Imild,it];
-      newrec_mod = 1.0/duration_hosp_mod * x[Hmod,it];
-      leave_icu = 1.0/duration_hosp_icu * x[Hicu, it];
+      for (ipop in 1:npops) {
+        newE[ipop] = fmin(newE[ipop], x[S,it,ipop]);
+        newI[ipop] = 1.0/duration_latent * x[E, it, ipop];
+        newhosp[ipop] = 1.0/duration_pre_hosp * x[Ipreh,it,ipop];
+        newrec_mild[ipop] = 1.0/duration_rec_mild * x[Imild,it,ipop];
+        newrec_mod[ipop] = 1.0/duration_hosp_mod * x[Hmod,it,ipop];
+        leave_icu[ipop] = 1.0/duration_hosp_icu * x[Hicu, it,ipop];
 
-      //////////////////////////////////////////
-      // S -> E -> I
+        //////////////////////////////////////////
+        // S -> E -> I
 
-      x[S, it+1] = x[S, it] - newE;
-      x[E, it+1] = x[E, it] + newE - newI;
-      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild;
-      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp - newhosp;
-      x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
-      x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
-      x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort);
-      x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort;
+        x[S, it+1, ipop] = x[S, it, ipop] - newE[ipop];
+        x[E, it+1, ipop] = x[E, it, ipop] + newE[ipop] - newI[ipop];
+        x[Imild, it+1, ipop] = x[Imild, it, ipop] + newI[ipop] * (1 - frac_hosp) - newrec_mild[ipop];
+        x[Ipreh, it+1, ipop] = x[Ipreh, it, ipop] + newI[ipop] * frac_hosp - newhosp[ipop];
+        x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] * (1 - frac_icu) - newrec_mod[ipop];
+        x[Hicu, it+1, ipop] = x[Hicu, it, ipop] + newhosp[ipop] * frac_icu - leave_icu[ipop];
+        x[Rlive, it+1, ipop] = x[Rlive, it, ipop] + newrec_mild[ipop] + newrec_mod[ipop] + leave_icu[ipop] * (1 - frac_mort);
+        x[Rmort, it+1, ipop] = x[Rmort, it, ipop] + leave_icu[ipop] * frac_mort;
 
-      // cumulative hospital admissions
-      Hadmits[it+1] = Hadmits[it] + newhosp;
-
-      //////////////////////////////////////////
-      // test
-      if (fabs(sum(x[:,it+1])-npop) > 1e-1){
-        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop)
+        //////////////////////////////////////////
+        // test
+        if (fabs(sum(x[:,it+1,ipop])-population[ipop]) > 1e-1){
+          reject("Model is leaking, net gain: ", sum(x[:,it+1,ipop])-population[ipop])
+        }
       }
     }
   }
 
-  // Data for fitting
-  for (itype in 1:nobs_types) {
-    if (itype == obs_hosp_census) {
-      sim_data[itype] = x[Hmod] + x[Hicu];
-    } else if (itype == obs_icu_census) {
-      sim_data[itype] = x[Hicu];
-    } else if (itype == obs_cum_deaths) {
-      sim_data[itype] = x[Rmort];
-    } else if (itype == obs_cum_admits) {
-      sim_data[itype] = Hadmits;
-    } else {
-      reject("unexpected itype")
+  // // Data for fitting
+  for (ipop in 1:npops) {
+    for (it in 1:nt) {
+      sim_data[it, ipop] = x[Hmod, it, ipop] + x[Hicu, it, ipop];
     }
   }
 }
 model {
-  //////////////////////////////////////////
+  ////////////////////////////////////////
   // prior distributions
+
   r0 ~ normal(mu_r0, sigma_r0);
-  frac_PUI ~ normal(mu_frac_pui, sigma_frac_pui);
+  mobility_coef0 ~ normal(0, 5);
+  mobility_coef1 ~ normal(0, 5);
 
-  for (iinter in 1:ninter) {
-    beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
-    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
-    len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
-  }
-
-  duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
-  duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
   duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
   duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
   duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
 
   frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
-  frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
-  frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
 
-  ini_exposed ~ exponential(lambda_ini_exposed);
+  for (ipop in 1:npops) {
+    ini_exposed[ipop] ~ exponential(lambda_ini_exposed[ipop]);
+  }
 
-  //////////////////////////////////////////
-  // fitting observations
+  duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
+  duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
+
+  for (iinter in 1:ninter) {
+    for (ipop in 1:npops) {
+      beta_multiplier[iinter,ipop] ~ normal(mu_beta_inter[iinter,ipop], sigma_beta_inter[iinter,ipop]);
+    }
+    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
+    len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
+  }
+
+  // //////////////////////////////////////////
+  // // fitting observations
   sigma_obs ~ exponential(1.0);
+
   {
-    vector[nobs_notmissing] error;
+    vector[nobs_notmissing] error; //could try to vectorize this again
     real obs;
     real sim;
-    int cnt;
+    int cnt = 0;
 
-    cnt = 0;
-    for (iobs in 1:nobs){
-      for (itype in 1:nobs_types) {
-        if (obs_data_conf[itype, iobs] > 0) {
+    for (ipop in 1:npops) {
+      for (iobs in 1:nobs){
+        if (obs_data_conf[iobs, ipop] > 0) {
           cnt = cnt + 1;
-          obs = obs_data_conf[itype, iobs];
-          if (obs_data_pui[itype, iobs] > 0) {
-            obs = obs + obs_data_pui[itype, iobs] * frac_PUI[itype];
+          obs = obs_data_conf[iobs, ipop];
+          if (obs_data_pui[iobs, ipop] > 0) {
+            obs = obs + obs_data_pui[iobs, ipop] * frac_pui;
           }
-          sim = sim_data[itype, tobs[iobs]];
-          error[cnt] = (obs - sim) / sigma_obs[itype];
+          sim = sim_data[tobs[iobs], ipop];
+          error[cnt] = (obs - sim) / sigma_obs;
         }
       }
     }
@@ -267,8 +280,4 @@ model {
   }
 }
 generated quantities{
-  real<lower=0.0> Rt[nt];
-  for (it in 1:nt) {
-    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
-  }
 }
