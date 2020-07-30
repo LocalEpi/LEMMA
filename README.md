@@ -33,9 +33,9 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
 install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")
 ```
-    **Installing From Binary (for MacOS using R 3.6)**
+    **Installing From Binary (for MacOS using R 4.0)**
 ```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-3-6-3.tgz?raw=true", repos = NULL, type = "binary")
+install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")
 ```
     
     **Installing From Binary (for Windows using R 3.6)**

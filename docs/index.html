@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0.9008</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0.9011</span>
       </span>
     </div>
 
@@ -107,8 +107,8 @@
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
 <ol>
-<li>Install RStudio. (<a href="https://rstudio.com/products/rstudio/download/#download" class="uri">https://rstudio.com/products/rstudio/download/#download</a>)</li>
-<li>Create a folder to store your LEMMA inputs and outputs. For example, create a folder “MyFolder” within Documents.</li>
+<li><p>Install RStudio. (<a href="https://rstudio.com/products/rstudio/download/#download" class="uri">https://rstudio.com/products/rstudio/download/#download</a>)</p></li>
+<li><p>Create a folder to store your LEMMA inputs and outputs. For example, create a folder “MyFolder” within Documents.</p></li>
 <li>
 <p>For this step there are several choices, depending on your local machine.</p>
 <p><strong>Installing From Source (available for all platforms, but requires a C/C++ compiler)</strong></p>
@@ -116,8 +116,8 @@
 <p><a href="https://support.rstudio.com/hc/en-us/articles/200486498" class="uri">https://support.rstudio.com/hc/en-us/articles/200486498</a></p>
 <pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")</a></code></pre>
-<p><strong>Installing From Binary (for MacOS using R 3.6)</strong></p>
-<pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-3-6-3.tgz?raw=true", repos = NULL, type = "binary")</a></code></pre>
+<p><strong>Installing From Binary (for MacOS using R 4.0)</strong></p>
+<pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")</a></code></pre>
 <p><strong>Installing From Binary (for Windows using R 3.6)</strong></p>
 <pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-3-6-3.zip?raw=true", repos = NULL, type = "binary")</a></code></pre>
 <p><strong>Installing From Binary (for Windows using R 4.0)</strong></p>
@@ -126,7 +126,7 @@ remotes::install_github("LocalEpi/LEMMA")</a></code></pre>
 <li><p>Copy and paste these lines into the RStudio console:</p></li>
 </ol>
 <pre class="{r}"><code><a href="https://rdrr.io/r/base/getwd.html">setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")</a></code></pre>
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)</a></code></pre>
 <p>LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.</p>
 <p>If you get an error something like “lazy-load database ‘Library/R/3.6/library/LEMMA/R/LEMMA.rdb’ is corrupt” restart R and try step 3 again.</p>
 </div>
@@ -191,7 +191,7 @@ file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = 
 <div id="sheet-6-internal" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-6-internal" class="anchor"></a>Sheet 6: Internal</h3>
-<p>This allows for more nuanced changes including changing the file names (output.filestr) and plotting details (plot.observed.data.long.term, plot.observed.data.short.term). Control arguments passed to Stan can also be specified (iter, cores, refresh, max_treedepth, adapt_delta). See <code><a href="https://rdrr.io/pkg/rstan/man/stan.html">?rstan::stan</a></code> for details. Note that iter is now the number of <em>posterior</em> draws (in previous versions of LEMMA, the number of prior iterations was specified.) The total number of posterior draws is 2 * iter because there are 4 chains, each with iter draws, but 50% of these are warmup draws which are not used.</p>
+<p>This allows for more nuanced changes including changing the file names (output.filestr) and plotting details (plot.observed.data.long.term, plot.observed.data.short.term). Control arguments passed to Stan can also be specified (iter, cores, refresh, max_treedepth, adapt_delta). See <code><a href="https://mc-stan.org/rstan/reference/stan.html">?rstan::stan</a></code> for details. Note that iter is now the number of <em>posterior</em> draws (in previous versions of LEMMA, the number of prior iterations was specified.) The total number of posterior draws is 2 * iter because there are 4 chains, each with iter draws, but 50% of these are warmup draws which are not used.</p>
 </div>
 </div>
 <div id="output" class="section level2">

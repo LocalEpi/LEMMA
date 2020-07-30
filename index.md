@@ -30,9 +30,9 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
 install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")
 ```
-    **Installing From Binary (for MacOS using R 3.6)**
+    **Installing From Binary (for MacOS using R 4.0)**
 ```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-3-6-3.tgz?raw=true", repos = NULL, type = "binary")
+install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")
 ```
     
     **Installing From Binary (for Windows using R 3.6)**
@@ -49,7 +49,7 @@ install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Wi
     
 ```{r}
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx")
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)
 ```
 
 LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.
