@@ -67,12 +67,12 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   if (short.term) {
     date.breaks <- "1 week"
     max.date <- obs.data[!is.na(conf), max(date)] + 3
-    title1 <- paste("Short Term", GetTitleLabel(data.type), "Projection")
+    title1 <- paste("Short Term", data.type, "Projection")
     plot.observed.data <- inputs$internal.args$plot.observed.data.short.term
   } else {
     date.breaks <- "1 month"
     max.date <- max(dt.plot$date) - 3 #makes it look a little nicer when ending on first of the month
-    title1 <- paste("Long Term", GetTitleLabel(data.type), "Projection")
+    title1 <- paste("Long Term",data.type, "Projection")
     plot.observed.data <- inputs$internal.args$plot.observed.data.long.term
   }
 
@@ -83,7 +83,7 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   }
 
   obs.size <- 1.5
-  frac.pui <- inputs$frac_pui[name == data.type, mu]
+  frac.pui <- 0.3 #inputs$frac_pui[name == data.type, mu]
   lb <- "Confirmed"
   ub <- paste0("Confirmed + ", 100 * frac.pui, "%PUI")
   dt.plot[, upper := conf + frac.pui * pui]
@@ -112,7 +112,7 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
 
   gg <- gg +
     xlab("") +
-    ylab(GetYLabel(data.type)) +
+    ylab(data.type) +
     labs(title = title1, caption = "localepi.github.io/LEMMA") +
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +

@@ -173,7 +173,7 @@ transformed parameters {
         newE[ipop1] = 0;
 
         for (ipop2 in 1:npops) {
-          #mobility = fraction of (pop1 + pop2) moving between 1 and 2 on it
+          //mobility = fraction of (pop1 + pop2) moving between 1 and 2 on it
           m = inv_logit(mobility_coef0 + mobility_coef1 * mobility[it, ipop1, ipop2]);
           if (ipop1 == ipop2) {
             beta_mat[it, ipop1, ipop2] = beta[it, ipop1] * (1 + m * (total_population / population[ipop1] - 1));
@@ -281,4 +281,10 @@ model {
   }
 }
 generated quantities{
+  real<lower=0.0> Rt[nt, npops];
+  for (it in 1:nt) {
+    for (ipop in 1:npops) {
+      Rt[it, ipop] = beta[it, ipop] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it, ipop] / population[ipop]; //Rt if population were isolated
+    }
+  }
 }

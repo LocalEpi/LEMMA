@@ -5,13 +5,14 @@
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
 
-  new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
-  inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
+  #new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
+  #inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
 
   cat("Fitting to observed data\n")
   fit.to.data <- RunSim(inputs)
   cat("Projecting\n")
 
+  return(fit.to.data)
   fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
 
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
@@ -70,33 +71,37 @@ GetStanInputs <- function(inputs) {
 
   seir_inputs[['nobs']] <- nrow(inputs$obs.data.conf)
   seir_inputs[['tobs']] <- as.numeric(inputs$obs.data.conf$date - day0)
-  seir_inputs[['npops']] <- ncol(inputs$obs.data.conf)
+  seir_inputs[['npops']] <- length(inputs$model.inputs$total.population)
 
   # Observed Data - Confirmed
-  seir_inputs[['obs_data_conf']] <- inputs$obs.data.conf #nobs x npops
+  seir_inputs[['obs_data_conf']] <- inputs$obs.data.conf[, -"date"] #nobs x npops
   # Observed Data - PUI
-  seir_inputs[['obs_data_pui']] <- inputs$obs.data.pui #nobs x npops
+  seir_inputs[['obs_data_pui']] <- inputs$obs.data.pui[, -"date"] #nobs x npops
 
   # total population
-  seir_inputs[['npop']] = inputs$model.inputs$total.population #nobs
+  seir_inputs[['population']] = inputs$model.inputs$total.population #npops
 
   # lambda parameter for initial conditions of "exposed"
-  seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed #nobs
+  seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed #npops
 
   # interventions
-  #interventions$mu_beta_inter, sigma_beta_inter: ninter x npops
+  seir_inputs$mu_beta_inter <- inputs$mu_beta_inter #ninter x npops
+  seir_inputs$sigma_beta_inter <- inputs$sigma_beta_inter #ninter x npops
+
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
   seir_inputs <- c(seir_inputs, inputs$interventions)
 
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
   seir_inputs$frac_pui <- 0.3
+  seir_inputs$frac_icu <- 0.28
+  seir_inputs$frac_mort <- 0.4
   seir_inputs$mobility <- inputs$mobility
   return(seir_inputs)
 }
 
 RunSim <- function(inputs) {
-  inputs$model.inputs$end.date <- max(inputs$obs.data$date)
+  # inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
   seir_inputs$extend <- 0L
   internal.args <- inputs$internal.args
@@ -107,7 +112,7 @@ RunSim <- function(inputs) {
     names(init) <- sub("mu_", "", init.names)
     names(init) <- sub("beta_inter", "beta_multiplier", names(init)) #beta_multiplier is inconsistently named
     names(init) <- sub("frac_pui", "frac_PUI", names(init)) #frac_PUI is inconsistently named
-    init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    init <- c(init, list(sigma_obs = 1, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
   if (is.null(inputs$internal.args$warmup) || is.na(inputs$internal.args$warmup)) {
