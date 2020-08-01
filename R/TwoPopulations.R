@@ -43,7 +43,7 @@ TwoPop <- function(input1, inputs) {
                                  cores = internal.args$cores,
                                  refresh = internal.args$refresh,
                                  control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                 pars = c("error", "beta", "x"),
+                                 pars = c("error"),
                                  include = FALSE
     )
   })
@@ -51,7 +51,7 @@ TwoPop <- function(input1, inputs) {
   quantiles1 <- GetQuantiles2(stan_seir_fit, inputs1, 1)
   quantiles2 <- GetQuantiles2(stan_seir_fit, inputs1, 2)
   GetExcelOutput(quantiles1, inputs1)
-  GetExcelOutput(quantiles1, inputs2)
+  GetExcelOutput(quantiles2, inputs2)
   g1 <- GetPlots(quantiles1, inputs1, "white")
   g2 <- GetPlots(quantiles2, inputs2, "African American")
   return(list(fit = stan_seir_fit, g1 = g1, g2 = g2))
@@ -77,6 +77,43 @@ GetQuantiles2 <- function(fit, inputs, ipop) {
     return(q)
   }, simplify = FALSE)
   return(quantiles)
+}
+
+GetQuantilesRelative <- function(fit, inputs) {
+  GetQuant <- function(mat) {
+    q <- colQuantiles(mat, probs = seq(0, 1, by = 0.05))
+    rownames(q) <- as.character(dates)
+    return(q)
+  }
+  RelQuant <- function(a, use.max) {
+    if (use.max) {
+      quantile(rowMaxs(a[, , 2] / a[, , 1]), probs = seq(0, 1, by = 0.05))
+    } else {
+      quant <- GetQuant(a[, , 2] / a[, , 1])
+      data.table(date = rownames(quant), quant)
+    }
+  }
+
+  dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
+  sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
+
+  x <- rstan::extract(fit, pars = "x")[[1]]
+
+  results <- list(
+  hosp = sim.data[, 1, , ],
+  deaths = sim.data[, 3, , ],
+  active.cases = x[, 2, , ] + x[, 3, , ] + x[, 4, , ] + x[, 5, , ] + x[, 6, , ],
+  total.cases = x[, 2, , ] + x[, 3, , ] + x[, 4, , ] + x[, 5, , ] + x[, 6, , ] + x[, 7, , ] + x[, 8, , ]
+  )
+
+  quantiles <- sapply(results, RelQuant, use.max = F, simplify = F)
+  quantiles.max <- sapply(results, RelQuant, use.max = T)
+
+  output.list <- c(quantiles, list(max = quantiles.max))
+  filestr.out <- paste0(inputs$internal.args$output.filestr, "-relative.xlsx")
+  openxlsx::write.xlsx(output.list, file = filestr.out)
+
+  return(output.list)
 }
 
 GetPlots <- function(quantiles, inputs, subtitl) {
