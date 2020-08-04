@@ -263,8 +263,10 @@ model {
     real obs;
     real sim;
     int cnt = 0;
+    real scale;
 
     for (ipop in 1:npops) {
+      scale = population[ipop] / 1000000;
       for (iobs in 1:nobs){
         if (obs_data_conf[iobs, ipop] > 0) {
           cnt = cnt + 1;
@@ -273,7 +275,7 @@ model {
             obs = obs + obs_data_pui[iobs, ipop] * frac_pui;
           }
           sim = sim_data[tobs[iobs], ipop];
-          error[cnt] = (obs - sim) / sigma_obs;
+          error[cnt] = (obs - sim) / (sigma_obs * scale);
         }
       }
     }

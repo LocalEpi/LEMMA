@@ -131,7 +131,9 @@ RunSim <- function(inputs) {
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
                                      pars = c("error"),
-                                     init = GetInit,
+  init_r = 0.5,
+  # init = 0,
+                                     #init = GetInit,
                                      include = FALSE
     )
   })

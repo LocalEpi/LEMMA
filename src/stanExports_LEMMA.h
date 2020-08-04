@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(292, 290, "end", "model_LEMMA");
+    reader.add_event(294, 292, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1387,32 +1387,39 @@ public:
             (void) cnt;  // dummy to suppress unused var warning
             stan::math::fill(cnt, std::numeric_limits<int>::min());
             stan::math::assign(cnt,0);
-            current_statement_begin__ = 267;
+            current_statement_begin__ = 266;
+            local_scalar_t__ scale(DUMMY_VAR__);
+            (void) scale;  // dummy to suppress unused var warning
+            stan::math::initialize(scale, DUMMY_VAR__);
+            stan::math::fill(scale, DUMMY_VAR__);
+            current_statement_begin__ = 268;
             for (int ipop = 1; ipop <= npops; ++ipop) {
-                current_statement_begin__ = 268;
+                current_statement_begin__ = 269;
+                stan::math::assign(scale, (get_base1(population, ipop, "population", 1) / 1000000));
+                current_statement_begin__ = 270;
                 for (int iobs = 1; iobs <= nobs; ++iobs) {
-                    current_statement_begin__ = 269;
+                    current_statement_begin__ = 271;
                     if (as_bool(logical_gt(get_base1(get_base1(obs_data_conf, iobs, "obs_data_conf", 1), ipop, "obs_data_conf", 2), 0))) {
-                        current_statement_begin__ = 270;
-                        stan::math::assign(cnt, (cnt + 1));
-                        current_statement_begin__ = 271;
-                        stan::math::assign(obs, get_base1(get_base1(obs_data_conf, iobs, "obs_data_conf", 1), ipop, "obs_data_conf", 2));
                         current_statement_begin__ = 272;
+                        stan::math::assign(cnt, (cnt + 1));
+                        current_statement_begin__ = 273;
+                        stan::math::assign(obs, get_base1(get_base1(obs_data_conf, iobs, "obs_data_conf", 1), ipop, "obs_data_conf", 2));
+                        current_statement_begin__ = 274;
                         if (as_bool(logical_gt(get_base1(get_base1(obs_data_pui, iobs, "obs_data_pui", 1), ipop, "obs_data_pui", 2), 0))) {
-                            current_statement_begin__ = 273;
+                            current_statement_begin__ = 275;
                             stan::math::assign(obs, (obs + (get_base1(get_base1(obs_data_pui, iobs, "obs_data_pui", 1), ipop, "obs_data_pui", 2) * frac_pui)));
                         }
-                        current_statement_begin__ = 275;
+                        current_statement_begin__ = 277;
                         stan::math::assign(sim, get_base1(get_base1(sim_data, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1), ipop, "sim_data", 2));
-                        current_statement_begin__ = 276;
+                        current_statement_begin__ = 278;
                         stan::model::assign(error, 
                                     stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
-                                    ((obs - sim) / sigma_obs), 
+                                    ((obs - sim) / (sigma_obs * scale)), 
                                     "assigning variable error");
                     }
                 }
             }
-            current_statement_begin__ = 280;
+            current_statement_begin__ = 282;
             lp_accum__.add(std_normal_log<propto__>(error));
             }
         } catch (const std::exception& e) {
@@ -1945,18 +1952,18 @@ public:
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 284;
+            current_statement_begin__ = 286;
             validate_non_negative_index("Rt", "nt", nt);
             validate_non_negative_index("Rt", "npops", npops);
             std::vector<std::vector<double> > Rt(nt, std::vector<double>(npops, double(0)));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 285;
+            current_statement_begin__ = 287;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 286;
+                current_statement_begin__ = 288;
                 for (int ipop = 1; ipop <= npops; ++ipop) {
-                    current_statement_begin__ = 287;
+                    current_statement_begin__ = 289;
                     stan::model::assign(Rt, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::cons_list(stan::model::index_uni(ipop), stan::model::nil_index_list())), 
                                 (((get_base1(get_base1(beta, it, "beta", 1), ipop, "beta", 2) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(get_base1(get_base1(x, S, "x", 1), it, "x", 2), ipop, "x", 3)) / get_base1(population, ipop, "population", 1)), 
@@ -1964,7 +1971,7 @@ public:
                 }
             }
             // validate, write generated quantities
-            current_statement_begin__ = 284;
+            current_statement_begin__ = 286;
             size_t Rt_i_0_max__ = nt;
             size_t Rt_i_1_max__ = npops;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
