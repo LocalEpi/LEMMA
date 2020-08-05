@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(294, 292, "end", "model_LEMMA");
+    reader.add_event(302, 300, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1330,88 +1330,55 @@ public:
             }
             // model body
             current_statement_begin__ = 232;
-            lp_accum__.add(normal_log<propto__>(r0, mu_r0, sigma_r0));
-            current_statement_begin__ = 233;
-            lp_accum__.add(normal_log<propto__>(mobility_coef0, 0, 5));
-            current_statement_begin__ = 234;
-            lp_accum__.add(normal_log<propto__>(mobility_coef1, 0, 5));
-            current_statement_begin__ = 236;
-            lp_accum__.add(normal_log<propto__>(duration_pre_hosp, mu_duration_pre_hosp, sigma_duration_pre_hosp));
+            lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
             current_statement_begin__ = 237;
-            lp_accum__.add(normal_log<propto__>(duration_hosp_mod, mu_duration_hosp_mod, sigma_duration_hosp_mod));
-            current_statement_begin__ = 238;
-            lp_accum__.add(normal_log<propto__>(duration_hosp_icu, mu_duration_hosp_icu, sigma_duration_hosp_icu));
-            current_statement_begin__ = 240;
-            lp_accum__.add(normal_log<propto__>(frac_hosp, mu_frac_hosp, sigma_frac_hosp));
-            current_statement_begin__ = 242;
-            for (int ipop = 1; ipop <= npops; ++ipop) {
-                current_statement_begin__ = 243;
-                lp_accum__.add(exponential_log<propto__>(get_base1(ini_exposed, ipop, "ini_exposed", 1), get_base1(lambda_ini_exposed, ipop, "lambda_ini_exposed", 1)));
-            }
-            current_statement_begin__ = 246;
-            lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
-            current_statement_begin__ = 247;
-            lp_accum__.add(normal_log<propto__>(duration_rec_mild, mu_duration_rec_mild, sigma_duration_rec_mild));
-            current_statement_begin__ = 249;
-            for (int iinter = 1; iinter <= ninter; ++iinter) {
-                current_statement_begin__ = 250;
-                for (int ipop = 1; ipop <= npops; ++ipop) {
-                    current_statement_begin__ = 251;
-                    lp_accum__.add(normal_log<propto__>(get_base1(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), ipop, "beta_multiplier", 2), get_base1(get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), ipop, "mu_beta_inter", 2), get_base1(get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1), ipop, "sigma_beta_inter", 2)));
-                }
-                current_statement_begin__ = 253;
-                lp_accum__.add(normal_log<propto__>(get_base1(t_inter, iinter, "t_inter", 1), get_base1(mu_t_inter, iinter, "mu_t_inter", 1), get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)));
-                current_statement_begin__ = 254;
-                lp_accum__.add(normal_log<propto__>(get_base1(len_inter, iinter, "len_inter", 1), get_base1(mu_len_inter, iinter, "mu_len_inter", 1), get_base1(sigma_len_inter, iinter, "sigma_len_inter", 1)));
-            }
-            current_statement_begin__ = 259;
             lp_accum__.add(exponential_log<propto__>(sigma_obs, 1.0));
             {
-            current_statement_begin__ = 262;
-            validate_non_negative_index("error", "nobs_notmissing", nobs_notmissing);
-            Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> error(nobs_notmissing);
+            current_statement_begin__ = 240;
+            validate_non_negative_index("error", "((nobs_notmissing + 9) + ((npops + 2) * ninter))", ((nobs_notmissing + 9) + ((npops + 2) * ninter)));
+            Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> error(((nobs_notmissing + 9) + ((npops + 2) * ninter)));
             stan::math::initialize(error, DUMMY_VAR__);
             stan::math::fill(error, DUMMY_VAR__);
-            current_statement_begin__ = 263;
+            current_statement_begin__ = 241;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 264;
+            current_statement_begin__ = 242;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 265;
+            current_statement_begin__ = 243;
             int cnt(0);
             (void) cnt;  // dummy to suppress unused var warning
             stan::math::fill(cnt, std::numeric_limits<int>::min());
             stan::math::assign(cnt,0);
-            current_statement_begin__ = 266;
+            current_statement_begin__ = 244;
             local_scalar_t__ scale(DUMMY_VAR__);
             (void) scale;  // dummy to suppress unused var warning
             stan::math::initialize(scale, DUMMY_VAR__);
             stan::math::fill(scale, DUMMY_VAR__);
-            current_statement_begin__ = 268;
+            current_statement_begin__ = 246;
             for (int ipop = 1; ipop <= npops; ++ipop) {
-                current_statement_begin__ = 269;
+                current_statement_begin__ = 247;
                 stan::math::assign(scale, (get_base1(population, ipop, "population", 1) / 1000000));
-                current_statement_begin__ = 270;
+                current_statement_begin__ = 248;
                 for (int iobs = 1; iobs <= nobs; ++iobs) {
-                    current_statement_begin__ = 271;
+                    current_statement_begin__ = 249;
                     if (as_bool(logical_gt(get_base1(get_base1(obs_data_conf, iobs, "obs_data_conf", 1), ipop, "obs_data_conf", 2), 0))) {
-                        current_statement_begin__ = 272;
+                        current_statement_begin__ = 250;
                         stan::math::assign(cnt, (cnt + 1));
-                        current_statement_begin__ = 273;
+                        current_statement_begin__ = 251;
                         stan::math::assign(obs, get_base1(get_base1(obs_data_conf, iobs, "obs_data_conf", 1), ipop, "obs_data_conf", 2));
-                        current_statement_begin__ = 274;
+                        current_statement_begin__ = 252;
                         if (as_bool(logical_gt(get_base1(get_base1(obs_data_pui, iobs, "obs_data_pui", 1), ipop, "obs_data_pui", 2), 0))) {
-                            current_statement_begin__ = 275;
+                            current_statement_begin__ = 253;
                             stan::math::assign(obs, (obs + (get_base1(get_base1(obs_data_pui, iobs, "obs_data_pui", 1), ipop, "obs_data_pui", 2) * frac_pui)));
                         }
-                        current_statement_begin__ = 277;
+                        current_statement_begin__ = 255;
                         stan::math::assign(sim, get_base1(get_base1(sim_data, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1), ipop, "sim_data", 2));
-                        current_statement_begin__ = 278;
+                        current_statement_begin__ = 256;
                         stan::model::assign(error, 
                                     stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
                                     ((obs - sim) / (sigma_obs * scale)), 
@@ -1419,7 +1386,97 @@ public:
                     }
                 }
             }
-            current_statement_begin__ = 282;
+            current_statement_begin__ = 261;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 262;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((r0 - mu_r0) / sigma_r0), 
+                        "assigning variable error");
+            current_statement_begin__ = 263;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 264;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        (mobility_coef0 / 5), 
+                        "assigning variable error");
+            current_statement_begin__ = 265;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 266;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        (mobility_coef1 / 5), 
+                        "assigning variable error");
+            current_statement_begin__ = 267;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 268;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((duration_pre_hosp - mu_duration_pre_hosp) / sigma_duration_pre_hosp), 
+                        "assigning variable error");
+            current_statement_begin__ = 269;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 270;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((duration_hosp_mod - mu_duration_hosp_mod) / sigma_duration_hosp_mod), 
+                        "assigning variable error");
+            current_statement_begin__ = 271;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 272;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((duration_hosp_icu - mu_duration_hosp_icu) / sigma_duration_hosp_icu), 
+                        "assigning variable error");
+            current_statement_begin__ = 273;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 274;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((frac_hosp - mu_frac_hosp) / sigma_frac_hosp), 
+                        "assigning variable error");
+            current_statement_begin__ = 275;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 276;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((duration_latent - mu_duration_latent) / sigma_duration_latent), 
+                        "assigning variable error");
+            current_statement_begin__ = 277;
+            stan::math::assign(cnt, (cnt + 1));
+            current_statement_begin__ = 278;
+            stan::model::assign(error, 
+                        stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                        ((duration_rec_mild - mu_duration_rec_mild) / sigma_duration_rec_mild), 
+                        "assigning variable error");
+            current_statement_begin__ = 279;
+            for (int iinter = 1; iinter <= ninter; ++iinter) {
+                current_statement_begin__ = 280;
+                for (int ipop = 1; ipop <= npops; ++ipop) {
+                    current_statement_begin__ = 281;
+                    stan::math::assign(cnt, (cnt + 1));
+                    current_statement_begin__ = 282;
+                    stan::model::assign(error, 
+                                stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                                ((get_base1(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), ipop, "beta_multiplier", 2) - get_base1(get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), ipop, "mu_beta_inter", 2)) / get_base1(get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1), ipop, "sigma_beta_inter", 2)), 
+                                "assigning variable error");
+                }
+                current_statement_begin__ = 284;
+                stan::math::assign(cnt, (cnt + 1));
+                current_statement_begin__ = 285;
+                stan::model::assign(error, 
+                            stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                            ((get_base1(t_inter, iinter, "t_inter", 1) - get_base1(mu_t_inter, iinter, "mu_t_inter", 1)) / get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)), 
+                            "assigning variable error");
+                current_statement_begin__ = 286;
+                stan::math::assign(cnt, (cnt + 1));
+                current_statement_begin__ = 287;
+                stan::model::assign(error, 
+                            stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                            ((get_base1(len_inter, iinter, "len_inter", 1) - get_base1(mu_len_inter, iinter, "mu_len_inter", 1)) / get_base1(sigma_len_inter, iinter, "sigma_len_inter", 1)), 
+                            "assigning variable error");
+            }
+            current_statement_begin__ = 290;
             lp_accum__.add(std_normal_log<propto__>(error));
             }
         } catch (const std::exception& e) {
@@ -1952,18 +2009,18 @@ public:
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 286;
+            current_statement_begin__ = 294;
             validate_non_negative_index("Rt", "nt", nt);
             validate_non_negative_index("Rt", "npops", npops);
             std::vector<std::vector<double> > Rt(nt, std::vector<double>(npops, double(0)));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 287;
+            current_statement_begin__ = 295;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 288;
+                current_statement_begin__ = 296;
                 for (int ipop = 1; ipop <= npops; ++ipop) {
-                    current_statement_begin__ = 289;
+                    current_statement_begin__ = 297;
                     stan::model::assign(Rt, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::cons_list(stan::model::index_uni(ipop), stan::model::nil_index_list())), 
                                 (((get_base1(get_base1(beta, it, "beta", 1), ipop, "beta", 2) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(get_base1(get_base1(x, S, "x", 1), it, "x", 2), ipop, "x", 3)) / get_base1(population, ipop, "population", 1)), 
@@ -1971,7 +2028,7 @@ public:
                 }
             }
             // validate, write generated quantities
-            current_statement_begin__ = 286;
+            current_statement_begin__ = 294;
             size_t Rt_i_0_max__ = nt;
             size_t Rt_i_1_max__ = npops;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {

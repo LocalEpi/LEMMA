@@ -229,37 +229,15 @@ model {
   ////////////////////////////////////////
   // prior distributions
 
-  r0 ~ normal(mu_r0, sigma_r0);
-  mobility_coef0 ~ normal(0, 5);
-  mobility_coef1 ~ normal(0, 5);
+  ini_exposed ~ exponential(lambda_ini_exposed);
 
-  duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
-  duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
-  duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
-
-  frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
-
-  for (ipop in 1:npops) {
-    ini_exposed[ipop] ~ exponential(lambda_ini_exposed[ipop]);
-  }
-
-  duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
-  duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
-
-  for (iinter in 1:ninter) {
-    for (ipop in 1:npops) {
-      beta_multiplier[iinter,ipop] ~ normal(mu_beta_inter[iinter,ipop], sigma_beta_inter[iinter,ipop]);
-    }
-    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
-    len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
-  }
 
   // //////////////////////////////////////////
   // // fitting observations
   sigma_obs ~ exponential(1.0);
 
   {
-    vector[nobs_notmissing] error; //could try to vectorize this again
+    vector[nobs_notmissing + 9 + (npops + 2) * ninter] error;
     real obs;
     real sim;
     int cnt = 0;
@@ -279,6 +257,36 @@ model {
         }
       }
     }
+
+    cnt = cnt + 1;
+    error[cnt] = (r0 - mu_r0) / sigma_r0;
+    cnt = cnt + 1;
+    error[cnt] = mobility_coef0 / 5;
+    cnt = cnt + 1;
+    error[cnt] = mobility_coef1 / 5;
+    cnt = cnt + 1;
+    error[cnt] = (duration_pre_hosp - mu_duration_pre_hosp) / sigma_duration_pre_hosp;
+    cnt = cnt + 1;
+    error[cnt] = (duration_hosp_mod - mu_duration_hosp_mod) / sigma_duration_hosp_mod;
+    cnt = cnt + 1;
+    error[cnt] = (duration_hosp_icu - mu_duration_hosp_icu) / sigma_duration_hosp_icu;
+    cnt = cnt + 1;
+    error[cnt] = (frac_hosp - mu_frac_hosp) / sigma_frac_hosp;
+    cnt = cnt + 1;
+    error[cnt] = (duration_latent - mu_duration_latent) / sigma_duration_latent;
+    cnt = cnt + 1;
+    error[cnt] = (duration_rec_mild - mu_duration_rec_mild) / sigma_duration_rec_mild;
+    for (iinter in 1:ninter) {
+      for (ipop in 1:npops) {
+        cnt = cnt + 1;
+        error[cnt] = (beta_multiplier[iinter,ipop] - mu_beta_inter[iinter,ipop]) / sigma_beta_inter[iinter,ipop];
+      }
+      cnt = cnt + 1;
+      error[cnt] = (t_inter[iinter] - mu_t_inter[iinter]) / sigma_t_inter[iinter];
+      cnt = cnt + 1;
+      error[cnt] = (len_inter[iinter] - mu_len_inter[iinter]) / sigma_len_inter[iinter];
+    }
+
     error ~ std_normal();
   }
 }
