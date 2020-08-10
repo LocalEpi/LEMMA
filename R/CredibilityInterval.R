@@ -96,6 +96,15 @@ GetStanInputs <- function(inputs) {
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
   seir_inputs <- c(seir_inputs, frac_pui)
+
+  seir_inputs$t_testing <- as.numeric(inputs$internal.args$t_testing - day0)
+  seir_inputs$num_tests <- inputs$internal.args$num_tests
+
+  test_sensitivity <- inputs$internal.args$test_sensitivity
+  frac_isolate <- inputs$internal.args$frac_isolate
+  test_enrichment <- inputs$internal.args$test_enrichment
+  seir_inputs$test_factor <- test_enrichment * frac_isolate * test_sensitivity
+  seir_inputs$duration_tested <- inputs$internal.args$duration_tested
   return(seir_inputs)
 }
 
@@ -120,8 +129,8 @@ RunSim <- function(inputs) {
     warmup <- inputs$internal.args$warmup
   }
   run_time <- system.time({
-    stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-  # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+    # stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+  stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
                                      data = seir_inputs,
                                      seed = internal.args$random.seed,
                                      iter = internal.args$iter,
@@ -193,7 +202,8 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
 
   out <- capture.output(
     run_time <- system.time({
-      stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+      # stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+      stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
                                        data = seir_inputs,
                                        seed = internal.args$random.seed,
                                        iter = 1,

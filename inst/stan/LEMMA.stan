@@ -49,9 +49,8 @@ data {
 
   int<lower=0> t_testing;
   real<lower=0.0> num_tests;
-  real<lower=0.0> mu_test_enrichment;
-  real<lower=0.0> sigma_test_enrichment;
-  //start testing date (fixed), number of tests (fixed), test enrichment (mu/sigma)
+  real<lower=0.0> test_factor;
+  real<lower=1.0> duration_tested;
 
   //////////////////////////////////////////
     // interventions
@@ -75,10 +74,9 @@ transformed data {
   int Hicu  = 6;
   int Rlive = 7;
   int Rmort = 8;
+  int Itested = 9;
 
-  //Qmild, Qpreh
-
-  int ncompartments = 8;
+  int ncompartments = 9;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -138,6 +136,8 @@ transformed parameters {
 
     real newE;
     real newI;
+    real pos_tests;
+    real newQ;
     real newrec_mild;
     real newrec_mod;
     real newhosp;
@@ -171,7 +171,7 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
         // set transition variables
-      newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
+      newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it] + x[Itested, it]));
 
       if (it > 1 && extend == 0) {
         newE_temp[it] = newE;
@@ -179,6 +179,13 @@ transformed parameters {
         newE_temp[it] = 1 + zero; //ignore this
       }
 
+      //test_factor = test_enrichment * frac_isolate * test_sensitivity
+      if (it >= t_testing) {
+        pos_tests = fmin(num_tests * test_factor * x[Imild,it] / npop, x[Imild,it]);
+      } else {
+        pos_tests = 0;
+      }
+      newQ = 1.0/duration_tested * x[Itested, it]; //duration_tested = days to get test result (min = 1)
 
       newI = 1.0/duration_latent * x[E, it];
       newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
@@ -191,11 +198,12 @@ transformed parameters {
 
       x[S, it+1] = x[S, it] - newE;
       x[E, it+1] = x[E, it] + newE - newI;
-      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild;
+      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild - pos_tests;
+      x[Itested, it+1] = x[Itested, it] + pos_tests - newQ;
       x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp - newhosp;
       x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
       x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
-      x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort);
+      x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort) + newQ;
       x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort;
 
       // cumulative hospital admissions
