@@ -248,6 +248,7 @@ model {
     real obs;
     real sim;
     int cnt;
+    real scale = npop / 1000000;
 
     cnt = 0;
     for (iobs in 1:nobs){
@@ -259,7 +260,7 @@ model {
             obs = obs + obs_data_pui[itype, iobs] * frac_PUI[itype];
           }
           sim = sim_data[itype, tobs[iobs]];
-          error[cnt] = (obs - sim) / sigma_obs[itype];
+          error[cnt] = (obs - sim) / (sigma_obs[itype] * scale);
         }
       }
     }
