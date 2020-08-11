@@ -185,7 +185,7 @@ transformed parameters {
       } else {
         pos_tests = 0;
       }
-      newQ = 1.0/duration_tested * x[Itested, it]; //duration_tested = days to get test result (min = 1)
+      newQ = (1.0/duration_tested + 1.0/duration_rec_mild) * x[Itested, it]; //duration_tested = days to get test result (min = 1); newQ also includes those who recover while waiting for test results
 
       newI = 1.0/duration_latent * x[E, it];
       newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];

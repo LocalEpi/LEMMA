@@ -256,10 +256,11 @@ GetQuantiles <- function(fit, inputs) {
   # int Hicu  = 6;
   # int Rlive = 7;
   # int Rmort = 8;
+  # int Itested = 9;
   x <- rstan::extract(fit, pars = "x")[[1]]
 
   exposed <- GetQuant(x[, 2, ])
-  infected <- GetQuant(x[, 3, ] + x[, 4, ])
+  infected <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 9, ])
   active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
   total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
 
