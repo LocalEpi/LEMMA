@@ -1,4 +1,4 @@
-TwoPop <- function(input1, inputs) {
+TwoPop <- function(inputs1, inputs2) {
   seir_inputs1 <- GetStanInputs(inputs1)
   seir_inputs2 <- GetStanInputs(inputs2)
 
@@ -33,13 +33,18 @@ TwoPop <- function(input1, inputs) {
   }
 
   internal.args <- inputs1$internal.args
-
+  if (is.null(internal.args$warmup) || is.na(internal.args$warmup)) {
+    warmup <- floor(internal.args$iter / 2)
+  } else {
+    warmup <- internal.args$warmup
+  }
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
                                  data = seir_inputs,
                                  seed = internal.args$random.seed,
                                  iter = internal.args$iter,
                                  chains = 4,
+                                 warmup = warmup,
                                  cores = internal.args$cores,
                                  refresh = internal.args$refresh,
                                  control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
@@ -52,8 +57,8 @@ TwoPop <- function(input1, inputs) {
   quantiles2 <- GetQuantiles2(stan_seir_fit, inputs1, 2)
   GetExcelOutput(quantiles1, inputs1)
   GetExcelOutput(quantiles2, inputs2)
-  g1 <- GetPlots(quantiles1, inputs1, "white")
-  g2 <- GetPlots(quantiles2, inputs2, "African American")
+  g1 <- GetPlots(quantiles1, inputs1, inputs1$internal.args$label)
+  g2 <- GetPlots(quantiles2, inputs2, inputs2$internal.args$label)
   return(list(fit = stan_seir_fit, g1 = g1, g2 = g2))
 }
 
