@@ -78,6 +78,10 @@ GetStanInputs <- function(inputs) {
   # Observed Data - PUI
   seir_inputs[['obs_data_pui']] <- ConvertNa(inputs$obs.data[, paste0(DataTypes(), ".", "pui")])
 
+  if (IsValidInput(inputs$internal.args$initial.deaths)) {
+    seir_inputs[['obs_data_conf']]["deaths.conf", ] <- seir_inputs[['obs_data_conf']]["deaths.conf", ] - inputs$internal.args$initial.deaths
+  }
+
   # total population
   seir_inputs[['npop']] = inputs$model.inputs$total.population
 
@@ -114,10 +118,10 @@ RunSim <- function(inputs) {
     init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
-  if (is.null(inputs$internal.args$warmup) || is.na(inputs$internal.args$warmup)) {
-    warmup <- floor(internal.args$iter / 2)
-  } else {
+  if (IsValidInput(inputs$internal.args$warmup)) {
     warmup <- inputs$internal.args$warmup
+  } else {
+    warmup <- floor(internal.args$iter / 2)
   }
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
@@ -255,10 +259,16 @@ GetQuantiles <- function(fit, inputs) {
 
   quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
 
-  if (!is.null(inputs$internal.args$inital.deaths) && !is.na(inputs$internal.args$inital.deaths)) {
-    quantiles$deaths <- quantiles$deaths + inputs$internal.args$inital.deaths
+  if (IsValidInput(inputs$internal.args$initial.deaths)) {
+    quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }
   return(quantiles)
+}
+
+IsValidInput <- function(x) {
+  stopifnot(length(x) %in% 0:1)
+  if (is.null(x)) return(FALSE)
+  return(is.finite(x))
 }
 
 
