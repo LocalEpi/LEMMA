@@ -348,8 +348,10 @@ model {
   }
 }
 generated quantities{
-  // real<lower=0.0> Rt[nt];
-  // for (it in 1:nt) {
-    //   Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / population;
-    // }
+  real<lower=0.0> Rt[nt, npops];
+  for (it in 1:nt) {
+    for (ipop in 1:npops) {
+      Rt[it, ipop] = beta[it, ipop] * (frac_hosp[it, ipop] * duration_pre_hosp[ipop] + (1 - frac_hosp[it, ipop]) * duration_rec_mild) * x[S, it, ipop] / population[ipop]; //Rt if population were isolated
+    }
+  }
 }
