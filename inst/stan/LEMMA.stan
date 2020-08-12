@@ -90,7 +90,7 @@ transformed data {
   }
 
   if (extend == 1) {
-    beta_limit = 9999; // no limit on beta if extending simulation
+    beta_limit = 1e10; // no limit on beta if extending simulation
   } else {
     beta_limit = 2.0;
   }

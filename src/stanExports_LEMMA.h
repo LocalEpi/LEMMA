@@ -527,7 +527,7 @@ public:
             current_statement_begin__ = 92;
             if (as_bool(logical_eq(extend, 1))) {
                 current_statement_begin__ = 93;
-                stan::math::assign(beta_limit, 9999);
+                stan::math::assign(beta_limit, 1e10);
             } else {
                 current_statement_begin__ = 95;
                 stan::math::assign(beta_limit, 2.0);
