@@ -157,6 +157,7 @@ GetRtPlot <- function(quantiles, inputs) {
   return(gg)
 }
 
+expansion <- function() c(0, 0, 0, 0) #fixes a problem if AWS has old ggplot version
 
 GetPdfOutput <- function(fit, quantiles, inputs) {
   devlist <- grDevices::dev.list()
