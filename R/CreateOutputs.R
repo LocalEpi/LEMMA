@@ -24,7 +24,7 @@ StanHist <- function (object, pars, base.date, ...) {
   if (!is.null(base.date)) {
     samp$value <- base.date + samp$value
   }
-  thm <- rstan:::rstanvis_hist_theme()
+  thm <- rstan:::.rstanvis_defaults$hist_theme
   base <- ggplot2::ggplot(samp, ggplot2::aes_string(x = "value", y = "..density.."))
   graph <- base + do.call(ggplot2::geom_histogram, dots) +
     ggplot2::xlab("") + thm
