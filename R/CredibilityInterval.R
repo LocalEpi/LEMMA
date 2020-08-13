@@ -73,14 +73,15 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['nobs']] <- nrow(inputs$obs.data)
   seir_inputs[['tobs']] <- as.numeric(inputs$obs.data$date - day0)
 
-  # Observed Data - Confirmed
-  seir_inputs[['obs_data_conf']] <- ConvertNa(inputs$obs.data[, paste0(DataTypes(), ".", "conf")])
-  # Observed Data - PUI
-  seir_inputs[['obs_data_pui']] <- ConvertNa(inputs$obs.data[, paste0(DataTypes(), ".", "pui")])
-
+  obs.data <- copy(inputs$obs.data)
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
-    seir_inputs[['obs_data_conf']]["deaths.conf", ] <- seir_inputs[['obs_data_conf']]["deaths.conf", ] - inputs$internal.args$initial.deaths
+    obs.data[, deaths.conf := deaths.conf - inputs$internal.args$initial.deaths]
   }
+
+  # Observed Data - Confirmed
+  seir_inputs[['obs_data_conf']] <- ConvertNa(obs.data[, paste0(DataTypes(), ".", "conf")])
+  # Observed Data - PUI
+  seir_inputs[['obs_data_pui']] <- ConvertNa(obs.data[, paste0(DataTypes(), ".", "pui")])
 
   # total population
   seir_inputs[['npop']] = inputs$model.inputs$total.population
