@@ -38,8 +38,9 @@ data {
 
   real<lower=0.0> frac_pui;     //fraction of PUI that are true COVID+
 
-  real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
-  real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
+  // real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
+  // real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
+  real<lower=0.0> frac_hosp;
   real<lower=0.0> frac_icu;            // mean ICU as fraction of hosp
   real<lower=0.0> frac_mort;           // mean mortality as fraction of ICU
 
@@ -64,11 +65,12 @@ transformed data {
   int Imild = 3;
   int Ipreh = 4;
   int Hmod  = 5;
-  int Hicu  = 6;
-  int Rlive = 7;
-  int Rmort = 8;
+  // int Hicu  = 6;
+  // int Rlive = 7;
+  // int Rmort = 8;
 
-  int ncompartments = 8;
+  // int ncompartments = 8;
+  int ncompartments = 5;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -101,7 +103,7 @@ parameters {
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
 
-  real<lower=0.005, upper=1.0> frac_hosp;
+  // real<lower=0.005, upper=1.0> frac_hosp;
 
 
   real<lower=0> ini_exposed[npops];
@@ -121,9 +123,10 @@ parameters {
 transformed parameters {
 
   real<lower=0.0> x[ncompartments,nt,npops];
-  real<lower=0.0> sim_data[nt,npops];
-  real<lower=0.0, upper=2.0> beta[nt,npops];
-  real<lower=0.0> beta_mat[nt-1,npops,npops]; //could make local, drop nt
+  // real<lower=0.0> sim_data[nt,npops];
+  real<lower=0.0> beta[nt,npops];
+  // real<lower=0.0, upper=2.0> beta[nt,npops];
+  // real<lower=0.0> beta_mat[nt-1,npops,npops]; //could make local, drop nt
 
   {
     // variables in curly brackets will not have output, they are local variables
@@ -138,7 +141,7 @@ transformed parameters {
     real zero;
     real total_population = sum(population);
     real m;
-    // real beta_mat[npops,npops];
+    real beta_mat[npops,npops];
 
     //////////////////////////////////////////
 
@@ -179,18 +182,18 @@ transformed parameters {
           if (ipop1 == ipop2) {
             m = inv_logit(mobility_coef_home_0 + mobility_coef_home_1 * mobility[it, ipop1, ipop2]);
             //m = 0 is no time at home, m = 1 is all time at home
-            beta_mat[it, ipop1, ipop2] = beta[it, ipop1] * (1 + m * (total_population / population[ipop1] - 1));
+            beta_mat[ipop1, ipop2] = beta[it, ipop1] * (1 + m * (total_population / population[ipop1] - 1));
           } else {
             //m = 0 is no time at home, m = 1 is all time at home
             m = inv_logit(mobility_coef_away_0 + mobility_coef_away_1 * mobility[it, ipop1, ipop2]);
-            beta_mat[it, ipop1, ipop2] = 0.5 * (beta[it, ipop1] + beta[it, ipop2]) * (1 - m);
+            beta_mat[ipop1, ipop2] = 0.5 * (beta[it, ipop1] + beta[it, ipop2]) * (1 - m);
           }
         }
       }
 
       for (ipop1 in 1:npops) {
         for (ipop2 in 1:npops) {
-          newE[ipop1] = newE[ipop1] + beta_mat[it, ipop1, ipop2] * x[S,it,ipop1] * (x[Imild,it,ipop2] + x[Ipreh,it,ipop2]) / total_population;
+          newE[ipop1] = newE[ipop1] + beta_mat[ipop1, ipop2] * x[S,it,ipop1] * (x[Imild,it,ipop2] + x[Ipreh,it,ipop2]) / total_population;
         }
       }
 
@@ -200,7 +203,7 @@ transformed parameters {
         newhosp[ipop] = 1.0/duration_pre_hosp * x[Ipreh,it,ipop];
         newrec_mild[ipop] = 1.0/duration_rec_mild * x[Imild,it,ipop];
         newrec_mod[ipop] = 1.0/duration_hosp_mod * x[Hmod,it,ipop];
-        leave_icu[ipop] = 1.0/duration_hosp_icu * x[Hicu, it,ipop];
+        // leave_icu[ipop] = 1.0/duration_hosp_icu * x[Hicu, it,ipop];
 
         //////////////////////////////////////////
         // S -> E -> I
@@ -209,26 +212,27 @@ transformed parameters {
         x[E, it+1, ipop] = x[E, it, ipop] + newE[ipop] - newI[ipop];
         x[Imild, it+1, ipop] = x[Imild, it, ipop] + newI[ipop] * (1 - frac_hosp) - newrec_mild[ipop];
         x[Ipreh, it+1, ipop] = x[Ipreh, it, ipop] + newI[ipop] * frac_hosp - newhosp[ipop];
-        x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] * (1 - frac_icu) - newrec_mod[ipop];
-        x[Hicu, it+1, ipop] = x[Hicu, it, ipop] + newhosp[ipop] * frac_icu - leave_icu[ipop];
-        x[Rlive, it+1, ipop] = x[Rlive, it, ipop] + newrec_mild[ipop] + newrec_mod[ipop] + leave_icu[ipop] * (1 - frac_mort);
-        x[Rmort, it+1, ipop] = x[Rmort, it, ipop] + leave_icu[ipop] * frac_mort;
+        x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] - newrec_mod[ipop];
+        // x[Hmod, it+1, ipop] = x[Hmod, it, ipop] + newhosp[ipop] * (1 - frac_icu) - newrec_mod[ipop];
+        // x[Hicu, it+1, ipop] = x[Hicu, it, ipop] + newhosp[ipop] * frac_icu - leave_icu[ipop];
+        // x[Rlive, it+1, ipop] = x[Rlive, it, ipop] + newrec_mild[ipop] + newrec_mod[ipop] + leave_icu[ipop] * (1 - frac_mort);
+        // x[Rmort, it+1, ipop] = x[Rmort, it, ipop] + leave_icu[ipop] * frac_mort;
 
         //////////////////////////////////////////
         // test
-        if (fabs(sum(x[:,it+1,ipop])-population[ipop]) > 1e-1){
-          reject("Model is leaking, net gain: ", sum(x[:,it+1,ipop])-population[ipop])
-        }
+        // if (fabs(sum(x[:,it+1,ipop])-population[ipop]) > 1e-1){
+        //   reject("Model is leaking, net gain: ", sum(x[:,it+1,ipop])-population[ipop])
+        // }
       }
     }
   }
 
   // // Data for fitting
-  for (ipop in 1:npops) {
-    for (it in 1:nt) {
-      sim_data[it, ipop] = x[Hmod, it, ipop] + x[Hicu, it, ipop];
-    }
-  }
+  // for (ipop in 1:npops) {
+  //   for (it in 1:nt) {
+  //     sim_data[it, ipop] = x[Hmod, it, ipop] + x[Hicu, it, ipop];
+  //   }
+  // }
 }
 model {
   ////////////////////////////////////////
@@ -242,7 +246,7 @@ model {
   sigma_obs ~ exponential(1.0);
 
   {
-    vector[nobs_notmissing + 11 + (npops + 2) * ninter] error;
+    vector[nobs_notmissing + 10 + (npops + 2) * ninter] error;
     real obs;
     real sim;
     int cnt = 0;
@@ -257,7 +261,7 @@ model {
           if (obs_data_pui[iobs, ipop] > 0) {
             obs = obs + obs_data_pui[iobs, ipop] * frac_pui;
           }
-          sim = sim_data[tobs[iobs], ipop];
+          sim = x[Hmod, tobs[iobs], ipop];
           error[cnt] = (obs - sim) / (sigma_obs * scale);
         }
       }
@@ -279,8 +283,6 @@ model {
     error[cnt] = (duration_hosp_mod - mu_duration_hosp_mod) / sigma_duration_hosp_mod;
     cnt = cnt + 1;
     error[cnt] = (duration_hosp_icu - mu_duration_hosp_icu) / sigma_duration_hosp_icu;
-    cnt = cnt + 1;
-    error[cnt] = (frac_hosp - mu_frac_hosp) / sigma_frac_hosp;
     cnt = cnt + 1;
     error[cnt] = (duration_latent - mu_duration_latent) / sigma_duration_latent;
     cnt = cnt + 1;

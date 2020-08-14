@@ -94,7 +94,7 @@ inputs$mobility <- mobility
 #reset obs.data.conf, obs.data.pui, lambda_ini_exposed, total.population, mu_beta_inter, sigma_beta_inter, mobility
 
 inputs$internal.args$random.seed <- 1
-inputs$internal.args$iter <- 20
+inputs$internal.args$iter <- 100
 inputs$internal.args$adapt_delta <- 0.8
 inputs$internal.args$warmup <- round(inputs$internal.args$iter * 0.7)
 

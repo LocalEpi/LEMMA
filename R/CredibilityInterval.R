@@ -96,6 +96,7 @@ GetStanInputs <- function(inputs) {
   seir_inputs$frac_pui <- 0.3
   seir_inputs$frac_icu <- 0.28
   seir_inputs$frac_mort <- 0.4
+  seir_inputs$frac_hosp <- 0.04
   seir_inputs$mobility <- inputs$mobility
   return(seir_inputs)
 }
