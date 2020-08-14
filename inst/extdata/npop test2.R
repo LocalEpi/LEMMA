@@ -1,7 +1,7 @@
 #get mobility array from chris, get running on laptop with small iter, run on AWS with small iter, run on AWS with large iter (r6g.xlarge)
 
 library(data.table)
-setwd("~/Dropbox/AWSsync/Npop/")
+setwd("~/LEMMA/inst/extdata/")
 input.file <- "Npop input3.xlsx" #Npop3
 sheets <- LEMMA:::ReadInputs(input.file)
 inputs <- LEMMA:::ProcessSheets(sheets, input.file)
@@ -91,7 +91,7 @@ inputs$sigma_beta_inter <- matrix(inputs$interventions$sigma_beta_inter, nrow = 
 inputs$mobility <- mobility
 #reset obs.data.conf, obs.data.pui, lambda_ini_exposed, total.population, mu_beta_inter, sigma_beta_inter, mobility
 
-inputs$internal.args$iter <- 300
+inputs$internal.args$iter <- 1000
 inputs$internal.args$warmup <- round(inputs$internal.args$iter * 0.7)
 
 fit <- LEMMA:::CredibilityInterval(inputs)
