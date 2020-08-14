@@ -1,7 +1,9 @@
 #get mobility array from chris, get running on laptop with small iter, run on AWS with small iter, run on AWS with large iter (r6g.xlarge)
 
 library(data.table)
-setwd("~/LEMMA/inst/extdata/")
+output.filestr <- gsub(":| ", "-", paste0("Npop", Sys.time()))
+# setwd("~/LEMMA/inst/extdata/")
+setwd("~/Dropbox/jsLEMMA/inst/extdata/")
 input.file <- "Npop input3.xlsx" #Npop3
 sheets <- LEMMA:::ReadInputs(input.file)
 inputs <- LEMMA:::ProcessSheets(sheets, input.file)
@@ -91,16 +93,19 @@ inputs$sigma_beta_inter <- matrix(inputs$interventions$sigma_beta_inter, nrow = 
 inputs$mobility <- mobility
 #reset obs.data.conf, obs.data.pui, lambda_ini_exposed, total.population, mu_beta_inter, sigma_beta_inter, mobility
 
-inputs$internal.args$iter <- 1000
+inputs$internal.args$random.seed <- 1
+inputs$internal.args$iter <- 20
+inputs$internal.args$adapt_delta <- 0.8
 inputs$internal.args$warmup <- round(inputs$internal.args$iter * 0.7)
 
+saveRDS(inputs, file = paste0(output.filestr, "inputs.RDS"))
 fit <- LEMMA:::CredibilityInterval(inputs)
 
 library(matrixStats)
 library(ggplot2)
 library(data.table)
 
-pdf("Npop2-2-npop input3.pdf", width = 11, height = 8)
+pdf(paste0(output.filestr, ".pdf"), width = 11, height = 8)
 Rt <- rstan::extract(fit, pars = "Rt")[[1]]
 rt <- as.data.table(Rt)
 setnames(rt, c("V2", "V1", "value"), c("t", "county.num", "Rt"))
@@ -130,4 +135,13 @@ for (i in county.set) {
 
   LEMMA:::GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
 }
+
+for (p in c("duration_latent", "duration_rec_mild", "duration_pre_hosp",
+            "duration_hosp_mod", "duration_hosp_icu", "frac_hosp", "ini_exposed",
+            "sigma_obs", "r0", "t_inter", "len_inter",
+            "mobility_coef_home_0", "mobility_coef_home_1",
+            "mobility_coef_away_0", "mobility_coef_away_1")) {
+  print(rstan::stan_hist(fit, p))
+}
 dev.off()
+

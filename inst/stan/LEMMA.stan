@@ -113,8 +113,10 @@ parameters {
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
-  real mobility_coef0;
-  real mobility_coef1;
+  real mobility_coef_home_0;
+  real mobility_coef_home_1;
+  real mobility_coef_away_0;
+  real mobility_coef_away_1;
 }
 transformed parameters {
 
@@ -174,10 +176,13 @@ transformed parameters {
 
         for (ipop2 in 1:npops) {
           //mobility = fraction of (pop1 + pop2) moving between 1 and 2 on it
-          m = inv_logit(mobility_coef0 + mobility_coef1 * mobility[it, ipop1, ipop2]);
           if (ipop1 == ipop2) {
+            m = inv_logit(mobility_coef_home_0 + mobility_coef_home_1 * mobility[it, ipop1, ipop2]);
+            //m = 0 is no time at home, m = 1 is all time at home
             beta_mat[it, ipop1, ipop2] = beta[it, ipop1] * (1 + m * (total_population / population[ipop1] - 1));
           } else {
+            //m = 0 is no time at home, m = 1 is all time at home
+            m = inv_logit(mobility_coef_away_0 + mobility_coef_away_1 * mobility[it, ipop1, ipop2]);
             beta_mat[it, ipop1, ipop2] = 0.5 * (beta[it, ipop1] + beta[it, ipop2]) * (1 - m);
           }
         }
@@ -237,14 +242,14 @@ model {
   sigma_obs ~ exponential(1.0);
 
   {
-    vector[nobs_notmissing + 9 + (npops + 2) * ninter] error;
+    vector[nobs_notmissing + 11 + (npops + 2) * ninter] error;
     real obs;
     real sim;
     int cnt = 0;
     real scale;
 
     for (ipop in 1:npops) {
-      scale = population[ipop] / 1000000;
+      scale = 0.5 * population[ipop] / 1000000; //I think 0.5 gives a tighter fit to obs
       for (iobs in 1:nobs){
         if (obs_data_conf[iobs, ipop] > 0) {
           cnt = cnt + 1;
@@ -261,9 +266,13 @@ model {
     cnt = cnt + 1;
     error[cnt] = (r0 - mu_r0) / sigma_r0;
     cnt = cnt + 1;
-    error[cnt] = mobility_coef0 / 5;
+    error[cnt] = mobility_coef_home_0 / 5;
     cnt = cnt + 1;
-    error[cnt] = mobility_coef1 / 5;
+    error[cnt] = mobility_coef_home_1 / 5;
+    cnt = cnt + 1;
+    error[cnt] = mobility_coef_away_0 / 5;
+    cnt = cnt + 1;
+    error[cnt] = mobility_coef_away_1 / 5;
     cnt = cnt + 1;
     error[cnt] = (duration_pre_hosp - mu_duration_pre_hosp) / sigma_duration_pre_hosp;
     cnt = cnt + 1;
