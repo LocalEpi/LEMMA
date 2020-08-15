@@ -60,11 +60,11 @@ data {
 }
 transformed data {
   //assigning indices for state matrix x
-  int S = 1;
-  int E = 2;
-  int Imild = 3;
-  int Ipreh = 4;
-  int Hmod  = 5;
+  // int S = 1;
+  // int E = 2;
+  // int Imild = 3;
+  // int Ipreh = 4;
+  // int Hmod  = 5;
   // int Hicu  = 6;
   // int Rlive = 7;
   // int Rmort = 8;
@@ -122,7 +122,8 @@ parameters {
 }
 transformed parameters {
 
-  real<lower=0.0> x[ncompartments,nt,npops];
+  matrix<lower=0.0> S[]
+  //real<lower=0.0> x[ncompartments,nt,npops];
   // real<lower=0.0> sim_data[nt,npops];
   real<lower=0.0> beta[nt,npops];
   // real<lower=0.0, upper=2.0> beta[nt,npops];
@@ -191,11 +192,15 @@ transformed parameters {
         }
       }
 
-      for (ipop1 in 1:npops) {
-        for (ipop2 in 1:npops) {
-          newE[ipop1] = newE[ipop1] + beta_mat[ipop1, ipop2] * x[S,it,ipop1] * (x[Imild,it,ipop2] + x[Ipreh,it,ipop2]) / total_population;
-        }
-      }
+      // for (ipop1 in 1:npops) {
+      //   for (ipop2 in 1:npops) {
+      //     newE[ipop1] = newE[ipop1] + beta_mat[ipop1, ipop2] * x[S,it,ipop1] * (x[Imild,it,ipop2] + x[Ipreh,it,ipop2]) / total_population;
+      //   }
+      // }
+      //beta_mat = matrix npop x npop
+      //I = vector npop x 1
+      //S = vector npop x 1
+      newE = S * (beta_mat %*% I) / total_population;
 
       for (ipop in 1:npops) {
         newE[ipop] = fmin(newE[ipop], x[S,it,ipop]);
