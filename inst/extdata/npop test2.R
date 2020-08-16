@@ -93,9 +93,10 @@ inputs$sigma_beta_inter <- matrix(inputs$interventions$sigma_beta_inter, nrow = 
 inputs$mobility <- mobility
 #reset obs.data.conf, obs.data.pui, lambda_ini_exposed, total.population, mu_beta_inter, sigma_beta_inter, mobility
 
-inputs$internal.args$random.seed <- 1
-inputs$internal.args$iter <- 20
-inputs$internal.args$adapt_delta <- 0.8
+inputs$internal.args$random.seed <- 10
+inputs$internal.args$iter <- 1200
+inputs$internal.args$adapt_delta <- 0.95
+inputs$internal.args$max_treedepth <- 13 #last run was 10 - lots of exceeded warnings
 inputs$internal.args$warmup <- round(inputs$internal.args$iter * 0.7)
 
 saveRDS(inputs, file = paste0(output.filestr, "inputs.RDS"))
