@@ -65,12 +65,10 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   dt.plot <- merge(obs.data, quantiles.dt, all = T, by = "date")
 
   if (short.term) {
-    date.breaks <- "1 week"
     max.date <- obs.data[!is.na(conf), max(date)] + 3
     title1 <- paste("Short Term", GetTitleLabel(data.type), "Projection")
     plot.observed.data <- inputs$internal.args$plot.observed.data.short.term
   } else {
-    date.breaks <- "1 month"
     max.date <- max(dt.plot$date) - 3 #makes it look a little nicer when ending on first of the month
     title1 <- paste("Long Term", GetTitleLabel(data.type), "Projection")
     plot.observed.data <- inputs$internal.args$plot.observed.data.long.term
@@ -117,7 +115,7 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_date(date_breaks = date.breaks, date_labels = "%b %d", expand = expansion()) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %d", expand = expansion()) +
     guides(color = guide_legend("", order = 1, override.aes = over.aes), alpha = guide_legend("", order = 2)) +
     theme(legend.position = "bottom", plot.margin = margin(0.1, 0.2, 0, 0.1, "in"),
           axis.text.x=element_text(hjust = 0.7))
@@ -148,7 +146,7 @@ GetRtPlot <- function(quantiles, inputs) {
     scale_color_manual("", values = "blue") +
     scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-    scale_x_date(date_breaks = "1 week", date_labels = "%b %d", expand = expansion()) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %d", expand = expansion()) +
     guides(color = guide_legend("", order = 1), alpha = guide_legend("", order = 2)) +
     theme(legend.position = "bottom", plot.margin = margin(0.1, 0.2, 0, 0.1, "in"),
           axis.text.x=element_text(hjust = 0.7)) +
