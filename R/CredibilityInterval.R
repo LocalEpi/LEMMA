@@ -48,7 +48,8 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
 # int obs_icu_census = 2;
 # int obs_cum_deaths = 3;
 # int obs_cum_admits = 4;
-DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits")
+#int obs_cases = 5;
+DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits", "cases")
 
 ConvertNa <- function(dt) {
   t(data.matrix(dt[, lapply(.SD, function (z) ifelse(is.na(z), -1, z))]))
@@ -233,7 +234,7 @@ GetQuantiles <- function(fit, inputs) {
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
 
   quantiles <- sapply(DataTypes(), function (i) {
-    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
+    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, cases = 5, stop("unexpected bounds name"))
     q <- GetQuant(sim.data[, sim.data.index, ])
     return(q)
   }, simplify = FALSE)

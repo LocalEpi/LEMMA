@@ -44,6 +44,9 @@ data {
   real<lower=0.0> sigma_frac_icu;         // sd ICU as fraction of hosp
   real<lower=0.0> mu_frac_mort;           // mean mortality as fraction of ICU
   real<lower=0.0> sigma_frac_mort;        // sd mortality as fraction of ICU
+  real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
+  real<lower=0.0> sigma_frac_tested;      // sd of infected who test positiveof infected who test positive
+
 
   real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
 
@@ -76,6 +79,7 @@ transformed data {
   int obs_icu_census = 2;
   int obs_cum_deaths = 3;
   int obs_cum_admits = 4;
+  int obs_cases = 5;
 
   int nobs_notmissing = 0;
 
@@ -106,6 +110,7 @@ parameters {
   real<lower=0.005, upper=1.0> frac_hosp;
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
+  real<lower=0.0, upper=1.0> frac_tested;
 
   real<lower=0> ini_exposed;
 
@@ -124,6 +129,7 @@ transformed parameters {
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
+  row_vector<lower=0.0>[nt] new_cases;
   real<lower=1e-10> newE_temp[nt-1];
   {
     // variables in curly brackets will not have output, they are local variables
@@ -157,6 +163,7 @@ transformed parameters {
     x[S,1] = npop-ini_exposed;
     x[E,1] = ini_exposed;
     Hadmits[1] = zero;
+    new_cases[1] = zero;
 
     //////////////////////////////////////////
     // the SEIR model
@@ -193,6 +200,9 @@ transformed parameters {
       // cumulative hospital admissions
       Hadmits[it+1] = Hadmits[it] + newhosp;
 
+      // new cases that are tested (assumes everyone tests positive on day transitions from E to I - would be better to add some random delay? maybe minor issue)
+      new_cases[it+1] = newI * frac_tested;
+
       //////////////////////////////////////////
       // test
       if (fabs(sum(x[:,it+1])-npop) > 1e-1){
@@ -211,8 +221,10 @@ transformed parameters {
       sim_data[itype] = x[Rmort];
     } else if (itype == obs_cum_admits) {
       sim_data[itype] = Hadmits;
+    } else if (itype == obs_cases) {
+      sim_data[itype] = new_cases;
     } else {
-      reject("unexpected itype")
+      reject(itype, "unexpected itype")
     }
   }
 }
@@ -237,6 +249,7 @@ model {
   frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
   frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
   frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
+  frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
 
   ini_exposed ~ exponential(lambda_ini_exposed);
 

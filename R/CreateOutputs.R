@@ -46,6 +46,7 @@ GetYLabel <- function(data.type, long.name) {
          icu = "Number of COVID19 Patients in ICU",
          deaths = "Number of COVID19 Deaths",
          cum.admits = "Number of Cumulative COVID19 Admissions to Hospital",
+         cases = "Cases",
          stop("unexpected data.type"))
 }
 
@@ -55,6 +56,7 @@ GetTitleLabel <- function(data.type) {
          icu = "ICU",
          deaths = "Death",
          cum.admits = "Cumulative Admission",
+         cases = "Cases",
          stop("unexpected data.type"))
 }
 
@@ -182,7 +184,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   print(g)
 
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
-            "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort",
+            "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort", "frac_tested",
             "beta_multiplier", "t_inter", "len_inter", "frac_PUI", "ini_exposed", "sigma_obs")
   lapply(pars, function (p) print(PlotHist(fit, p, base.date = inputs$internal.args$simulation.start.date)))
 
