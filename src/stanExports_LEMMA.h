@@ -1260,8 +1260,9 @@ public:
                 } else {
                     current_statement_begin__ = 227;
                     std::stringstream errmsg_stream__;
+                    errmsg_stream__ << "unexpected itype - itype is ";
                     errmsg_stream__ << itype;
-                    errmsg_stream__ << "unexpected itype";
+                    errmsg_stream__ << " -- ";
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }
@@ -1887,8 +1888,9 @@ public:
                 } else {
                     current_statement_begin__ = 227;
                     std::stringstream errmsg_stream__;
+                    errmsg_stream__ << "unexpected itype - itype is ";
                     errmsg_stream__ << itype;
-                    errmsg_stream__ << "unexpected itype";
+                    errmsg_stream__ << " -- ";
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }

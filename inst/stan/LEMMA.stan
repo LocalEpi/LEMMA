@@ -224,7 +224,7 @@ transformed parameters {
     } else if (itype == obs_cases) {
       sim_data[itype] = new_cases;
     } else {
-      reject(itype, "unexpected itype")
+      reject("unexpected itype - itype is ", itype, " -- ")
     }
   }
 }
