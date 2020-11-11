@@ -92,7 +92,7 @@ GetQuantilesRelative <- function(fit, inputs) {
   }
   RelQuant <- function(a, use.max) {
     if (use.max) {
-      quantile(rowMaxs(a[, , 2] / a[, , 1]), probs = seq(0, 1, by = 0.05))
+      quantile(rowMaxs(a[, , 2]) / rowMaxs(a[, , 1]), probs = seq(0, 1, by = 0.05))
     } else {
       quant <- GetQuant(a[, , 2] / a[, , 1])
       data.table(date = rownames(quant), quant)
@@ -113,6 +113,7 @@ GetQuantilesRelative <- function(fit, inputs) {
 
   quantiles <- sapply(results, RelQuant, use.max = F, simplify = F)
   quantiles.max <- sapply(results, RelQuant, use.max = T)
+  quantiles.max <- data.table(quant = rownames(quantiles.max), quantiles.max)
 
   output.list <- c(quantiles, list(max = quantiles.max))
   filestr.out <- paste0(inputs$internal.args$output.filestr, "-relative.xlsx")
