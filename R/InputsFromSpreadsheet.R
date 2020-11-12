@@ -10,7 +10,6 @@ CredibilityIntervalFromExcel <- function(input.file) {
   cred.int <- CredibilityInterval(inputs)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", getNamespaceVersion("LEMMA"), "\n")
-  cat("LEMMA is in early development. Please reinstall from github daily.\n")
   invisible(cred.int)
 }
 
