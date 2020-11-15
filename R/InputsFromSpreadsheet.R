@@ -35,9 +35,10 @@ ToString <- function(sheets) {
 
   prev.width <- getOption("width")
   prev.print.nrows <- getOption("datatable.print.nrows")
-  options(width = 300, datatable.print.nrows = 300)
+  prev.max.print <- getOption("max.print")
+  options(width = 300, datatable.print.nrows = 300, max.print = 10000)
   all.inputs.str <- utils::capture.output(print(sheets))
-  options(width = prev.width, datatable.print.nrows = prev.print.nrows)
+  options(width = prev.width, datatable.print.nrows = prev.print.nrows, max.print = prev.max.print)
   all.inputs.str <- c("NOTE: set font to Courier to read", all.inputs.str)
   return(all.inputs.str)
 }
