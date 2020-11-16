@@ -54,10 +54,8 @@ ReadInputs <- function(path) {
   return(sheets)
 }
 
-AddInterventions <- function(interventions, max.date) {
+AddInterventions <- function(interventions, min.date, max.date) {
   interval <- 14
-
-  min.date <- min(interventions$mu_t_inter)
   d.set <- seq(max.date, min.date, by = "-1 day")
   for (i in seq_along(d.set)) {
     d <- d.set[i]
@@ -100,7 +98,12 @@ ProcessSheets <- function(sheets, path) {
   interventions[, sigma_beta_inter := pmax(sigma_beta_inter, 0.001)]
   interventions[, sigma_len_inter := pmax(sigma_len_inter, 0.01)]
   if (internal.args$automatic.interventions) {
-    interventions <- AddInterventions(interventions, max.date = obs.data[, max(date)])
+    if (nrow(interventions) == 0) {
+      min.date <- internal.args$simulation.start.date
+    } else {
+      min.date <- min(interventions$mu_t_inter)
+    }
+    interventions <- AddInterventions(interventions, min.date = min.date, max.date = obs.data[, max(date)])
   }
 
   if (is.na(internal.args$output.filestr)) {
