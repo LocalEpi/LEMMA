@@ -60,7 +60,7 @@ AddInterventions <- function(interventions, min.date, max.date) {
   for (i in seq_along(d.set)) {
     d <- d.set[i]
     if (min(abs(as.numeric(interventions$mu_t_inter - d))) > interval) {
-      if (i == 1) {
+      if (i <= 2) {
         sd1 <- 0.1
       } else {
         sd1 <- 0.3
