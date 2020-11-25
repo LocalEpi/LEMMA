@@ -1088,7 +1088,7 @@ public:
                 current_statement_begin__ = 166;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
                 current_statement_begin__ = 168;
-                if (as_bool((primitive_value(logical_gt(it, 1)) && primitive_value(logical_eq(extend, 0))))) {
+                if (as_bool((primitive_value((primitive_value(logical_gt(it, 1)) && primitive_value(logical_lt(it, 200)))) && primitive_value(logical_eq(extend, 0))))) {
                     current_statement_begin__ = 169;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
@@ -1672,7 +1672,7 @@ public:
                 current_statement_begin__ = 166;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
                 current_statement_begin__ = 168;
-                if (as_bool((primitive_value(logical_gt(it, 1)) && primitive_value(logical_eq(extend, 0))))) {
+                if (as_bool((primitive_value((primitive_value(logical_gt(it, 1)) && primitive_value(logical_lt(it, 200)))) && primitive_value(logical_eq(extend, 0))))) {
                     current_statement_begin__ = 169;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 

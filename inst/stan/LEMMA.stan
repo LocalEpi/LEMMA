@@ -165,7 +165,7 @@ transformed parameters {
       // set transition variables
       newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
 
-      if (it > 1 && extend == 0) {
+      if (it > 1 && it < 200 && extend == 0) {
         newE_temp[it] = newE;
       } else {
         newE_temp[it] = 1 + zero; //ignore this
