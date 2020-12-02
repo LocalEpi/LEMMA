@@ -231,10 +231,19 @@ GetQuantiles <- function(fit, inputs) {
 
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
+  sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
+  scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
-    q <- GetQuant(sim.data[, sim.data.index, ])
+    sim.data.without.error <- sim.data[, sim.data.index, ]
+    error.sd <- sigma.obs[, sim.data.index] * scale
+    num.days <- ncol(sim.data.without.error)
+    niter <- nrow(sim.data.without.error)
+    error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
+    sim.data.with.error <- sim.data.without.error + error.term
+    sim.data.with.error[sim.data.with.error < 0] <- 0
+    q <- GetQuant(sim.data.with.error)
     return(q)
   }, simplify = FALSE)
 
@@ -251,15 +260,17 @@ GetQuantiles <- function(fit, inputs) {
   # int Hicu  = 6;
   # int Rlive = 7;
   # int Rmort = 8;
-  x <- rstan::extract(fit, pars = "x")[[1]]
 
-  exposed <- GetQuant(x[, 2, ])
-  infected <- GetQuant(x[, 3, ] + x[, 4, ])
-  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
-  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
-
-  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
-
+  #these don't have a sigma_obs, would need to think about it
+  # x <- rstan::extract(fit, pars = "x")[[1]]
+  #
+  # exposed <- GetQuant(x[, 2, ])
+  # infected <- GetQuant(x[, 3, ] + x[, 4, ])
+  # active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
+  # total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+  #
+  # quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
+  quantiles <- c(quantiles, list(rt = rt.quantiles))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }
