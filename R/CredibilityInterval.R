@@ -261,15 +261,15 @@ GetQuantiles <- function(fit, inputs) {
   # int Rlive = 7;
   # int Rmort = 8;
 
-  #these don't have a sigma_obs, would need to think about it
-  # x <- rstan::extract(fit, pars = "x")[[1]]
-  #
-  # exposed <- GetQuant(x[, 2, ])
-  # infected <- GetQuant(x[, 3, ] + x[, 4, ])
-  # active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
-  # total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
-  #
-  # quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
+  #these don't have a sigma_obs, would need to add it if we had an observed quantity for any of these (not likely)
+  x <- rstan::extract(fit, pars = "x")[[1]]
+
+  exposed <- GetQuant(x[, 2, ])
+  infected <- GetQuant(x[, 3, ] + x[, 4, ])
+  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
+  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
   quantiles <- c(quantiles, list(rt = rt.quantiles))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
