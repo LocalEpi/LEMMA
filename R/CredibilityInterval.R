@@ -235,13 +235,22 @@ GetQuantiles <- function(fit, inputs) {
   scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
+    nrep <- 10
+
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
     sim.data.without.error <- sim.data[, sim.data.index, ]
-    error.sd <- sigma.obs[, sim.data.index] * scale
+
     num.days <- ncol(sim.data.without.error)
     niter <- nrow(sim.data.without.error)
-    error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
-    sim.data.with.error <- sim.data.without.error + error.term
+
+    sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=10), niter * nrep, num.days)
+
+    error.sd <- sigma.obs[, sim.data.index] * scale
+    # error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
+    error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
+
+    # sim.data.with.error <- sim.data.without.error + error.term
+    sim.data.with.error <- sim.data.without.error.rep + error.term.rep
     sim.data.with.error[sim.data.with.error < 0] <- 0
     q <- GetQuant(sim.data.with.error)
     return(q)
