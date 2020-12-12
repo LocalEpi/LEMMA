@@ -170,7 +170,9 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }
 
-  rt <- quantiles$rt[1:(nrow(quantiles$rt) - 14), ] #cutoff Rt plot 14 days before last observed data
+  rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 14)
+  # rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 9)
+  rt <- quantiles$rt[rt.index, ] #cutoff Rt plot 14 days before last observed data
   rt.plot <- GetRtPlot(rt, inputs)
   rt.date <- rownames(rt)[nrow(rt)]
   date.index <- as.numeric(as.Date(rt.date) - inputs$internal.args$simulation.start.date)
