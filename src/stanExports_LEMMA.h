@@ -562,15 +562,6 @@ public:
             current_statement_begin__ = 116;
             validate_non_negative_index("beta_multiplier", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 117;
-            validate_non_negative_index("t_inter", "ninter", ninter);
-            num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 118;
-            validate_non_negative_index("len_inter", "ninter", ninter);
-            num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 120;
-            validate_non_negative_index("frac_PUI", "nobs_types", nobs_types);
-            num_params_r__ += (1 * nobs_types);
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -758,66 +749,6 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable beta_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 117;
-        if (!(context__.contains_r("t_inter")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable t_inter missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("t_inter");
-        pos__ = 0U;
-        validate_non_negative_index("t_inter", "ninter", ninter);
-        context__.validate_dims("parameter initialization", "t_inter", "double", context__.to_vec(ninter));
-        std::vector<double> t_inter(ninter, double(0));
-        size_t t_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < t_inter_k_0_max__; ++k_0__) {
-            t_inter[k_0__] = vals_r__[pos__++];
-        }
-        size_t t_inter_i_0_max__ = ninter;
-        for (size_t i_0__ = 0; i_0__ < t_inter_i_0_max__; ++i_0__) {
-            try {
-                writer__.scalar_lb_unconstrain(1.0, t_inter[i_0__]);
-            } catch (const std::exception& e) {
-                stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable t_inter: ") + e.what()), current_statement_begin__, prog_reader__());
-            }
-        }
-        current_statement_begin__ = 118;
-        if (!(context__.contains_r("len_inter")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable len_inter missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("len_inter");
-        pos__ = 0U;
-        validate_non_negative_index("len_inter", "ninter", ninter);
-        context__.validate_dims("parameter initialization", "len_inter", "double", context__.to_vec(ninter));
-        std::vector<double> len_inter(ninter, double(0));
-        size_t len_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < len_inter_k_0_max__; ++k_0__) {
-            len_inter[k_0__] = vals_r__[pos__++];
-        }
-        size_t len_inter_i_0_max__ = ninter;
-        for (size_t i_0__ = 0; i_0__ < len_inter_i_0_max__; ++i_0__) {
-            try {
-                writer__.scalar_lb_unconstrain(1.0, len_inter[i_0__]);
-            } catch (const std::exception& e) {
-                stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable len_inter: ") + e.what()), current_statement_begin__, prog_reader__());
-            }
-        }
-        current_statement_begin__ = 120;
-        if (!(context__.contains_r("frac_PUI")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_PUI missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("frac_PUI");
-        pos__ = 0U;
-        validate_non_negative_index("frac_PUI", "nobs_types", nobs_types);
-        context__.validate_dims("parameter initialization", "frac_PUI", "double", context__.to_vec(nobs_types));
-        std::vector<double> frac_PUI(nobs_types, double(0));
-        size_t frac_PUI_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
-            frac_PUI[k_0__] = vals_r__[pos__++];
-        }
-        size_t frac_PUI_i_0_max__ = nobs_types;
-        for (size_t i_0__ = 0; i_0__ < frac_PUI_i_0_max__; ++i_0__) {
-            try {
-                writer__.scalar_lub_unconstrain(0, 1, frac_PUI[i_0__]);
-            } catch (const std::exception& e) {
-                stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_PUI: ") + e.what()), current_statement_begin__, prog_reader__());
-            }
-        }
         params_r__ = writer__.data_r();
         params_i__ = writer__.data_i();
     }
@@ -933,36 +864,6 @@ public:
                 else
                     beta_multiplier.push_back(in__.scalar_lb_constrain(0.0));
             }
-            current_statement_begin__ = 117;
-            std::vector<local_scalar_t__> t_inter;
-            size_t t_inter_d_0_max__ = ninter;
-            t_inter.reserve(t_inter_d_0_max__);
-            for (size_t d_0__ = 0; d_0__ < t_inter_d_0_max__; ++d_0__) {
-                if (jacobian__)
-                    t_inter.push_back(in__.scalar_lb_constrain(1.0, lp__));
-                else
-                    t_inter.push_back(in__.scalar_lb_constrain(1.0));
-            }
-            current_statement_begin__ = 118;
-            std::vector<local_scalar_t__> len_inter;
-            size_t len_inter_d_0_max__ = ninter;
-            len_inter.reserve(len_inter_d_0_max__);
-            for (size_t d_0__ = 0; d_0__ < len_inter_d_0_max__; ++d_0__) {
-                if (jacobian__)
-                    len_inter.push_back(in__.scalar_lb_constrain(1.0, lp__));
-                else
-                    len_inter.push_back(in__.scalar_lb_constrain(1.0));
-            }
-            current_statement_begin__ = 120;
-            std::vector<local_scalar_t__> frac_PUI;
-            size_t frac_PUI_d_0_max__ = nobs_types;
-            frac_PUI.reserve(frac_PUI_d_0_max__);
-            for (size_t d_0__ = 0; d_0__ < frac_PUI_d_0_max__; ++d_0__) {
-                if (jacobian__)
-                    frac_PUI.push_back(in__.scalar_lub_constrain(0, 1, lp__));
-                else
-                    frac_PUI.push_back(in__.scalar_lub_constrain(0, 1));
-            }
             // transformed parameters
             current_statement_begin__ = 123;
             validate_non_negative_index("x", "ncompartments", ncompartments);
@@ -1057,7 +958,7 @@ public:
                     current_statement_begin__ = 150;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                                (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
+                                (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(mu_len_inter, iinter, "mu_len_inter", 1)) * (it - (get_base1(mu_t_inter, iinter, "mu_t_inter", 1) + (get_base1(mu_len_inter, iinter, "mu_len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
@@ -1268,16 +1169,10 @@ public:
             // model body
             current_statement_begin__ = 222;
             lp_accum__.add(normal_log<propto__>(r0, mu_r0, sigma_r0));
-            current_statement_begin__ = 223;
-            lp_accum__.add(normal_log<propto__>(frac_PUI, mu_frac_pui, sigma_frac_pui));
             current_statement_begin__ = 225;
             for (int iinter = 1; iinter <= ninter; ++iinter) {
                 current_statement_begin__ = 226;
                 lp_accum__.add(normal_log<propto__>(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1)));
-                current_statement_begin__ = 227;
-                lp_accum__.add(normal_log<propto__>(get_base1(t_inter, iinter, "t_inter", 1), get_base1(mu_t_inter, iinter, "mu_t_inter", 1), get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)));
-                current_statement_begin__ = 228;
-                lp_accum__.add(normal_log<propto__>(get_base1(len_inter, iinter, "len_inter", 1), get_base1(mu_len_inter, iinter, "mu_len_inter", 1), get_base1(sigma_len_inter, iinter, "sigma_len_inter", 1)));
             }
             current_statement_begin__ = 231;
             lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
@@ -1340,7 +1235,7 @@ public:
                         current_statement_begin__ = 259;
                         if (as_bool(logical_gt(get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1), 0))) {
                             current_statement_begin__ = 260;
-                            stan::math::assign(obs, (obs + (get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1) * get_base1(frac_PUI, itype, "frac_PUI", 1))));
+                            stan::math::assign(obs, (obs + (get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1) * get_base1(mu_frac_pui, itype, "mu_frac_pui", 1))));
                         }
                         current_statement_begin__ = 262;
                         stan::math::assign(sim, get_base1(sim_data, itype, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1));
@@ -1387,9 +1282,6 @@ public:
         names__.push_back("sigma_obs");
         names__.push_back("r0");
         names__.push_back("beta_multiplier");
-        names__.push_back("t_inter");
-        names__.push_back("len_inter");
-        names__.push_back("frac_PUI");
         names__.push_back("x");
         names__.push_back("sim_data");
         names__.push_back("beta");
@@ -1425,15 +1317,6 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(ninter);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(ninter);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(ninter);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(nobs_types);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(ncompartments);
@@ -1509,36 +1392,6 @@ public:
         size_t beta_multiplier_k_0_max__ = ninter;
         for (size_t k_0__ = 0; k_0__ < beta_multiplier_k_0_max__; ++k_0__) {
             vars__.push_back(beta_multiplier[k_0__]);
-        }
-        std::vector<double> t_inter;
-        size_t t_inter_d_0_max__ = ninter;
-        t_inter.reserve(t_inter_d_0_max__);
-        for (size_t d_0__ = 0; d_0__ < t_inter_d_0_max__; ++d_0__) {
-            t_inter.push_back(in__.scalar_lb_constrain(1.0));
-        }
-        size_t t_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < t_inter_k_0_max__; ++k_0__) {
-            vars__.push_back(t_inter[k_0__]);
-        }
-        std::vector<double> len_inter;
-        size_t len_inter_d_0_max__ = ninter;
-        len_inter.reserve(len_inter_d_0_max__);
-        for (size_t d_0__ = 0; d_0__ < len_inter_d_0_max__; ++d_0__) {
-            len_inter.push_back(in__.scalar_lb_constrain(1.0));
-        }
-        size_t len_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < len_inter_k_0_max__; ++k_0__) {
-            vars__.push_back(len_inter[k_0__]);
-        }
-        std::vector<double> frac_PUI;
-        size_t frac_PUI_d_0_max__ = nobs_types;
-        frac_PUI.reserve(frac_PUI_d_0_max__);
-        for (size_t d_0__ = 0; d_0__ < frac_PUI_d_0_max__; ++d_0__) {
-            frac_PUI.push_back(in__.scalar_lub_constrain(0, 1));
-        }
-        size_t frac_PUI_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
-            vars__.push_back(frac_PUI[k_0__]);
         }
         double lp__ = 0.0;
         (void) lp__;  // dummy to suppress unused var warning
@@ -1641,7 +1494,7 @@ public:
                     current_statement_begin__ = 150;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                                (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
+                                (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(mu_len_inter, iinter, "mu_len_inter", 1)) * (it - (get_base1(mu_t_inter, iinter, "mu_t_inter", 1) + (get_base1(mu_len_inter, iinter, "mu_len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
@@ -1930,24 +1783,6 @@ public:
             param_name_stream__ << "beta_multiplier" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
-        size_t t_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < t_inter_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "t_inter" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        size_t len_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < len_inter_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "len_inter" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        size_t frac_PUI_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "frac_PUI" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
         if (!include_gqs__ && !include_tparams__) return;
         if (include_tparams__) {
             size_t x_j_2_max__ = nt;
@@ -2039,24 +1874,6 @@ public:
         for (size_t k_0__ = 0; k_0__ < beta_multiplier_k_0_max__; ++k_0__) {
             param_name_stream__.str(std::string());
             param_name_stream__ << "beta_multiplier" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        size_t t_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < t_inter_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "t_inter" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        size_t len_inter_k_0_max__ = ninter;
-        for (size_t k_0__ = 0; k_0__ < len_inter_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "len_inter" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        size_t frac_PUI_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < frac_PUI_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "frac_PUI" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
         if (!include_gqs__ && !include_tparams__) return;
