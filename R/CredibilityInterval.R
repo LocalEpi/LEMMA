@@ -251,8 +251,8 @@ GetQuantiles <- function(fit, inputs) {
 
     # sim.data.with.error <- sim.data.without.error + error.term
     sim.data.with.error <- sim.data.without.error.rep + error.term.rep
-    sim.data.with.error[sim.data.with.error < 0] <- 0
     q <- GetQuant(sim.data.with.error)
+    q[q < 0] <- 0
     return(q)
   }, simplify = FALSE)
 
