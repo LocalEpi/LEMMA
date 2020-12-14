@@ -279,7 +279,6 @@ GetQuantiles <- function(fit, inputs) {
   total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
 
   quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
-  quantiles <- c(quantiles, list(rt = rt.quantiles))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }

@@ -114,7 +114,7 @@ parameters {
 
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
- // real<lower=1.0> t_inter[ninter];
+  real<lower=1.0> t_inter[ninter];
  // real<lower=1.0> len_inter[ninter];
 
   // real<lower=0, upper=1> frac_PUI[nobs_types];
@@ -147,7 +147,7 @@ transformed parameters {
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
-        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / mu_len_inter[iinter] * (it - (mu_t_inter[iinter] + mu_len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / mu_len_inter[iinter] * (it - (t_inter[iinter] + mu_len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
       }
     }
 
@@ -224,7 +224,7 @@ model {
 
   for (iinter in 1:ninter) {
     beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
-    // t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
+    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
     // len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
   }
 
