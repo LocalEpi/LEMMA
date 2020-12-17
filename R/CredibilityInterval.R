@@ -163,9 +163,9 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
       new_beta_multiplier <- pmax(0.01, rnorm(n, new.interventions$mu_beta_inter, new.interventions$sigma_beta_inter))
       new_t_inter <- pmax(1.01, rnorm(n, new.interventions$mu_t_inter - day0, new.interventions$sigma_t_inter))
       new_len_inter <- pmax(1.01, rnorm(n, new.interventions$mu_len_inter, new.interventions$sigma_len_inter))
-      init$beta_multiplier <- c(init$beta_multiplier, new_beta_multiplier)
-      init$t_inter <- c(init$t_inter, new_t_inter)
-      init$len_inter <- c(init$len_inter, new_len_inter)
+      init$beta_multiplier <- as.array(c(init$beta_multiplier, new_beta_multiplier))
+      init$t_inter <- as.array(c(init$t_inter, new_t_inter))
+      init$len_inter <- as.array(c(init$len_inter, new_len_inter))
     }
     return(init)
   }
@@ -175,8 +175,9 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
     if (any(new.interventions$mu_t_inter <= max.obs.data.date)) {
       stop("dates in new.interventions must be after last observed data")
     }
+    inputs$interventions <- rbind(inputs$interventions, new.interventions)
   }
-  inputs$interventions <- rbind(inputs$interventions, new.interventions)
+
   day0 <- inputs$internal.args$simulation.start.date
 
   fit.to.data <- lemma.object$fit.to.data
