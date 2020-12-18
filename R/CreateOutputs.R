@@ -119,7 +119,6 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
     guides(color = guide_legend("", order = 1, override.aes = over.aes), alpha = guide_legend("", order = 2)) +
     theme(legend.position = "bottom", plot.margin = margin(0.1, 0.2, 0, 0.1, "in"),
           axis.text.x=element_text(hjust = 0.7))
-  print(gg)
   return(gg)
 }
 
@@ -167,7 +166,9 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
   short.term <- long.term <- list()
   for (i in DataTypes()) {
     short.term[[i]] <- GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
+    print(short.term[[i]])
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
+    print(long.term[[i]])
   }
 
   rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 14)
