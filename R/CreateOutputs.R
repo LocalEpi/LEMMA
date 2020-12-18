@@ -172,7 +172,9 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
     long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
   }
 
-  rt <- quantiles$rt[1:(nrow(quantiles$rt) - 14), ] #cutoff Rt plot 14 days before last observed data
+  rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 14)
+  # rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 9)
+  rt <- quantiles$rt[rt.index, ] #cutoff Rt plot 14 days before last observed data
   rt.plot <- GetRtPlot(rt, inputs)
   rt.date <- rownames(rt)[nrow(rt)]
   date.index <- as.numeric(as.Date(rt.date) - inputs$internal.args$simulation.start.date)
@@ -185,7 +187,8 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
             "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort", "frac_tested",
-            "beta_multiplier", "t_inter", "len_inter", "frac_PUI", "ini_exposed", "sigma_obs")
+            "beta_multiplier", "t_inter", "frac_PUI", "ini_exposed", "sigma_obs")
+
   lapply(pars, function (p) print(PlotHist(fit, p, base.date = inputs$internal.args$simulation.start.date)))
 
   grDevices::dev.off()

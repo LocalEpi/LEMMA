@@ -10,7 +10,6 @@ CredibilityIntervalFromExcel <- function(input.file) {
   cred.int <- CredibilityInterval(inputs)
   cat("\nDone\n\n")
   cat("Current LEMMA version: ", getNamespaceVersion("LEMMA"), "\n")
-  cat("LEMMA is in early development. Please reinstall from github daily.\n")
   invisible(cred.int)
 }
 
@@ -55,14 +54,12 @@ ReadInputs <- function(path) {
   return(sheets)
 }
 
-AddInterventions <- function(interventions, max.date) {
+AddInterventions <- function(interventions, min.date, max.date) {
   interval <- 14
-
-  min.date <- min(interventions$mu_t_inter)
   d.set <- seq(max.date, min.date, by = "-1 day")
   for (i in seq_along(d.set)) {
     d <- d.set[i]
-    if (min(abs(as.numeric(interventions$mu_t_inter - d))) > interval) {
+    if ((length(interventions$mu_t_inter) == 0) || (min(abs(as.numeric(interventions$mu_t_inter - d))) >= interval)) {
       if (i <= (2 * interval)) {
         sd1 <- 0.1
       } else {
@@ -101,14 +98,19 @@ ProcessSheets <- function(sheets, path) {
   interventions[, sigma_beta_inter := pmax(sigma_beta_inter, 0.001)]
   interventions[, sigma_len_inter := pmax(sigma_len_inter, 0.01)]
   if (internal.args$automatic.interventions) {
-    interventions <- AddInterventions(interventions, max.date = obs.data[, max(date)])
+    if (nrow(interventions) == 0) {
+      min.date <- internal.args$simulation.start.date
+    } else {
+      min.date <- min(interventions$mu_t_inter)
+    }
+    interventions <- AddInterventions(interventions, min.date = min.date, max.date = obs.data[, max(date)])
   }
 
   if (is.na(internal.args$output.filestr)) {
     internal.args$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }
   if (internal.args$add.timestamp.to.filestr) {
-    internal.args$output.filestr <- paste0(internal.args$output.filestr, date())
+    internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
   if (is.na(internal.args$cores)) {
     internal.args$cores <- parallel::detectCores()
