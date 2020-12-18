@@ -239,7 +239,7 @@ GetQuantiles <- function(fit, inputs) {
   quantiles <- sapply(DataTypes(), function (i) {
     nrep <- 10
 
-    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
+    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, cases = 5, stop("unexpected bounds name"))
     sim.data.without.error <- sim.data[, sim.data.index, ]
 
     num.days <- ncol(sim.data.without.error)
