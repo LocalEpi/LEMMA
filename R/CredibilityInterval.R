@@ -163,9 +163,9 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
       new_beta_multiplier <- pmax(0.01, rnorm(n, new.interventions$mu_beta_inter, new.interventions$sigma_beta_inter))
       new_t_inter <- pmax(1.01, rnorm(n, new.interventions$mu_t_inter - day0, new.interventions$sigma_t_inter))
       new_len_inter <- pmax(1.01, rnorm(n, new.interventions$mu_len_inter, new.interventions$sigma_len_inter))
-      init$beta_multiplier <- c(init$beta_multiplier, new_beta_multiplier)
-      init$t_inter <- c(init$t_inter, new_t_inter)
-      init$len_inter <- c(init$len_inter, new_len_inter)
+      init$beta_multiplier <- as.array(c(init$beta_multiplier, new_beta_multiplier))
+      init$t_inter <- as.array(c(init$t_inter, new_t_inter))
+      init$len_inter <- as.array(c(init$len_inter, new_len_inter))
     }
     return(init)
   }
@@ -175,8 +175,9 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
     if (any(new.interventions$mu_t_inter <= max.obs.data.date)) {
       stop("dates in new.interventions must be after last observed data")
     }
+    inputs$interventions <- rbind(inputs$interventions, new.interventions)
   }
-  inputs$interventions <- rbind(inputs$interventions, new.interventions)
+
   day0 <- inputs$internal.args$simulation.start.date
 
   fit.to.data <- lemma.object$fit.to.data
@@ -231,10 +232,28 @@ GetQuantiles <- function(fit, inputs) {
 
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
+  sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
+  scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
+    nrep <- 10
+
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
-    q <- GetQuant(sim.data[, sim.data.index, ])
+    sim.data.without.error <- sim.data[, sim.data.index, ]
+
+    num.days <- ncol(sim.data.without.error)
+    niter <- nrow(sim.data.without.error)
+
+    sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=10), niter * nrep, num.days)
+
+    error.sd <- sigma.obs[, sim.data.index] * scale
+    # error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
+    error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
+
+    # sim.data.with.error <- sim.data.without.error + error.term
+    sim.data.with.error <- sim.data.without.error.rep + error.term.rep
+    q <- GetQuant(sim.data.with.error)
+    q[q < 0] <- 0
     return(q)
   }, simplify = FALSE)
 
@@ -251,6 +270,8 @@ GetQuantiles <- function(fit, inputs) {
   # int Hicu  = 6;
   # int Rlive = 7;
   # int Rmort = 8;
+
+  #these don't have a sigma_obs, would need to add it if we had an observed quantity for any of these (not likely)
   x <- rstan::extract(fit, pars = "x")[[1]]
 
   exposed <- GetQuant(x[, 2, ])
@@ -259,7 +280,6 @@ GetQuantiles <- function(fit, inputs) {
   total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
 
   quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
-
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }

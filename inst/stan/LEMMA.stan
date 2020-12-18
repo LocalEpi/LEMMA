@@ -115,9 +115,9 @@ parameters {
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
-  real<lower=1.0> len_inter[ninter];
+ // real<lower=1.0> len_inter[ninter];
 
-  real<lower=0, upper=1> frac_PUI[nobs_types];
+  // real<lower=0, upper=1> frac_PUI[nobs_types];
 }
 transformed parameters {
   matrix[ncompartments,nt] x;
@@ -147,7 +147,7 @@ transformed parameters {
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
-        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / mu_len_inter[iinter] * (it - (t_inter[iinter] + mu_len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
       }
     }
 
@@ -220,12 +220,12 @@ model {
   //////////////////////////////////////////
   // prior distributions
   r0 ~ normal(mu_r0, sigma_r0);
-  frac_PUI ~ normal(mu_frac_pui, sigma_frac_pui);
+  // frac_PUI ~ normal(mu_frac_pui, sigma_frac_pui);
 
   for (iinter in 1:ninter) {
     beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
     t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
-    len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
+    // len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
   }
 
   duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
@@ -257,7 +257,7 @@ model {
           cnt = cnt + 1;
           obs = obs_data_conf[itype, iobs];
           if (obs_data_pui[itype, iobs] > 0) {
-            obs = obs + obs_data_pui[itype, iobs] * frac_PUI[itype];
+            obs = obs + obs_data_pui[itype, iobs] * mu_frac_pui[itype];
           }
           sim = sim_data[itype, tobs[iobs]];
           error[cnt] = (obs - sim) / (sigma_obs[itype] * scale);
