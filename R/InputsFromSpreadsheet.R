@@ -110,7 +110,7 @@ ProcessSheets <- function(sheets, path) {
     internal.args$output.filestr <- sub(".xlsx", " output", path, fixed = T)
   }
   if (internal.args$add.timestamp.to.filestr) {
-    internal.args$output.filestr <- paste0(internal.args$output.filestr, date())
+    internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
   if (is.na(internal.args$cores)) {
     internal.args$cores <- parallel::detectCores()
