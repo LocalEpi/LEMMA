@@ -58,6 +58,10 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
+  real<lower=0.0> vaccinated_per_day;
+  real<lower=0.0> vaccine_transmission_multiplier;
+  //real<lower=0.0> vaccine_duration;
+
 }
 transformed data {
   //assigning indices for state matrix x
@@ -69,8 +73,9 @@ transformed data {
   int Hicu  = 6;
   int Rlive = 7;
   int Rmort = 8;
+  int V = 9;
 
-  int ncompartments = 8;
+  int ncompartments = 9;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -163,7 +168,7 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
+      newE = fmin(x[S,it],  (x[S,it] + x[V,it] * vaccine_transmission_multiplier)  * beta[it]/npop * (x[Imild,it] + x[Ipreh,it]));
 
       if (it > 1 && it < 200 && extend == 0) {
         newE_temp[it] = newE;
