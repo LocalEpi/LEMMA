@@ -97,6 +97,12 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
+  seir_inputs[['nvac']] <- 2
+  seir_inputs[['vaccinated_per_day']] <- c(2000, 5000)
+  seir_inputs[['vaccinated_t']] <- c(20, 40)
+  seir_inputs[['vaccine_efficacy_transmission']] <- 0
+  seir_inputs[['vaccine_efficacy_susceptible']] <- 0.95
+
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
@@ -262,24 +268,30 @@ GetQuantiles <- function(fit, inputs) {
   rt.quantiles <- GetQuant(rt.all)
   rt.quantiles <- rt.quantiles[dates <= rt.date, ]
 
-  # int S = 1;
-  # int E = 2;
-  # int Imild = 3;
-  # int Ipreh = 4;
-  # int Hmod  = 5;
-  # int Hicu  = 6;
-  # int Rlive = 7;
-  # int Rmort = 8;
+  # int Su = 1;
+  # int Sv = 2;
+  # int Eu = 3;
+  # int Ev = 4;
+  # int Imildu = 5;
+  # int Imildv = 6;
+  # int Ipreh = 7;
+  # int Hmod  = 8;
+  # int Hicu  = 9;
+  # int Rliveu = 10;
+  # int Rlivev = 11;
+  # int Rmort = 12;
 
   #these don't have a sigma_obs, would need to add it if we had an observed quantity for any of these (not likely)
   x <- rstan::extract(fit, pars = "x")[[1]]
 
-  exposed <- GetQuant(x[, 2, ])
-  infected <- GetQuant(x[, 3, ] + x[, 4, ])
-  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ])
-  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+  exposed <- GetQuant(x[, 3, ] + x[, 4, ])
+  infected <- GetQuant(x[, 5, ] + x[, 6, ] + x[, 7, ])
+  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ])
+  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
+  vaccinated = GetQuant(x[, 2, ] + x[, 4, ] + x[, 6, ] + x[, 11, ])
+  Su <- GetQuant(x[, 1, ])
 
-  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases))
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases, vaccinated = vaccinated, Su = Su))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }

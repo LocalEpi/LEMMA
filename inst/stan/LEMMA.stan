@@ -58,24 +58,29 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
-  real<lower=0.0> vaccinated_per_day;
-  real<lower=0.0> vaccine_transmission_multiplier;
-  //real<lower=0.0> vaccine_duration;
+  int<lower=0> nvac;
+  real<lower=0.0> vaccinated_per_day[nvac];
+  real<lower=0.0> vaccinated_t[nvac];
+  real<lower=0.0> vaccine_efficacy_transmission;
+  real<lower=0.0> vaccine_efficacy_susceptible;
 
 }
 transformed data {
   //assigning indices for state matrix x
-  int S = 1;
-  int E = 2;
-  int Imild = 3;
-  int Ipreh = 4;
-  int Hmod  = 5;
-  int Hicu  = 6;
-  int Rlive = 7;
-  int Rmort = 8;
-  int V = 9;
+  int Su = 1;
+  int Sv = 2;
+  int Eu = 3;
+  int Ev = 4;
+  int Imildu = 5;
+  int Imildv = 6;
+  int Ipreh = 7;
+  int Hmod  = 8;
+  int Hicu  = 9;
+  int Rliveu = 10;
+  int Rlivev = 11;
+  int Rmort = 12;
 
-  int ncompartments = 9;
+  int ncompartments = 12;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -133,9 +138,12 @@ transformed parameters {
   {
     // variables in curly brackets will not have output, they are local variables
 
-    real newE;
-    real newI;
-    real newrec_mild;
+    real newEu;
+    real newEv;
+    real newIu;
+    real newIv;
+    real newrecu_mild;
+    real newrecv_mild;
     real newrec_mod;
     real newhosp;
     real leave_icu;
@@ -143,6 +151,10 @@ transformed parameters {
     real obs;
     real sim;
     real zero;
+    real vaccinated;
+    real frac_vac_S;
+    real newSv;
+    real newRlivev;
 
     //////////////////////////////////////////
     // Calculate beta for each time point
@@ -159,8 +171,8 @@ transformed parameters {
     // initial cond
     zero = ini_exposed * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
-    x[S,1] = npop-ini_exposed;
-    x[E,1] = ini_exposed;
+    x[Su,1] = npop-ini_exposed;
+    x[Eu,1] = ini_exposed;
     Hadmits[1] = zero;
 
     //////////////////////////////////////////
@@ -168,31 +180,50 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newE = fmin(x[S,it],  (x[S,it] + x[V,it] * vaccine_transmission_multiplier)  * beta[it]/npop * (x[Imild,it] + x[Ipreh,it]));
+      newEu = fmin(x[Su,it],  x[Su,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission) * x[Imildv,it]));
+      newEv = fmin(x[Sv,it],  x[Sv,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission) * x[Imildv,it]));
+
 
       if (it > 1 && it < 200 && extend == 0) {
-        newE_temp[it] = newE;
+        newE_temp[it] = newEu;
       } else {
         newE_temp[it] = 1 + zero; //ignore this
       }
 
+      vaccinated = 0; //successfully vaccinated on this day
+      for (ivac in 1:nvac) {
+        if (it >= vaccinated_t[ivac]) {
+          vaccinated = vaccinated + vaccine_efficacy_susceptible * vaccinated_per_day[ivac];
+        }
+      }
+      vaccinated = fmin(vaccinated, x[Su, it] + x[Eu, it] + x[Rliveu, it]);
 
-      newI = 1.0/duration_latent * x[E, it];
+
+      newIu = 1.0/duration_latent * x[Eu, it];
+      newIv = 1.0/duration_latent * x[Ev, it];
       newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
-      newrec_mild = 1.0/duration_rec_mild * x[Imild,it];
+      newrecu_mild = 1.0/duration_rec_mild * x[Imildu,it];
+      newrecv_mild = 1.0/duration_rec_mild * x[Imildv,it];
       newrec_mod = 1.0/duration_hosp_mod * x[Hmod,it];
       leave_icu = 1.0/duration_hosp_icu * x[Hicu, it];
+      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]);
+      newSv = vaccinated * frac_vac_S;
+      newRlivev = vaccinated * (1 - frac_vac_S);
 
       //////////////////////////////////////////
       // S -> E -> I
 
-      x[S, it+1] = x[S, it] - newE;
-      x[E, it+1] = x[E, it] + newE - newI;
-      x[Imild, it+1] = x[Imild, it] + newI * (1 - frac_hosp) - newrec_mild;
-      x[Ipreh, it+1] = x[Ipreh, it] + newI * frac_hosp - newhosp;
+      x[Su, it+1] = x[Su, it] - newEu - newSv;
+      x[Sv, it+1] = x[Sv, it] - newEv + newSv;
+      x[Eu, it+1] = x[Eu, it] + newEu - newIu;
+      x[Ev, it+1] = x[Ev, it] + newEv - newIv;
+      x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hosp) - newrecu_mild;
+      x[Imildv, it+1] = x[Imildv, it] + newIv - newrecv_mild; //100% of vax are mild
+      x[Ipreh, it+1] = x[Ipreh, it] + newIu * frac_hosp - newhosp;
       x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
       x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
-      x[Rlive, it+1] = x[Rlive, it] + newrec_mild + newrec_mod + leave_icu * (1 - frac_mort);
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrec_mod + leave_icu * (1 - frac_mort) - newRlivev;
+      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newRlivev;
       x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort;
 
       // cumulative hospital admissions
@@ -275,6 +306,6 @@ model {
 generated quantities{
   real<lower=0.0> Rt[nt];
   for (it in 1:nt) {
-    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
+    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[Su, it] / npop;
   }
 }
