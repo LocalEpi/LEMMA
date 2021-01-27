@@ -97,11 +97,12 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-  seir_inputs[['nvac']] <- 2
-  seir_inputs[['vaccinated_per_day']] <- c(2000, 5000)
-  seir_inputs[['vaccinated_t']] <- c(20, 40)
-  seir_inputs[['vaccine_efficacy_transmission']] <- 0
-  seir_inputs[['vaccine_efficacy_susceptible']] <- 0.95
+  stopifnot(length(inputs$vaccines$vaccinated_t) == length(inputs$vaccines$vaccinated_per_day))
+  seir_inputs[['nvac']] <- length(inputs$vaccines$vaccinated_per_day)
+  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day #c(2000, 5000)
+  seir_inputs[['vaccinated_t']] <- inputs$vaccines$vaccinated_t #c(20, 40)
+  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission #0
+  seir_inputs[['vaccine_efficacy_susceptible']] <- inputs$vaccines$efficacy_susceptible #0.95
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
