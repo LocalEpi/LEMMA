@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(313, 311, "end", "model_LEMMA");
+    reader.add_event(318, 316, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1477,6 +1477,8 @@ public:
         names__.push_back("Hadmits");
         names__.push_back("newE_temp");
         names__.push_back("Rt");
+        names__.push_back("Rt_unvac");
+        names__.push_back("frac_inf_vac");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
         dimss__.resize(0);
@@ -1529,6 +1531,11 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(nt);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nt);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
         dimss__.push_back(dims__);
     }
     template <typename RNG>
@@ -1968,22 +1975,39 @@ public:
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 307;
+            current_statement_begin__ = 308;
             validate_non_negative_index("Rt", "nt", nt);
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
+            current_statement_begin__ = 309;
+            validate_non_negative_index("Rt_unvac", "nt", nt);
+            std::vector<double> Rt_unvac(nt, double(0));
+            stan::math::initialize(Rt_unvac, DUMMY_VAR__);
+            stan::math::fill(Rt_unvac, DUMMY_VAR__);
+            current_statement_begin__ = 310;
+            double frac_inf_vac;
+            (void) frac_inf_vac;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_inf_vac, DUMMY_VAR__);
+            stan::math::fill(frac_inf_vac, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 308;
+            current_statement_begin__ = 311;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 309;
+                current_statement_begin__ = 312;
+                stan::math::assign(frac_inf_vac, (get_base1(x, Imildv, it, "x", 1) / ((get_base1(x, Imildv, it, "x", 1) + get_base1(x, Imildu, it, "x", 1)) + get_base1(x, Ipreh, it, "x", 1))));
+                current_statement_begin__ = 313;
+                stan::model::assign(Rt_unvac, 
+                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
+                            (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * (get_base1(x, Su, it, "x", 1) + get_base1(x, Sv, it, "x", 1))) / npop), 
+                            "assigning variable Rt_unvac");
+                current_statement_begin__ = 314;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                            (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(x, Su, it, "x", 1)) / npop), 
+                            ((1 - (frac_inf_vac * (1 - vaccine_efficacy_transmission))) * get_base1(Rt_unvac, it, "Rt_unvac", 1)), 
                             "assigning variable Rt");
             }
             // validate, write generated quantities
-            current_statement_begin__ = 307;
+            current_statement_begin__ = 308;
             size_t Rt_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "Rt[i_0__]", Rt[i_0__], 0.0);
@@ -1992,6 +2016,18 @@ public:
             for (size_t k_0__ = 0; k_0__ < Rt_k_0_max__; ++k_0__) {
                 vars__.push_back(Rt[k_0__]);
             }
+            current_statement_begin__ = 309;
+            size_t Rt_unvac_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < Rt_unvac_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "Rt_unvac[i_0__]", Rt_unvac[i_0__], 0.0);
+            }
+            size_t Rt_unvac_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
+                vars__.push_back(Rt_unvac[k_0__]);
+            }
+            current_statement_begin__ = 310;
+            check_greater_or_equal(function__, "frac_inf_vac", frac_inf_vac, 0.0);
+            vars__.push_back(frac_inf_vac);
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2116,6 +2152,15 @@ public:
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
+        size_t Rt_unvac_k_0_max__ = nt;
+        for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "Rt_unvac" << '.' << k_0__ + 1;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_inf_vac";
+        param_names__.push_back(param_name_stream__.str());
     }
     void unconstrained_param_names(std::vector<std::string>& param_names__,
                                    bool include_tparams__ = true,
@@ -2215,6 +2260,15 @@ public:
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
+        size_t Rt_unvac_k_0_max__ = nt;
+        for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
+            param_name_stream__.str(std::string());
+            param_name_stream__ << "Rt_unvac" << '.' << k_0__ + 1;
+            param_names__.push_back(param_name_stream__.str());
+        }
+        param_name_stream__.str(std::string());
+        param_name_stream__ << "frac_inf_vac";
+        param_names__.push_back(param_name_stream__.str());
     }
 }; // model
 }  // namespace

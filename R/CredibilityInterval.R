@@ -287,8 +287,8 @@ GetQuantiles <- function(fit, inputs) {
 
   exposed <- GetQuant(x[, 3, ] + x[, 4, ])
   infected <- GetQuant(x[, 5, ] + x[, 6, ] + x[, 7, ])
-  active.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ])
-  total.cases <- GetQuant(x[, 2, ] + x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
+  active.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ])
+  total.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
   vaccinated = GetQuant(x[, 2, ] + x[, 4, ] + x[, 6, ] + x[, 11, ])
   Su <- GetQuant(x[, 1, ])
 

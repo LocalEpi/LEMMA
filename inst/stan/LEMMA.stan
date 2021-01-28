@@ -303,9 +303,14 @@ model {
     error ~ std_normal();
   }
 }
+
 generated quantities{
   real<lower=0.0> Rt[nt];
+  real<lower=0.0> Rt_unvac[nt];
+  real<lower=0.0> frac_inf_vac;
   for (it in 1:nt) {
-    Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[Su, it] / npop;
+    frac_inf_vac = x[Imildv, it] / (x[Imildv, it] + x[Imildu, it] + x[Ipreh, it]);
+    Rt_unvac[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop; //not quite right because the fraction that goes to hospital changes as more are vaccinated (but duration_pre_hosp is ~7 and duration_rec_mild is ~5, not much difference)
+    Rt[it] = (1 - frac_inf_vac * (1 - vaccine_efficacy_transmission)) * Rt_unvac[it];
   }
 }
