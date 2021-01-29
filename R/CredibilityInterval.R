@@ -97,12 +97,9 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-  stopifnot(length(inputs$vaccines$vaccinated_t) == length(inputs$vaccines$vaccinated_per_day))
-  seir_inputs[['nvac']] <- length(inputs$vaccines$vaccinated_per_day)
-  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day #c(2000, 5000)
-  seir_inputs[['vaccinated_t']] <- inputs$vaccines$vaccinated_t #c(20, 40)
-  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission #0
-  seir_inputs[['vaccine_efficacy_susceptible']] <- inputs$vaccines$efficacy_susceptible #0.95
+  #each of these is vector length nt
+  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day #this is number SUCCESSFULLY vaccinated
+  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission
   seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated
   seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural
 

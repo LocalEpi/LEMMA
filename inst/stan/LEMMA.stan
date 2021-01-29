@@ -58,14 +58,10 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
-  int<lower=0> nvac;
-  real<lower=0.0> vaccinated_per_day[nvac];
-  real<lower=0.0> vaccinated_t[nvac];
-  real<lower=0.0> vaccine_efficacy_transmission;
-  real<lower=0.0> vaccine_efficacy_susceptible;
-
-  real<lower=1.0> duration_vaccinated;
-  real<lower=1.0> duration_natural;
+  real<lower=0.0> vaccinated_per_day[nt]; //SUCCESSFULLY vaccinated per day
+  real<lower=0.0> vaccine_efficacy_transmission[nt];
+  real<lower=1.0> duration_vaccinated[nt];
+  real<lower=1.0> duration_natural[nt];
 
 }
 transformed data {
@@ -188,8 +184,8 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newEu = fmin(x[Su,it],  x[Su,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission) * x[Imildv,it]));
-      newEv = fmin(x[Sv,it],  x[Sv,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission) * x[Imildv,it]));
+      newEu = fmin(x[Su,it],  x[Su,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission[it]) * x[Imildv,it]));
+      newEv = fmin(x[Sv,it],  x[Sv,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission[it]) * x[Imildv,it]));
 
 
       if (it > 1 && it < 200 && extend == 0) {
@@ -198,13 +194,7 @@ transformed parameters {
         newE_temp[it] = 1 + zero; //ignore this
       }
 
-      vaccinated = 0; //successfully vaccinated on this day
-      for (ivac in 1:nvac) {
-        if (it >= vaccinated_t[ivac]) {
-          vaccinated = vaccinated + vaccine_efficacy_susceptible * vaccinated_per_day[ivac];
-        }
-      }
-      vaccinated = fmin(vaccinated, x[Su, it] + x[Eu, it] + x[Rliveu, it]);
+      vaccinated = fmin(vaccinated_per_day[it], x[Su, it] + x[Eu, it] + x[Rliveu, it]);
 
 
       newIu = 1.0/duration_latent * x[Eu, it];
@@ -218,10 +208,10 @@ transformed parameters {
       newSv = vaccinated * frac_vac_S;
       newRlivev = vaccinated * (1 - frac_vac_S);
 
-      S_lostv = 1.0/duration_vaccinated * x[Sv, it];
-      R_lostv = 1.0/duration_vaccinated * x[Rlivev, it];
-      R_lostnatu = 1.0/duration_natural * x[Rliveu, it];
-      R_lostnatv = 1.0/duration_natural * x[Rlivev, it];
+      S_lostv = 1.0/duration_vaccinated[it] * x[Sv, it];
+      R_lostv = 1.0/duration_vaccinated[it] * x[Rlivev, it];
+      R_lostnatu = 1.0/duration_natural[it] * x[Rliveu, it];
+      R_lostnatv = 1.0/duration_natural[it] * x[Rlivev, it];
 
       //////////////////////////////////////////
       // S -> E -> I
@@ -324,6 +314,6 @@ generated quantities{
   for (it in 1:nt) {
     frac_inf_vac = x[Imildv, it] / (x[Imildv, it] + x[Imildu, it] + x[Ipreh, it]);
     Rt_unvac[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop; //not quite right because the fraction that goes to hospital changes as more are vaccinated (but duration_pre_hosp is ~7 and duration_rec_mild is ~5, not much difference)
-    Rt[it] = (1 - frac_inf_vac * (1 - vaccine_efficacy_transmission)) * Rt_unvac[it];
+    Rt[it] = (1 - frac_inf_vac * (1 - vaccine_efficacy_transmission[it])) * Rt_unvac[it];
   }
 }
