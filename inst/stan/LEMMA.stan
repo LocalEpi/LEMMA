@@ -64,6 +64,9 @@ data {
   real<lower=0.0> vaccine_efficacy_transmission;
   real<lower=0.0> vaccine_efficacy_susceptible;
 
+  real<lower=1.0> duration_vaccinated;
+  real<lower=1.0> duration_natural;
+
 }
 transformed data {
   //assigning indices for state matrix x
@@ -155,6 +158,11 @@ transformed parameters {
     real frac_vac_S;
     real newSv;
     real newRlivev;
+    real S_lostv;
+    real R_lostv;
+    real R_lostnatu;
+    real R_lostnatv;
+
 
     //////////////////////////////////////////
     // Calculate beta for each time point
@@ -210,11 +218,16 @@ transformed parameters {
       newSv = vaccinated * frac_vac_S;
       newRlivev = vaccinated * (1 - frac_vac_S);
 
+      S_lostv = 1.0/duration_vaccinated * x[Sv, it];
+      R_lostv = 1.0/duration_vaccinated * x[Rlivev, it];
+      R_lostnatu = 1.0/duration_natural * x[Rliveu, it];
+      R_lostnatv = 1.0/duration_natural * x[Rlivev, it];
+
       //////////////////////////////////////////
       // S -> E -> I
 
-      x[Su, it+1] = x[Su, it] - newEu - newSv;
-      x[Sv, it+1] = x[Sv, it] - newEv + newSv;
+      x[Su, it+1] = x[Su, it] - newEu - newSv + S_lostv + R_lostnatu;
+      x[Sv, it+1] = x[Sv, it] - newEv + newSv - S_lostv + R_lostnatv;
       x[Eu, it+1] = x[Eu, it] + newEu - newIu;
       x[Ev, it+1] = x[Ev, it] + newEv - newIv;
       x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hosp) - newrecu_mild;
@@ -222,8 +235,8 @@ transformed parameters {
       x[Ipreh, it+1] = x[Ipreh, it] + newIu * frac_hosp - newhosp;
       x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
       x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
-      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrec_mod + leave_icu * (1 - frac_mort) - newRlivev;
-      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newRlivev;
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrec_mod + leave_icu * (1 - frac_mort) - newRlivev + R_lostv - R_lostnatu;
+      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newRlivev - R_lostv - R_lostnatv;
       x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort;
 
       // cumulative hospital admissions
