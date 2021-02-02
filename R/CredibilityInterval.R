@@ -97,6 +97,8 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
+  seir_inputs[['panic_level']] <- inputs$internal.args$panic_level
+
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
@@ -260,7 +262,8 @@ GetQuantiles <- function(fit, inputs) {
   rt.date <- max(inputs$obs.data$date) + 5 #output up to end of observed data here (add 5 to make sure LEMMA Rt is included in Ensemble), but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
   rt.quantiles <- GetQuant(rt.all)
-  rt.quantiles <- rt.quantiles[dates <= rt.date, ]
+  #rt.quantiles <- rt.quantiles[dates <= rt.date, ]
+
 
   # int S = 1;
   # int E = 2;

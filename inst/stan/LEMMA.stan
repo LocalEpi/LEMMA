@@ -58,6 +58,7 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
+  real<lower=0.0> panic_level;
 }
 transformed data {
   //assigning indices for state matrix x
@@ -138,6 +139,7 @@ transformed parameters {
     real obs;
     real sim;
     real zero;
+    int panic;
 
     //////////////////////////////////////////
     // Calculate beta for each time point
@@ -158,12 +160,23 @@ transformed parameters {
     x[E,1] = ini_exposed;
     Hadmits[1] = zero;
 
+    panic = 0;
     //////////////////////////////////////////
     // the SEIR model
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
+
+      if (panic == 0 && x[Hmod, it] + x[Hicu, it] > panic_level) {
+        panic = 1;
+        for (jt in 1:nt) {
+            beta[jt] = beta[jt] * 0.5 ^ inv_logit(9.19024 / 7.0 * (jt - (it + 7.0 / 2)));
+        }
+      }
+
       newE = fmin(x[S,it],  x[S,it]/npop * beta[it]* (x[Imild,it] + x[Ipreh,it]));
+
+
 
       if (it > 1 && it < 200 && extend == 0) {
         newE_temp[it] = newE;
