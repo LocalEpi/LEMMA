@@ -67,7 +67,8 @@ GetStanInputs <- function(inputs) {
   day0 <- inputs$internal.args$simulation.start.date
 
   # the number of days to run the model for
-  seir_inputs[['nt']] = as.numeric(inputs$model.inputs$end.date - day0)
+  nt <- as.numeric(inputs$model.inputs$end.date - day0)
+  seir_inputs[['nt']] = nt
 
   seir_inputs[['nobs_types']] <- length(data.types)
   seir_inputs[['nobs']] <- nrow(inputs$obs.data)
@@ -97,11 +98,11 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-  #each of these is vector length nt
-  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day #this is number SUCCESSFULLY vaccinated
-  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission
-  seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated
-  seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural
+  #each of these is vector length nt - may be passed in as up to end of simulation but in RunSim we only run up to end of observed data
+  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day[1:nt] #this is number SUCCESSFULLY vaccinated
+  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission[1:nt]
+  seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated[1:nt]
+  seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural[1:nt]
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))

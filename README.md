@@ -8,6 +8,8 @@ https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use, ventilator use, active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospitalizations.
 
+** The vaccines branch is in Beta. We will work on improving documentation and usablilty. It may have errors, please interpret with caution. **
+
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to
 
@@ -19,10 +21,10 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 
 We have moved our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
 
-## Installation
+## Installation - Vaccines (Beta)
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
 2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-3. For this step there are several choices, depending on your local machine.
+3. For this step there are several choices, depending on your local machine. [the main ("master") branch can be installed from binaries but the vaccines branch must be installed from source for now]
 
     **Installing From Source (available for all platforms, but requires a C/C++ compiler)**
     
@@ -31,43 +33,59 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
     https://support.rstudio.com/hc/en-us/articles/200486498
 ```{r}
 install.packages("remotes")  #if you do not already have the remotes package
-remotes::install_github("LocalEpi/LEMMA")
-```
-    **Installing From Binary (for MacOS using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")
-```
-    
-    **Installing From Binary (for Windows using R 3.6)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-3-6-3.zip?raw=true", repos = NULL, type = "binary")
-```
-    
-    **Installing From Binary (for Windows using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-4-0.zip?raw=true", repos = NULL, type = "binary")
+remotes::install_github("LocalEpi/LEMMA@vaccines")
 ```
 
 4. Copy and paste these lines into the RStudio console:
     
 ```{r}
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)
+file.copy(system.file("extdata", "vaccine_example.xlsx", package = "LEMMA", mustWork = TRUE), "vaccine_example.xlsx", overwrite = TRUE)
 ```
 
-LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.
-
-If you get an error something like 
-"lazy-load database 'Library/R/3.6/library/LEMMA/R/LEMMA.rdb' is corrupt"
-restart R and try step 3 again.
 
 
-## Running LEMMA
-1. Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
-2. Run the following code.
+## Example code
+In order to run quickly, we pretend that vaccines were introduced starting May 1, 2020 and only use observed data up to April 1, 2020. These vaccines prevent 99% of hospitalizations. In the 99% of vaccinated for whom the vaccine is effective, transmission is reduced by 60%. Both natural immunity and vaccine protection last 360 days. These parameters could change over time, but in this example are constant. 
 ```{r}
-LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
+library(data.table)
+
+input.file <- "vaccine_example.xlsx" #assumes this was copied to current working directory
+
+sheets <- LEMMA:::ReadInputs(input.file)
+inputs <- LEMMA:::ProcessSheets(sheets, input.file)
+
+nt <- inputs$model.inputs$end.date - inputs$internal.args$simulation.start.date
+shots.start <- as.Date("2020/5/1")
+shots.per.day <- rep(0, nt)
+shots.per.day[(shots.start - inputs$internal.args$simulation.start.date):nt] <- 2000
+efficacy.against.hospitalization <- 0.99
+#pass number of successfully vaccinated (won't be hospitalized)
+vaccinated_per_day <- shots.per.day * efficacy.against.hospitalization
+
+inputs$vaccines <- list(vaccinated_per_day = vaccinated_per_day,
+                                      efficacy_transmission = rep(0.6, nt),
+                                      duration_vaccinated = rep(360, nt),
+                                      duration_natural = rep(360, nt))
+
+result <- LEMMA:::CredibilityInterval(inputs)
 ```
+
+Suppose a new variant appears on June 1 and increases transmission by 30% and decreases vaccine efficacy against hospitalization from 99% to 90%. `ExtendSim` avoids refitting the model since these changes are after the last observed data.
+```{r}
+result.newscenario <- result
+result.newscenario$inputs$vaccines$vaccinated_per_day[(as.Date("2020/6/1") - inputs$internal.args$simulation.start.date):nt] <- 0.90 * 2000
+new.int <- data.table(mu_t_inter = as.Date("2020/6/1"),
+                      sigma_t_inter = 0.01, mu_beta_inter = 1.3, sigma_beta_inter = 0.01,
+                      mu_len_inter = 1, sigma_len_inter = 0.01)
+scen <- LEMMA:::ExtendSim(result.newscenario, new.interventions = new.int, extend.iter = 500)
+quantiles <- LEMMA:::GetQuantiles(scen, result.newscenario$inputs)
+print(quantiles$hosp)
+```
+
+
+If you get an error and also have the main branch of LEMMA installed, try RStudio -> Build -> Clean and Rebuild.
+
 
 ## Additional Documentation 
 (work in progress)
