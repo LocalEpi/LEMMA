@@ -115,7 +115,7 @@ parameters {
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
- // real<lower=1.0> len_inter[ninter];
+  // real<lower=1.0> len_inter[ninter];
 
   // real<lower=0, upper=1> frac_PUI[nobs_types];
 }
@@ -243,32 +243,11 @@ model {
   //////////////////////////////////////////
   // fitting observations
   sigma_obs ~ exponential(1.0);
-  {
-    vector[nobs_notmissing] error;
-    real obs;
-    real sim;
-    int cnt;
-    real scale = npop / 1000000;
-
-    cnt = 0;
-    for (iobs in 1:nobs){
-      for (itype in 1:nobs_types) {
-        if (obs_data_conf[itype, iobs] > 0) {
-          cnt = cnt + 1;
-          obs = obs_data_conf[itype, iobs];
-          if (obs_data_pui[itype, iobs] > 0) {
-            obs = obs + obs_data_pui[itype, iobs] * mu_frac_pui[itype];
-          }
-          sim = sim_data[itype, tobs[iobs]];
-          error[cnt] = (obs - sim) / (sigma_obs[itype] * scale);
-        }
-      }
-    }
-    error ~ std_normal();
-  }
+  obs_data_conf[1, :] ~ normal(sim_data[1, 37:76], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
 }
 generated quantities{
   real<lower=0.0> Rt[nt];
+
   for (it in 1:nt) {
     Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
   }

@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(277, 275, "end", "model_LEMMA");
+    reader.add_event(256, 254, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1229,62 +1229,8 @@ public:
             lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
             current_statement_begin__ = 245;
             lp_accum__.add(exponential_log<propto__>(sigma_obs, 1.0));
-            {
-            current_statement_begin__ = 247;
-            validate_non_negative_index("error", "nobs_notmissing", nobs_notmissing);
-            Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> error(nobs_notmissing);
-            stan::math::initialize(error, DUMMY_VAR__);
-            stan::math::fill(error, DUMMY_VAR__);
-            current_statement_begin__ = 248;
-            local_scalar_t__ obs(DUMMY_VAR__);
-            (void) obs;  // dummy to suppress unused var warning
-            stan::math::initialize(obs, DUMMY_VAR__);
-            stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 249;
-            local_scalar_t__ sim(DUMMY_VAR__);
-            (void) sim;  // dummy to suppress unused var warning
-            stan::math::initialize(sim, DUMMY_VAR__);
-            stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 250;
-            int cnt(0);
-            (void) cnt;  // dummy to suppress unused var warning
-            stan::math::fill(cnt, std::numeric_limits<int>::min());
-            current_statement_begin__ = 251;
-            local_scalar_t__ scale(DUMMY_VAR__);
-            (void) scale;  // dummy to suppress unused var warning
-            stan::math::initialize(scale, DUMMY_VAR__);
-            stan::math::fill(scale, DUMMY_VAR__);
-            stan::math::assign(scale,(npop / 1000000));
-            current_statement_begin__ = 253;
-            stan::math::assign(cnt, 0);
-            current_statement_begin__ = 254;
-            for (int iobs = 1; iobs <= nobs; ++iobs) {
-                current_statement_begin__ = 255;
-                for (int itype = 1; itype <= nobs_types; ++itype) {
-                    current_statement_begin__ = 256;
-                    if (as_bool(logical_gt(get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1), 0))) {
-                        current_statement_begin__ = 257;
-                        stan::math::assign(cnt, (cnt + 1));
-                        current_statement_begin__ = 258;
-                        stan::math::assign(obs, get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1));
-                        current_statement_begin__ = 259;
-                        if (as_bool(logical_gt(get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1), 0))) {
-                            current_statement_begin__ = 260;
-                            stan::math::assign(obs, (obs + (get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1) * get_base1(mu_frac_pui, itype, "mu_frac_pui", 1))));
-                        }
-                        current_statement_begin__ = 262;
-                        stan::math::assign(sim, get_base1(sim_data, itype, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1));
-                        current_statement_begin__ = 263;
-                        stan::model::assign(error, 
-                                    stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
-                                    ((obs - sim) / (get_base1(sigma_obs, itype, "sigma_obs", 1) * scale)), 
-                                    "assigning variable error");
-                    }
-                }
-            }
-            current_statement_begin__ = 267;
-            lp_accum__.add(std_normal_log<propto__>(error));
-            }
+            current_statement_begin__ = 246;
+            lp_accum__.add(normal_log<propto__>(stan::model::rvalue(obs_data_conf, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_omni(), stan::model::nil_index_list())), "obs_data_conf"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_min_max(37, 76), stan::model::nil_index_list())), "sim_data"), get_base1(sigma_obs, 1, "sigma_obs", 1)));
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1736,22 +1682,22 @@ public:
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 271;
+            current_statement_begin__ = 249;
             validate_non_negative_index("Rt", "nt", nt);
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 272;
+            current_statement_begin__ = 251;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 273;
+                current_statement_begin__ = 252;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(x, S, it, "x", 1)) / npop), 
                             "assigning variable Rt");
             }
             // validate, write generated quantities
-            current_statement_begin__ = 271;
+            current_statement_begin__ = 249;
             size_t Rt_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "Rt[i_0__]", Rt[i_0__], 0.0);
