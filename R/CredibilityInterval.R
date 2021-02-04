@@ -101,6 +101,8 @@ GetStanInputs <- function(inputs) {
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
   seir_inputs <- c(seir_inputs, frac_pui)
+
+  # seir_inputs[['sigma_obs']] <- rep(sigma_obs_global, 4)
   return(seir_inputs)
 }
 
@@ -233,6 +235,7 @@ GetQuantiles <- function(fit, inputs) {
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
   sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
+
   scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
@@ -247,6 +250,7 @@ GetQuantiles <- function(fit, inputs) {
     sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=10), niter * nrep, num.days)
 
     error.sd <- sigma.obs[, sim.data.index] * scale
+    # error.sd <- sigma_obs_global
     # error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
     error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
 
