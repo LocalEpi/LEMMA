@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(262, 260, "end", "model_LEMMA");
+    reader.add_event(293, 291, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -554,9 +554,6 @@ public:
             num_params_r__ += 1;
             current_statement_begin__ = 110;
             num_params_r__ += 1;
-            current_statement_begin__ = 112;
-            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-            num_params_r__ += (1 * nobs_types);
             current_statement_begin__ = 115;
             num_params_r__ += 1;
             current_statement_begin__ = 116;
@@ -699,26 +696,6 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable ini_exposed: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 112;
-        if (!(context__.contains_r("sigma_obs")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable sigma_obs missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("sigma_obs");
-        pos__ = 0U;
-        validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-        context__.validate_dims("parameter initialization", "sigma_obs", "double", context__.to_vec(nobs_types));
-        std::vector<double> sigma_obs(nobs_types, double(0));
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            sigma_obs[k_0__] = vals_r__[pos__++];
-        }
-        size_t sigma_obs_i_0_max__ = nobs_types;
-        for (size_t i_0__ = 0; i_0__ < sigma_obs_i_0_max__; ++i_0__) {
-            try {
-                writer__.scalar_lb_unconstrain(0, sigma_obs[i_0__]);
-            } catch (const std::exception& e) {
-                stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable sigma_obs: ") + e.what()), current_statement_begin__, prog_reader__());
-            }
-        }
         current_statement_begin__ = 115;
         if (!(context__.contains_r("r0")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable r0 missing")), current_statement_begin__, prog_reader__());
@@ -860,16 +837,6 @@ public:
                 ini_exposed = in__.scalar_lb_constrain(0, lp__);
             else
                 ini_exposed = in__.scalar_lb_constrain(0);
-            current_statement_begin__ = 112;
-            std::vector<local_scalar_t__> sigma_obs;
-            size_t sigma_obs_d_0_max__ = nobs_types;
-            sigma_obs.reserve(sigma_obs_d_0_max__);
-            for (size_t d_0__ = 0; d_0__ < sigma_obs_d_0_max__; ++d_0__) {
-                if (jacobian__)
-                    sigma_obs.push_back(in__.scalar_lb_constrain(0, lp__));
-                else
-                    sigma_obs.push_back(in__.scalar_lb_constrain(0));
-            }
             current_statement_begin__ = 115;
             local_scalar_t__ r0;
             (void) r0;  // dummy to suppress unused var warning
@@ -925,174 +892,204 @@ public:
             std::vector<local_scalar_t__> newE_temp((nt - 1), local_scalar_t__(0));
             stan::math::initialize(newE_temp, DUMMY_VAR__);
             stan::math::fill(newE_temp, DUMMY_VAR__);
+            current_statement_begin__ = 128;
+            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
+            std::vector<local_scalar_t__> sigma_obs(nobs_types, local_scalar_t__(0));
+            stan::math::initialize(sigma_obs, DUMMY_VAR__);
+            stan::math::fill(sigma_obs, DUMMY_VAR__);
+            current_statement_begin__ = 129;
+            validate_non_negative_index("err1", "100", 100);
+            Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> err1(100);
+            stan::math::initialize(err1, DUMMY_VAR__);
+            stan::math::fill(err1, DUMMY_VAR__);
             // transformed parameters block statements
             {
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 133;
             local_scalar_t__ newE(DUMMY_VAR__);
             (void) newE;  // dummy to suppress unused var warning
             stan::math::initialize(newE, DUMMY_VAR__);
             stan::math::fill(newE, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 134;
             local_scalar_t__ newI(DUMMY_VAR__);
             (void) newI;  // dummy to suppress unused var warning
             stan::math::initialize(newI, DUMMY_VAR__);
             stan::math::fill(newI, DUMMY_VAR__);
-            current_statement_begin__ = 134;
+            current_statement_begin__ = 135;
             local_scalar_t__ newrec_mild(DUMMY_VAR__);
             (void) newrec_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mild, DUMMY_VAR__);
             stan::math::fill(newrec_mild, DUMMY_VAR__);
-            current_statement_begin__ = 135;
+            current_statement_begin__ = 136;
             local_scalar_t__ newrec_mod(DUMMY_VAR__);
             (void) newrec_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mod, DUMMY_VAR__);
             stan::math::fill(newrec_mod, DUMMY_VAR__);
-            current_statement_begin__ = 136;
+            current_statement_begin__ = 137;
             local_scalar_t__ newhosp(DUMMY_VAR__);
             (void) newhosp;  // dummy to suppress unused var warning
             stan::math::initialize(newhosp, DUMMY_VAR__);
             stan::math::fill(newhosp, DUMMY_VAR__);
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 138;
             local_scalar_t__ leave_icu(DUMMY_VAR__);
             (void) leave_icu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icu, DUMMY_VAR__);
             stan::math::fill(leave_icu, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 139;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 140;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 141;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 141;
+            current_statement_begin__ = 142;
             local_scalar_t__ zero(DUMMY_VAR__);
             (void) zero;  // dummy to suppress unused var warning
             stan::math::initialize(zero, DUMMY_VAR__);
             stan::math::fill(zero, DUMMY_VAR__);
+            current_statement_begin__ = 144;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        8.5, 
+                        "assigning variable sigma_obs");
             current_statement_begin__ = 145;
-            stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(2), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
             current_statement_begin__ = 146;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(3), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
+            current_statement_begin__ = 147;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(4), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
+            current_statement_begin__ = 151;
+            stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
+            current_statement_begin__ = 152;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 147;
+                current_statement_begin__ = 153;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             beta_0, 
                             "assigning variable beta");
-                current_statement_begin__ = 148;
+                current_statement_begin__ = 154;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 151;
+                    current_statement_begin__ = 157;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(mu_len_inter, iinter, "mu_len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(mu_len_inter, iinter, "mu_len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 162;
             stan::math::assign(zero, (ini_exposed * 1e-15));
-            current_statement_begin__ = 157;
+            current_statement_begin__ = 163;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(zero, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 164;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 165;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 160;
+            current_statement_begin__ = 166;
             stan::model::assign(Hadmits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         zero, 
                         "assigning variable Hadmits");
-            current_statement_begin__ = 164;
+            current_statement_begin__ = 170;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 167;
+                current_statement_begin__ = 173;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
-                current_statement_begin__ = 169;
+                current_statement_begin__ = 175;
                 if (as_bool((primitive_value((primitive_value(logical_gt(it, 1)) && primitive_value(logical_lt(it, 200)))) && primitive_value(logical_eq(extend, 0))))) {
-                    current_statement_begin__ = 170;
+                    current_statement_begin__ = 176;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 newE, 
                                 "assigning variable newE_temp");
                 } else {
-                    current_statement_begin__ = 172;
+                    current_statement_begin__ = 178;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (1 + zero), 
                                 "assigning variable newE_temp");
                 }
-                current_statement_begin__ = 176;
+                current_statement_begin__ = 182;
                 stan::math::assign(newI, ((1.0 / duration_latent) * get_base1(x, E, it, "x", 1)));
-                current_statement_begin__ = 177;
+                current_statement_begin__ = 183;
                 stan::math::assign(newhosp, ((1.0 / duration_pre_hosp) * get_base1(x, Ipreh, it, "x", 1)));
-                current_statement_begin__ = 178;
+                current_statement_begin__ = 184;
                 stan::math::assign(newrec_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imild, it, "x", 1)));
-                current_statement_begin__ = 179;
-                stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
-                current_statement_begin__ = 180;
-                stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
                 current_statement_begin__ = 185;
+                stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
+                current_statement_begin__ = 186;
+                stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
+                current_statement_begin__ = 191;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, S, it, "x", 1) - newE), 
                             "assigning variable x");
-                current_statement_begin__ = 186;
+                current_statement_begin__ = 192;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, E, it, "x", 1) + newE) - newI), 
                             "assigning variable x");
-                current_statement_begin__ = 187;
+                current_statement_begin__ = 193;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imild), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imild, it, "x", 1) + (newI * (1 - frac_hosp))) - newrec_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 188;
+                current_statement_begin__ = 194;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ipreh), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ipreh, it, "x", 1) + (newI * frac_hosp)) - newhosp), 
                             "assigning variable x");
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 195;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmod), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - frac_icu))) - newrec_mod), 
                             "assigning variable x");
-                current_statement_begin__ = 190;
+                current_statement_begin__ = 196;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Hicu, it, "x", 1) + (newhosp * frac_icu)) - leave_icu), 
                             "assigning variable x");
-                current_statement_begin__ = 191;
+                current_statement_begin__ = 197;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlive), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - frac_mort))), 
                             "assigning variable x");
-                current_statement_begin__ = 192;
+                current_statement_begin__ = 198;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, Rmort, it, "x", 1) + (leave_icu * frac_mort)), 
                             "assigning variable x");
-                current_statement_begin__ = 195;
+                current_statement_begin__ = 201;
                 stan::model::assign(Hadmits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (get_base1(Hadmits, it, "Hadmits", 1) + newhosp), 
                             "assigning variable Hadmits");
-                current_statement_begin__ = 199;
+                current_statement_begin__ = 205;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 200;
+                    current_statement_begin__ = 206;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -1100,40 +1097,42 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 206;
+            current_statement_begin__ = 212;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 207;
+                current_statement_begin__ = 213;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 208;
+                    current_statement_begin__ = 214;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hmod, "x", 1), get_base1(x, Hicu, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 210;
+                    current_statement_begin__ = 216;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Hicu, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 212;
+                    current_statement_begin__ = 218;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Rmort, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 214;
+                    current_statement_begin__ = 220;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 Hadmits, 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 216;
+                    current_statement_begin__ = 222;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }
+            current_statement_begin__ = 226;
+            stan::math::assign(err1, divide(subtract(stan::model::rvalue(obs_data_conf, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_omni(), stan::model::nil_index_list())), "obs_data_conf"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_min_max(37, 136), stan::model::nil_index_list())), "sim_data")), get_base1(sigma_obs, 1, "sigma_obs", 1)));
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
@@ -1199,38 +1198,112 @@ public:
             for (size_t i_0__ = 0; i_0__ < newE_temp_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "newE_temp[i_0__]", newE_temp[i_0__], 1e-10);
             }
+            current_statement_begin__ = 128;
+            size_t sigma_obs_k_0_max__ = nobs_types;
+            for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
+                if (stan::math::is_uninitialized(sigma_obs[k_0__])) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: sigma_obs" << "[" << k_0__ << "]";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable sigma_obs: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            size_t sigma_obs_i_0_max__ = nobs_types;
+            for (size_t i_0__ = 0; i_0__ < sigma_obs_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "sigma_obs[i_0__]", sigma_obs[i_0__], 0);
+            }
+            current_statement_begin__ = 129;
+            size_t err1_j_1_max__ = 100;
+            for (size_t j_1__ = 0; j_1__ < err1_j_1_max__; ++j_1__) {
+                if (stan::math::is_uninitialized(err1(j_1__))) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: err1" << "(" << j_1__ << ")";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable err1: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
             // model body
-            current_statement_begin__ = 225;
+            current_statement_begin__ = 231;
             lp_accum__.add(normal_log<propto__>(r0, mu_r0, sigma_r0));
-            current_statement_begin__ = 228;
+            current_statement_begin__ = 234;
             for (int iinter = 1; iinter <= ninter; ++iinter) {
-                current_statement_begin__ = 229;
+                current_statement_begin__ = 235;
                 lp_accum__.add(normal_log<propto__>(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1)));
-                current_statement_begin__ = 230;
+                current_statement_begin__ = 236;
                 lp_accum__.add(normal_log<propto__>(get_base1(t_inter, iinter, "t_inter", 1), get_base1(mu_t_inter, iinter, "mu_t_inter", 1), get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)));
             }
-            current_statement_begin__ = 234;
-            lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
-            current_statement_begin__ = 235;
-            lp_accum__.add(normal_log<propto__>(duration_rec_mild, mu_duration_rec_mild, sigma_duration_rec_mild));
-            current_statement_begin__ = 236;
-            lp_accum__.add(normal_log<propto__>(duration_pre_hosp, mu_duration_pre_hosp, sigma_duration_pre_hosp));
-            current_statement_begin__ = 237;
-            lp_accum__.add(normal_log<propto__>(duration_hosp_mod, mu_duration_hosp_mod, sigma_duration_hosp_mod));
-            current_statement_begin__ = 238;
-            lp_accum__.add(normal_log<propto__>(duration_hosp_icu, mu_duration_hosp_icu, sigma_duration_hosp_icu));
             current_statement_begin__ = 240;
-            lp_accum__.add(normal_log<propto__>(frac_hosp, mu_frac_hosp, sigma_frac_hosp));
+            lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
             current_statement_begin__ = 241;
-            lp_accum__.add(normal_log<propto__>(frac_icu, mu_frac_icu, sigma_frac_icu));
+            lp_accum__.add(normal_log<propto__>(duration_rec_mild, mu_duration_rec_mild, sigma_duration_rec_mild));
             current_statement_begin__ = 242;
-            lp_accum__.add(normal_log<propto__>(frac_mort, mu_frac_mort, sigma_frac_mort));
+            lp_accum__.add(normal_log<propto__>(duration_pre_hosp, mu_duration_pre_hosp, sigma_duration_pre_hosp));
+            current_statement_begin__ = 243;
+            lp_accum__.add(normal_log<propto__>(duration_hosp_mod, mu_duration_hosp_mod, sigma_duration_hosp_mod));
             current_statement_begin__ = 244;
-            lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
+            lp_accum__.add(normal_log<propto__>(duration_hosp_icu, mu_duration_hosp_icu, sigma_duration_hosp_icu));
+            current_statement_begin__ = 246;
+            lp_accum__.add(normal_log<propto__>(frac_hosp, mu_frac_hosp, sigma_frac_hosp));
+            current_statement_begin__ = 247;
+            lp_accum__.add(normal_log<propto__>(frac_icu, mu_frac_icu, sigma_frac_icu));
             current_statement_begin__ = 248;
-            lp_accum__.add(exponential_log<propto__>(sigma_obs, 1.0));
+            lp_accum__.add(normal_log<propto__>(frac_mort, mu_frac_mort, sigma_frac_mort));
             current_statement_begin__ = 250;
-            lp_accum__.add(normal_log<propto__>(stan::model::rvalue(obs_data_conf, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_omni(), stan::model::nil_index_list())), "obs_data_conf"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_min_max(37, 136), stan::model::nil_index_list())), "sim_data"), get_base1(sigma_obs, 1, "sigma_obs", 1)));
+            lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
+            {
+            current_statement_begin__ = 262;
+            validate_non_negative_index("error", "nobs_notmissing", nobs_notmissing);
+            Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, 1> error(nobs_notmissing);
+            stan::math::initialize(error, DUMMY_VAR__);
+            stan::math::fill(error, DUMMY_VAR__);
+            current_statement_begin__ = 263;
+            local_scalar_t__ obs(DUMMY_VAR__);
+            (void) obs;  // dummy to suppress unused var warning
+            stan::math::initialize(obs, DUMMY_VAR__);
+            stan::math::fill(obs, DUMMY_VAR__);
+            current_statement_begin__ = 264;
+            local_scalar_t__ sim(DUMMY_VAR__);
+            (void) sim;  // dummy to suppress unused var warning
+            stan::math::initialize(sim, DUMMY_VAR__);
+            stan::math::fill(sim, DUMMY_VAR__);
+            current_statement_begin__ = 265;
+            int cnt(0);
+            (void) cnt;  // dummy to suppress unused var warning
+            stan::math::fill(cnt, std::numeric_limits<int>::min());
+            current_statement_begin__ = 266;
+            local_scalar_t__ scale(DUMMY_VAR__);
+            (void) scale;  // dummy to suppress unused var warning
+            stan::math::initialize(scale, DUMMY_VAR__);
+            stan::math::fill(scale, DUMMY_VAR__);
+            stan::math::assign(scale,(npop / 1000000));
+            current_statement_begin__ = 268;
+            stan::math::assign(cnt, 0);
+            current_statement_begin__ = 269;
+            for (int iobs = 1; iobs <= nobs; ++iobs) {
+                current_statement_begin__ = 270;
+                for (int itype = 1; itype <= 1; ++itype) {
+                    current_statement_begin__ = 271;
+                    if (as_bool(logical_gt(get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1), 0))) {
+                        current_statement_begin__ = 272;
+                        stan::math::assign(cnt, (cnt + 1));
+                        current_statement_begin__ = 273;
+                        stan::math::assign(obs, get_base1(obs_data_conf, itype, iobs, "obs_data_conf", 1));
+                        current_statement_begin__ = 274;
+                        if (as_bool(logical_gt(get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1), 0))) {
+                            current_statement_begin__ = 275;
+                            stan::math::assign(obs, (obs + (get_base1(obs_data_pui, itype, iobs, "obs_data_pui", 1) * get_base1(mu_frac_pui, itype, "mu_frac_pui", 1))));
+                        }
+                        current_statement_begin__ = 277;
+                        stan::math::assign(sim, get_base1(sim_data, itype, get_base1(tobs, iobs, "tobs", 1), "sim_data", 1));
+                        current_statement_begin__ = 278;
+                        stan::model::assign(error, 
+                                    stan::model::cons_list(stan::model::index_uni(cnt), stan::model::nil_index_list()), 
+                                    ((obs - sim) / (get_base1(sigma_obs, itype, "sigma_obs", 1) * scale)), 
+                                    "assigning variable error");
+                    }
+                }
+            }
+            current_statement_begin__ = 282;
+            lp_accum__.add(std_normal_log<propto__>(error));
+            }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -1260,7 +1333,6 @@ public:
         names__.push_back("frac_icu");
         names__.push_back("frac_mort");
         names__.push_back("ini_exposed");
-        names__.push_back("sigma_obs");
         names__.push_back("r0");
         names__.push_back("beta_multiplier");
         names__.push_back("t_inter");
@@ -1269,6 +1341,8 @@ public:
         names__.push_back("beta");
         names__.push_back("Hadmits");
         names__.push_back("newE_temp");
+        names__.push_back("sigma_obs");
+        names__.push_back("err1");
         names__.push_back("Rt");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
@@ -1291,9 +1365,6 @@ public:
         dims__.resize(0);
         dimss__.push_back(dims__);
         dims__.resize(0);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(nobs_types);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dimss__.push_back(dims__);
@@ -1319,6 +1390,12 @@ public:
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back((nt - 1));
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nobs_types);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(100);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dims__.push_back(nt);
@@ -1356,16 +1433,6 @@ public:
         vars__.push_back(frac_mort);
         double ini_exposed = in__.scalar_lb_constrain(0);
         vars__.push_back(ini_exposed);
-        std::vector<double> sigma_obs;
-        size_t sigma_obs_d_0_max__ = nobs_types;
-        sigma_obs.reserve(sigma_obs_d_0_max__);
-        for (size_t d_0__ = 0; d_0__ < sigma_obs_d_0_max__; ++d_0__) {
-            sigma_obs.push_back(in__.scalar_lb_constrain(0));
-        }
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            vars__.push_back(sigma_obs[k_0__]);
-        }
         double r0 = in__.scalar_lb_constrain(0.0);
         vars__.push_back(r0);
         std::vector<double> beta_multiplier;
@@ -1423,174 +1490,204 @@ public:
             std::vector<double> newE_temp((nt - 1), double(0));
             stan::math::initialize(newE_temp, DUMMY_VAR__);
             stan::math::fill(newE_temp, DUMMY_VAR__);
+            current_statement_begin__ = 128;
+            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
+            std::vector<double> sigma_obs(nobs_types, double(0));
+            stan::math::initialize(sigma_obs, DUMMY_VAR__);
+            stan::math::fill(sigma_obs, DUMMY_VAR__);
+            current_statement_begin__ = 129;
+            validate_non_negative_index("err1", "100", 100);
+            Eigen::Matrix<double, 1, Eigen::Dynamic> err1(100);
+            stan::math::initialize(err1, DUMMY_VAR__);
+            stan::math::fill(err1, DUMMY_VAR__);
             // do transformed parameters statements
             {
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 133;
             local_scalar_t__ newE(DUMMY_VAR__);
             (void) newE;  // dummy to suppress unused var warning
             stan::math::initialize(newE, DUMMY_VAR__);
             stan::math::fill(newE, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 134;
             local_scalar_t__ newI(DUMMY_VAR__);
             (void) newI;  // dummy to suppress unused var warning
             stan::math::initialize(newI, DUMMY_VAR__);
             stan::math::fill(newI, DUMMY_VAR__);
-            current_statement_begin__ = 134;
+            current_statement_begin__ = 135;
             local_scalar_t__ newrec_mild(DUMMY_VAR__);
             (void) newrec_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mild, DUMMY_VAR__);
             stan::math::fill(newrec_mild, DUMMY_VAR__);
-            current_statement_begin__ = 135;
+            current_statement_begin__ = 136;
             local_scalar_t__ newrec_mod(DUMMY_VAR__);
             (void) newrec_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrec_mod, DUMMY_VAR__);
             stan::math::fill(newrec_mod, DUMMY_VAR__);
-            current_statement_begin__ = 136;
+            current_statement_begin__ = 137;
             local_scalar_t__ newhosp(DUMMY_VAR__);
             (void) newhosp;  // dummy to suppress unused var warning
             stan::math::initialize(newhosp, DUMMY_VAR__);
             stan::math::fill(newhosp, DUMMY_VAR__);
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 138;
             local_scalar_t__ leave_icu(DUMMY_VAR__);
             (void) leave_icu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icu, DUMMY_VAR__);
             stan::math::fill(leave_icu, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 139;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 140;
             local_scalar_t__ obs(DUMMY_VAR__);
             (void) obs;  // dummy to suppress unused var warning
             stan::math::initialize(obs, DUMMY_VAR__);
             stan::math::fill(obs, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 141;
             local_scalar_t__ sim(DUMMY_VAR__);
             (void) sim;  // dummy to suppress unused var warning
             stan::math::initialize(sim, DUMMY_VAR__);
             stan::math::fill(sim, DUMMY_VAR__);
-            current_statement_begin__ = 141;
+            current_statement_begin__ = 142;
             local_scalar_t__ zero(DUMMY_VAR__);
             (void) zero;  // dummy to suppress unused var warning
             stan::math::initialize(zero, DUMMY_VAR__);
             stan::math::fill(zero, DUMMY_VAR__);
+            current_statement_begin__ = 144;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        8.5, 
+                        "assigning variable sigma_obs");
             current_statement_begin__ = 145;
-            stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(2), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
             current_statement_begin__ = 146;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(3), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
+            current_statement_begin__ = 147;
+            stan::model::assign(sigma_obs, 
+                        stan::model::cons_list(stan::model::index_uni(4), stan::model::nil_index_list()), 
+                        0, 
+                        "assigning variable sigma_obs");
+            current_statement_begin__ = 151;
+            stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
+            current_statement_begin__ = 152;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 147;
+                current_statement_begin__ = 153;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             beta_0, 
                             "assigning variable beta");
-                current_statement_begin__ = 148;
+                current_statement_begin__ = 154;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 151;
+                    current_statement_begin__ = 157;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(mu_len_inter, iinter, "mu_len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(mu_len_inter, iinter, "mu_len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 162;
             stan::math::assign(zero, (ini_exposed * 1e-15));
-            current_statement_begin__ = 157;
+            current_statement_begin__ = 163;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(zero, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 164;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 165;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 160;
+            current_statement_begin__ = 166;
             stan::model::assign(Hadmits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         zero, 
                         "assigning variable Hadmits");
-            current_statement_begin__ = 164;
+            current_statement_begin__ = 170;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 167;
+                current_statement_begin__ = 173;
                 stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(x, S, it, "x", 1) / npop) * get_base1(beta, it, "beta", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1)))));
-                current_statement_begin__ = 169;
+                current_statement_begin__ = 175;
                 if (as_bool((primitive_value((primitive_value(logical_gt(it, 1)) && primitive_value(logical_lt(it, 200)))) && primitive_value(logical_eq(extend, 0))))) {
-                    current_statement_begin__ = 170;
+                    current_statement_begin__ = 176;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 newE, 
                                 "assigning variable newE_temp");
                 } else {
-                    current_statement_begin__ = 172;
+                    current_statement_begin__ = 178;
                     stan::model::assign(newE_temp, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (1 + zero), 
                                 "assigning variable newE_temp");
                 }
-                current_statement_begin__ = 176;
+                current_statement_begin__ = 182;
                 stan::math::assign(newI, ((1.0 / duration_latent) * get_base1(x, E, it, "x", 1)));
-                current_statement_begin__ = 177;
+                current_statement_begin__ = 183;
                 stan::math::assign(newhosp, ((1.0 / duration_pre_hosp) * get_base1(x, Ipreh, it, "x", 1)));
-                current_statement_begin__ = 178;
+                current_statement_begin__ = 184;
                 stan::math::assign(newrec_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imild, it, "x", 1)));
-                current_statement_begin__ = 179;
-                stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
-                current_statement_begin__ = 180;
-                stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
                 current_statement_begin__ = 185;
+                stan::math::assign(newrec_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmod, it, "x", 1)));
+                current_statement_begin__ = 186;
+                stan::math::assign(leave_icu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicu, it, "x", 1)));
+                current_statement_begin__ = 191;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(S), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, S, it, "x", 1) - newE), 
                             "assigning variable x");
-                current_statement_begin__ = 186;
+                current_statement_begin__ = 192;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(E), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, E, it, "x", 1) + newE) - newI), 
                             "assigning variable x");
-                current_statement_begin__ = 187;
+                current_statement_begin__ = 193;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imild), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imild, it, "x", 1) + (newI * (1 - frac_hosp))) - newrec_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 188;
+                current_statement_begin__ = 194;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ipreh), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ipreh, it, "x", 1) + (newI * frac_hosp)) - newhosp), 
                             "assigning variable x");
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 195;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmod), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Hmod, it, "x", 1) + (newhosp * (1 - frac_icu))) - newrec_mod), 
                             "assigning variable x");
-                current_statement_begin__ = 190;
+                current_statement_begin__ = 196;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Hicu, it, "x", 1) + (newhosp * frac_icu)) - leave_icu), 
                             "assigning variable x");
-                current_statement_begin__ = 191;
+                current_statement_begin__ = 197;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlive), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((get_base1(x, Rlive, it, "x", 1) + newrec_mild) + newrec_mod) + (leave_icu * (1 - frac_mort))), 
                             "assigning variable x");
-                current_statement_begin__ = 192;
+                current_statement_begin__ = 198;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (get_base1(x, Rmort, it, "x", 1) + (leave_icu * frac_mort)), 
                             "assigning variable x");
-                current_statement_begin__ = 195;
+                current_statement_begin__ = 201;
                 stan::model::assign(Hadmits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (get_base1(Hadmits, it, "Hadmits", 1) + newhosp), 
                             "assigning variable Hadmits");
-                current_statement_begin__ = 199;
+                current_statement_begin__ = 205;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 200;
+                    current_statement_begin__ = 206;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -1598,40 +1695,42 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 206;
+            current_statement_begin__ = 212;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 207;
+                current_statement_begin__ = 213;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 208;
+                    current_statement_begin__ = 214;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hmod, "x", 1), get_base1(x, Hicu, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 210;
+                    current_statement_begin__ = 216;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Hicu, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 212;
+                    current_statement_begin__ = 218;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 get_base1(x, Rmort, "x", 1), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 214;
+                    current_statement_begin__ = 220;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 Hadmits, 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 216;
+                    current_statement_begin__ = 222;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }
+            current_statement_begin__ = 226;
+            stan::math::assign(err1, divide(subtract(stan::model::rvalue(obs_data_conf, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_omni(), stan::model::nil_index_list())), "obs_data_conf"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(1), stan::model::cons_list(stan::model::index_min_max(37, 136), stan::model::nil_index_list())), "sim_data")), get_base1(sigma_obs, 1, "sigma_obs", 1)));
             if (!include_gqs__ && !include_tparams__) return;
             // validate transformed parameters
             const char* function__ = "validate transformed params";
@@ -1650,6 +1749,11 @@ public:
             size_t newE_temp_i_0_max__ = (nt - 1);
             for (size_t i_0__ = 0; i_0__ < newE_temp_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "newE_temp[i_0__]", newE_temp[i_0__], 1e-10);
+            }
+            current_statement_begin__ = 128;
+            size_t sigma_obs_i_0_max__ = nobs_types;
+            for (size_t i_0__ = 0; i_0__ < sigma_obs_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "sigma_obs[i_0__]", sigma_obs[i_0__], 0);
             }
             // write transformed parameters
             if (include_tparams__) {
@@ -1679,25 +1783,33 @@ public:
                 for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                     vars__.push_back(newE_temp[k_0__]);
                 }
+                size_t sigma_obs_k_0_max__ = nobs_types;
+                for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
+                    vars__.push_back(sigma_obs[k_0__]);
+                }
+                size_t err1_j_1_max__ = 100;
+                for (size_t j_1__ = 0; j_1__ < err1_j_1_max__; ++j_1__) {
+                    vars__.push_back(err1(j_1__));
+                }
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 255;
+            current_statement_begin__ = 286;
             validate_non_negative_index("Rt", "nt", nt);
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 257;
+            current_statement_begin__ = 288;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 258;
+                current_statement_begin__ = 289;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(x, S, it, "x", 1)) / npop), 
                             "assigning variable Rt");
             }
             // validate, write generated quantities
-            current_statement_begin__ = 255;
+            current_statement_begin__ = 286;
             size_t Rt_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "Rt[i_0__]", Rt[i_0__], 0.0);
@@ -1763,12 +1875,6 @@ public:
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
         param_names__.push_back(param_name_stream__.str());
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
         param_name_stream__.str(std::string());
         param_name_stream__ << "r0";
         param_names__.push_back(param_name_stream__.str());
@@ -1820,6 +1926,18 @@ public:
             for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                 param_name_stream__.str(std::string());
                 param_name_stream__ << "newE_temp" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t sigma_obs_k_0_max__ = nobs_types;
+            for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t err1_j_1_max__ = 100;
+            for (size_t j_1__ = 0; j_1__ < err1_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "err1" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
         }
@@ -1862,12 +1980,6 @@ public:
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
         param_names__.push_back(param_name_stream__.str());
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
         param_name_stream__.str(std::string());
         param_name_stream__ << "r0";
         param_names__.push_back(param_name_stream__.str());
@@ -1919,6 +2031,18 @@ public:
             for (size_t k_0__ = 0; k_0__ < newE_temp_k_0_max__; ++k_0__) {
                 param_name_stream__.str(std::string());
                 param_name_stream__ << "newE_temp" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t sigma_obs_k_0_max__ = nobs_types;
+            for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t err1_j_1_max__ = 100;
+            for (size_t j_1__ = 0; j_1__ < err1_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "err1" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
         }

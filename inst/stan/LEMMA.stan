@@ -109,7 +109,7 @@ parameters {
 
   real<lower=0> ini_exposed;
 
-  real<lower=0> sigma_obs[nobs_types];
+  //real<lower=0> sigma_obs[nobs_types];
 
 
   real<lower=0.0> r0;
@@ -125,7 +125,8 @@ transformed parameters {
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
-  // row_vector[40] err1;
+  real<lower=0> sigma_obs[nobs_types];
+  row_vector[100] err1;
   {
     // variables in curly brackets will not have output, they are local variables
 
@@ -139,6 +140,11 @@ transformed parameters {
     real obs;
     real sim;
     real zero;
+
+sigma_obs[1] = 8.5;
+sigma_obs[2] = 0;
+sigma_obs[3] = 0;
+sigma_obs[4] = 0;
 
     //////////////////////////////////////////
     // Calculate beta for each time point
@@ -217,7 +223,7 @@ transformed parameters {
     }
   }
 
-  // err1 = (obs_data_conf[1, :] - sim_data[1, 37:76]) / sigma_obs[1];
+  err1 = (obs_data_conf[1, :] - sim_data[1, 37:136]) / sigma_obs[1];
 }
 model {
   //////////////////////////////////////////
@@ -245,11 +251,36 @@ model {
 
   //////////////////////////////////////////
   // fitting observations
-  sigma_obs ~ exponential(1.0);
+  //sigma_obs ~ exponential(1.0);
   // obs_data_conf[1, :] ~ normal(sim_data[1, 37:76], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
-  obs_data_conf[1, :] ~ normal(sim_data[1, 37:136], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
+  // obs_data_conf[1, :] ~ normal(sim_data[1, 37:136], 8.5);
+  //obs_data_conf[1, :] ~ normal(sim_data[1, 37:136], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
   // err1 ~ std_normal();
   // target +=  -2 * log(sigma_obs[1]);  //  Jacobian adjustment;
+
+  {
+    vector[nobs_notmissing] error;
+    real obs;
+    real sim;
+    int cnt;
+    real scale = npop / 1000000;
+
+    cnt = 0;
+    for (iobs in 1:nobs){
+      for (itype in 1:1) {
+        if (obs_data_conf[itype, iobs] > 0) {
+          cnt = cnt + 1;
+          obs = obs_data_conf[itype, iobs];
+          if (obs_data_pui[itype, iobs] > 0) {
+            obs = obs + obs_data_pui[itype, iobs] * mu_frac_pui[itype];
+          }
+          sim = sim_data[itype, tobs[iobs]];
+          error[cnt] = (obs - sim) / (sigma_obs[itype] * scale);
+        }
+      }
+    }
+    error ~ std_normal();
+  }
 }
 generated quantities{
   real<lower=0.0> Rt[nt];
