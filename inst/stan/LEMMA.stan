@@ -58,7 +58,7 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
-  // real<lower=0> sigma_obs[nobs_types];
+  real<lower=0> sigma_obs[nobs_types];
 }
 transformed data {
   //assigning indices for state matrix x
@@ -114,7 +114,7 @@ parameters {
 
   real<lower=0> ini_exposed;
 
- real<lower=0> sigma_obs[nobs_types];
+ // real<lower=0> sigma_obs[nobs_types];
 
 
   real<lower=0.0> r0;
@@ -251,7 +251,7 @@ model {
 
   //////////////////////////////////////////
   // fitting observations
- sigma_obs ~ exponential(1.0);
+ // sigma_obs ~ exponential(1.0);
   // {
   //   vector[nobs_notmissing] error;
   //   real obs;

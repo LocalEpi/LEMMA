@@ -1,7 +1,7 @@
 #' @import data.table
 #' @import matrixStats
 
-TempFun <- function() {} #fixme - remove this
+branchname <- function() "CIbugFixed" #fixme - remove this
 
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
@@ -104,7 +104,24 @@ GetStanInputs <- function(inputs) {
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
   seir_inputs <- c(seir_inputs, frac_pui)
 
-  # seir_inputs[['sigma_obs']] <- rep(sigma_obs_global, 4)
+  Loess <- function(values, span = 0.5) {
+    dt <- data.table(values, index = 1:length(values))
+    m <- loess(values ~ index, data = dt, degree = 1, span = span)
+    pmax(0, predict(m, newdata = dt))
+  }
+  EstSigmaObs <- function(data.type) {
+    y <- obs.data[, paste0(data.type, ".", "conf"), with = F][[1]] #fixme  doesn't work with PUIs
+    y <- y[!is.na(y)]
+    if (length(y) > 0) {
+      yhat <- Loess(y)
+      return(sd(y - yhat))
+    } else {
+      return(1)
+    }
+  }
+  sigma_obs <- sapply(data.types, EstSigmaObs)
+  seir_inputs[['sigma_obs']] <- sigma_obs
+
   return(seir_inputs)
 }
 

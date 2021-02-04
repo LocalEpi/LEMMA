@@ -76,6 +76,7 @@ private:
         std::vector<double> sigma_len_inter;
         std::vector<double> mu_beta_inter;
         std::vector<double> sigma_beta_inter;
+        std::vector<double> sigma_obs;
         int S;
         int E;
         int Imild;
@@ -452,6 +453,20 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_beta_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_beta_inter[i_0__]", sigma_beta_inter[i_0__], 0.0);
             }
+            current_statement_begin__ = 61;
+            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
+            context__.validate_dims("data initialization", "sigma_obs", "double", context__.to_vec(nobs_types));
+            sigma_obs = std::vector<double>(nobs_types, double(0));
+            vals_r__ = context__.vals_r("sigma_obs");
+            pos__ = 0;
+            size_t sigma_obs_k_0_max__ = nobs_types;
+            for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
+                sigma_obs[k_0__] = vals_r__[pos__++];
+            }
+            size_t sigma_obs_i_0_max__ = nobs_types;
+            for (size_t i_0__ = 0; i_0__ < sigma_obs_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "sigma_obs[i_0__]", sigma_obs[i_0__], 0);
+            }
             // initialize transformed data variables
             current_statement_begin__ = 65;
             S = int(0);
@@ -554,9 +569,6 @@ public:
             num_params_r__ += 1;
             current_statement_begin__ = 115;
             num_params_r__ += 1;
-            current_statement_begin__ = 117;
-            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-            num_params_r__ += (1 * nobs_types);
             current_statement_begin__ = 120;
             num_params_r__ += 1;
             current_statement_begin__ = 121;
@@ -699,26 +711,6 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable ini_exposed: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 117;
-        if (!(context__.contains_r("sigma_obs")))
-            stan::lang::rethrow_located(std::runtime_error(std::string("Variable sigma_obs missing")), current_statement_begin__, prog_reader__());
-        vals_r__ = context__.vals_r("sigma_obs");
-        pos__ = 0U;
-        validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-        context__.validate_dims("parameter initialization", "sigma_obs", "double", context__.to_vec(nobs_types));
-        std::vector<double> sigma_obs(nobs_types, double(0));
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            sigma_obs[k_0__] = vals_r__[pos__++];
-        }
-        size_t sigma_obs_i_0_max__ = nobs_types;
-        for (size_t i_0__ = 0; i_0__ < sigma_obs_i_0_max__; ++i_0__) {
-            try {
-                writer__.scalar_lb_unconstrain(0, sigma_obs[i_0__]);
-            } catch (const std::exception& e) {
-                stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable sigma_obs: ") + e.what()), current_statement_begin__, prog_reader__());
-            }
-        }
         current_statement_begin__ = 120;
         if (!(context__.contains_r("r0")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable r0 missing")), current_statement_begin__, prog_reader__());
@@ -860,16 +852,6 @@ public:
                 ini_exposed = in__.scalar_lb_constrain(0, lp__);
             else
                 ini_exposed = in__.scalar_lb_constrain(0);
-            current_statement_begin__ = 117;
-            std::vector<local_scalar_t__> sigma_obs;
-            size_t sigma_obs_d_0_max__ = nobs_types;
-            sigma_obs.reserve(sigma_obs_d_0_max__);
-            for (size_t d_0__ = 0; d_0__ < sigma_obs_d_0_max__; ++d_0__) {
-                if (jacobian__)
-                    sigma_obs.push_back(in__.scalar_lb_constrain(0, lp__));
-                else
-                    sigma_obs.push_back(in__.scalar_lb_constrain(0));
-            }
             current_statement_begin__ = 120;
             local_scalar_t__ r0;
             (void) r0;  // dummy to suppress unused var warning
@@ -1227,8 +1209,6 @@ public:
             lp_accum__.add(normal_log<propto__>(frac_mort, mu_frac_mort, sigma_frac_mort));
             current_statement_begin__ = 250;
             lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
-            current_statement_begin__ = 254;
-            lp_accum__.add(exponential_log<propto__>(sigma_obs, 1.0));
             current_statement_begin__ = 263;
             for (int iobs = 1; iobs <= nobs; ++iobs) {
                 current_statement_begin__ = 264;
@@ -1269,7 +1249,6 @@ public:
         names__.push_back("frac_icu");
         names__.push_back("frac_mort");
         names__.push_back("ini_exposed");
-        names__.push_back("sigma_obs");
         names__.push_back("r0");
         names__.push_back("beta_multiplier");
         names__.push_back("t_inter");
@@ -1300,9 +1279,6 @@ public:
         dims__.resize(0);
         dimss__.push_back(dims__);
         dims__.resize(0);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(nobs_types);
         dimss__.push_back(dims__);
         dims__.resize(0);
         dimss__.push_back(dims__);
@@ -1365,16 +1341,6 @@ public:
         vars__.push_back(frac_mort);
         double ini_exposed = in__.scalar_lb_constrain(0);
         vars__.push_back(ini_exposed);
-        std::vector<double> sigma_obs;
-        size_t sigma_obs_d_0_max__ = nobs_types;
-        sigma_obs.reserve(sigma_obs_d_0_max__);
-        for (size_t d_0__ = 0; d_0__ < sigma_obs_d_0_max__; ++d_0__) {
-            sigma_obs.push_back(in__.scalar_lb_constrain(0));
-        }
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            vars__.push_back(sigma_obs[k_0__]);
-        }
         double r0 = in__.scalar_lb_constrain(0.0);
         vars__.push_back(r0);
         std::vector<double> beta_multiplier;
@@ -1772,12 +1738,6 @@ public:
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
         param_names__.push_back(param_name_stream__.str());
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
         param_name_stream__.str(std::string());
         param_name_stream__ << "r0";
         param_names__.push_back(param_name_stream__.str());
@@ -1871,12 +1831,6 @@ public:
         param_name_stream__.str(std::string());
         param_name_stream__ << "ini_exposed";
         param_names__.push_back(param_name_stream__.str());
-        size_t sigma_obs_k_0_max__ = nobs_types;
-        for (size_t k_0__ = 0; k_0__ < sigma_obs_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "sigma_obs" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
         param_name_stream__.str(std::string());
         param_name_stream__ << "r0";
         param_names__.push_back(param_name_stream__.str());
