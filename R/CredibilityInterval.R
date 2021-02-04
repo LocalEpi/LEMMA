@@ -120,7 +120,9 @@ GetStanInputs <- function(inputs) {
     }
   }
   sigma_obs <- sapply(data.types, EstSigmaObs)
-  seir_inputs[['sigma_obs']] <- sigma_obs
+  mult.sigma_obs = 10
+  cat("mult sigma_obs = ", mult.sigma_obs, "\n")
+  seir_inputs[['sigma_obs']] <- sigma_obs * mult.sigma_obs
 
   return(seir_inputs)
 }
@@ -253,9 +255,9 @@ GetQuantiles <- function(fit, inputs) {
 
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
-  sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
+  # sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
 
-  scale <-  inputs$model.inputs$total.population / 1000000
+  # scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
     nrep <- 10
@@ -268,8 +270,13 @@ GetQuantiles <- function(fit, inputs) {
 
     sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=10), niter * nrep, num.days)
 
-    error.sd <- sigma.obs[, sim.data.index] * scale
-    # error.sd <- sigma_obs_global
+    # error.sd <- sigma.obs[, sim.data.index] * scale
+    #fixme - needs work
+    obs <- inputs$obs.data[, c("date", paste0(i, ".", "conf")), with = F]
+    z=merge(data.table(date = dates), obs, all=TRUE) #fixme - doesnt work with PUIs
+    index <- !is.na(z[[2]])
+    obs2 <- obs[[2]][!is.na(obs[[2]])] #this needs testing if NAs in obs data
+    error.sd <- rowSds(sim.data.without.error[, index] - matrix(obs2, nrow = nrow(sim.data.without.error), ncol = length(obs2), byrow = T))
     # error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
     error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
 
