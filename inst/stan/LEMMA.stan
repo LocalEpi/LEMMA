@@ -125,6 +125,7 @@ transformed parameters {
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
+  // row_vector[40] err1;
   {
     // variables in curly brackets will not have output, they are local variables
 
@@ -215,6 +216,8 @@ transformed parameters {
       reject("unexpected itype")
     }
   }
+
+  // err1 = (obs_data_conf[1, :] - sim_data[1, 37:76]) / sigma_obs[1];
 }
 model {
   //////////////////////////////////////////
@@ -243,7 +246,10 @@ model {
   //////////////////////////////////////////
   // fitting observations
   sigma_obs ~ exponential(1.0);
-  obs_data_conf[1, :] ~ normal(sim_data[1, 37:76], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
+  // obs_data_conf[1, :] ~ normal(sim_data[1, 37:76], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
+  obs_data_conf[1, :] ~ normal(sim_data[1, 37:136], sigma_obs[1]); //pass index of nonNA obs data?, combine conf and PUI in R instead of stan?
+  // err1 ~ std_normal();
+  // target +=  -2 * log(sigma_obs[1]);  //  Jacobian adjustment;
 }
 generated quantities{
   real<lower=0.0> Rt[nt];
