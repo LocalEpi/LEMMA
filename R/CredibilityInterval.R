@@ -120,7 +120,7 @@ GetStanInputs <- function(inputs) {
     }
   }
   sigma_obs <- sapply(data.types, EstSigmaObs)
-  mult.sigma_obs = 10
+  mult.sigma_obs = 1
   cat("mult sigma_obs = ", mult.sigma_obs, "\n")
   seir_inputs[['sigma_obs']] <- sigma_obs * mult.sigma_obs
 
