@@ -1,6 +1,8 @@
 #' @import data.table
 #' @import matrixStats
 
+TempFun <- function() {} #fixme - remove this
+
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
