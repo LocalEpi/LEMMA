@@ -58,7 +58,7 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
-  real<lower=0> sigma_obs[nobs_types];
+  real<lower=0.0> sigma_obs_est[nobs_types];
 }
 transformed data {
   //assigning indices for state matrix x
@@ -112,9 +112,8 @@ parameters {
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
 
-  real<lower=0> ini_exposed;
-
- // real<lower=0> sigma_obs[nobs_types];
+  real<lower=0.0> ini_exposed;
+  real<lower=0.0> sigma_obs[nobs_types];
 
 
   real<lower=0.0> r0;
@@ -251,7 +250,10 @@ model {
 
   //////////////////////////////////////////
   // fitting observations
- // sigma_obs ~ exponential(1.0);
+  for (itype in 1:nobs_types) {
+    sigma_obs[itype] ~ exponential(1.0 / sigma_obs_est[itype]);
+  }
+
   // {
   //   vector[nobs_notmissing] error;
   //   real obs;
