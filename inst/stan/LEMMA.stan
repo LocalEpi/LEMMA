@@ -7,13 +7,15 @@ data {
   // data required to run model
 
   // obs_data_conf = total hosp census, ICU census, cumulative deaths, cumulative total hosp
-  // obs_data_pui =  same
+
+
+  //want to have obs_data and tobs different sizes for each obs type
 
   int<lower=0> nobs_types;
-  int<lower=0> nobs;                     // number of timesteps with observations
-  int<lower=0> tobs[nobs];               // obs times; this is a vector
-  matrix<lower=-1.0>[nobs_types, nobs] obs_data_conf;  // observed confirmed (-1 = NA)
-  matrix<lower=-1.0>[nobs_types, nobs] obs_data_pui;   // observed PUI (-1 = NA)
+  int<lower=0> nobs[nobs_types];                     // number of timesteps with observations
+  int <lower=0> nobs_max;
+  int<lower=-1> tobs[nobs_types, nobs_max];               // obs times; -1 = NA
+  matrix<lower=-1.0>[nobs_types, nobs_max] obs_data;  // observed confirmed (-1 = NA)
 
   int<lower=0> nt;                       // number of time steps
   real npop;                             // total population
@@ -35,9 +37,6 @@ data {
   real<lower=0.0> mu_r0;                  // mean initial beta estimate
   real<lower=0.0> sigma_r0;               // sd initial beta estimate
 
-  real<lower=0.0> mu_frac_pui[nobs_types];     // mean fraction of PUI that are true COVID+
-  real<lower=0.0> sigma_frac_pui[nobs_types];  // sd fraction of PUI that are true COVID+
-
   real<lower=0.0> mu_frac_hosp;           // mean ICU + non-ICU
   real<lower=0.0> sigma_frac_hosp;        // sd ICU + non-ICU
   real<lower=0.0> mu_frac_icu;            // mean ICU as fraction of hosp
@@ -53,12 +52,11 @@ data {
   int<lower=0> ninter;                      // number of interventions
   real<lower=1.0> mu_t_inter[ninter];       // mean start time of each interventions
   real<lower=0.0> sigma_t_inter[ninter];    // sd start time of each interventions
-  real<lower=1.0> mu_len_inter[ninter];     // mean length of each intervention
-  real<lower=0.0> sigma_len_inter[ninter];  // sd length of each intervention
+  real<lower=1.0> len_inter[ninter];     // mean length of each intervention
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
-  real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
+  real<lower=0.0> sigma_beta_inter[ninter];    // sd change in beta through intervention
 
-  real<lower=0.0> sigma_obs_est[nobs_types];
+  real<lower=0.0> sigma_obs_est_inv[nobs_types];
 }
 transformed data {
   //assigning indices for state matrix x
@@ -81,16 +79,6 @@ transformed data {
   int nobs_notmissing = 0;
 
   real beta_limit;
-
-
-
-  for (iobs in 1:nobs){
-    for (itype in 1:nobs_types) {
-      if (obs_data_conf[itype, iobs] > 0) {
-        nobs_notmissing = nobs_notmissing + 1;
-      }
-    }
-  }
 
   if (extend == 1) {
     beta_limit = 1e10; // no limit on beta if extending simulation
@@ -119,9 +107,7 @@ parameters {
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
- // real<lower=1.0> len_inter[ninter];
 
-  // real<lower=0, upper=1> frac_PUI[nobs_types];
 }
 transformed parameters {
   matrix[ncompartments,nt] x;
@@ -155,7 +141,7 @@ transformed parameters {
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
-        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / mu_len_inter[iinter] * (it - (t_inter[iinter] + mu_len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
       }
     }
 
@@ -225,66 +211,51 @@ transformed parameters {
   }
 }
 model {
-  //////////////////////////////////////////
-  // prior distributions
-  r0 ~ normal(mu_r0, sigma_r0);
-  // frac_PUI ~ normal(mu_frac_pui, sigma_frac_pui);
+  if (extend == 0) {
+    //////////////////////////////////////////
+    // prior distributions
+    r0 ~ normal(mu_r0, sigma_r0);
 
-  for (iinter in 1:ninter) {
-    beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
-    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
-    // len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
-  }
+    for (iinter in 1:ninter) {
+      beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
+      t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
+    }
 
-  duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
-  duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
-  duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
-  duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
-  duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
+    duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
+    duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
+    duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
+    duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
+    duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
 
-  frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
-  frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
-  frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
+    frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
+    frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
+    frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
 
-  ini_exposed ~ exponential(lambda_ini_exposed);
+    ini_exposed ~ exponential(lambda_ini_exposed);
 
-  //////////////////////////////////////////
-  // fitting observations
-  for (itype in 1:nobs_types) {
-    sigma_obs[itype] ~ exponential(1.0 / sigma_obs_est[itype]);
-  }
+    //////////////////////////////////////////
+    // fitting observations
+    sigma_obs ~ exponential(sigma_obs_est_inv);
 
-  // {
-  //   vector[nobs_notmissing] error;
-  //   real obs;
-  //   real sim;
-  //   int cnt;
-  //   real scale = npop / 1000000;
-  //
-  //   cnt = 0;
-    for (iobs in 1:nobs){
-      for (itype in 1:nobs_types) {
-        if (obs_data_conf[itype, iobs] > 0) {
-        //   cnt = cnt + 1;
-        //   obs = obs_data_conf[itype, iobs];
-        //   if (obs_data_pui[itype, iobs] > 0) {
-        //     obs = obs + obs_data_pui[itype, iobs] * mu_frac_pui[itype];
-        //   }
-        //   sim = sim_data[itype, tobs[iobs]];
-        //   error[cnt] = (obs - sim) / (sigma_obs[itype] * scale);
-
-          obs_data_conf[itype, iobs] ~ normal(sim_data[itype, tobs[iobs]], sigma_obs[itype]);
-          //deal with PUIs and NAs in R
-
-        }
+    //deal with PUIs and NAs in R
+    for (itype in 1:nobs_types) {
+      if (nobs[itype] > 0) {
+        obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
       }
     }
-  //   error ~ std_normal();
-  // }
+  }
 }
 generated quantities{
   real<lower=0.0> Rt[nt];
+  matrix<lower=0.0>[nobs_types,nt] sim_data_with_error = sim_data;
   for (it in 1:nt) {
     Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
+  }
+  for (itype in 1:nobs_types) {
+    if (nobs[itype] > 0) {
+      for (it in 1:nt) {
+        sim_data_with_error[itype, it] = fmax(sim_data[itype, it] + normal_rng(0.0, sigma_obs[itype]), 0.0);
+      }
+    }
   }
 }
