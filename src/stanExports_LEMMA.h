@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(263, 261, "end", "model_LEMMA");
+    reader.add_event(255, 253, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1244,7 +1244,6 @@ public:
         names__.push_back("Hadmits");
         names__.push_back("newE_temp");
         names__.push_back("Rt");
-        names__.push_back("sim_data_with_error");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
         dimss__.resize(0);
@@ -1296,10 +1295,6 @@ public:
         dims__.push_back((nt - 1));
         dimss__.push_back(dims__);
         dims__.resize(0);
-        dims__.push_back(nt);
-        dimss__.push_back(dims__);
-        dims__.resize(0);
-        dims__.push_back(nobs_types);
         dims__.push_back(nt);
         dimss__.push_back(dims__);
     }
@@ -1666,35 +1661,14 @@ public:
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
-            current_statement_begin__ = 250;
-            validate_non_negative_index("sim_data_with_error", "nobs_types", nobs_types);
-            validate_non_negative_index("sim_data_with_error", "nt", nt);
-            Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> sim_data_with_error(nobs_types, nt);
-            stan::math::initialize(sim_data_with_error, DUMMY_VAR__);
-            stan::math::fill(sim_data_with_error, DUMMY_VAR__);
-            stan::math::assign(sim_data_with_error,sim_data);
             // generated quantities statements
-            current_statement_begin__ = 251;
+            current_statement_begin__ = 250;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 252;
+                current_statement_begin__ = 251;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (((get_base1(beta, it, "beta", 1) * ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))) * get_base1(x, S, it, "x", 1)) / npop), 
                             "assigning variable Rt");
-            }
-            current_statement_begin__ = 254;
-            for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 255;
-                if (as_bool(logical_gt(get_base1(nobs, itype, "nobs", 1), 0))) {
-                    current_statement_begin__ = 256;
-                    for (int it = 1; it <= nt; ++it) {
-                        current_statement_begin__ = 257;
-                        stan::model::assign(sim_data_with_error, 
-                                    stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list())), 
-                                    stan::math::fmax((get_base1(sim_data, itype, it, "sim_data", 1) + normal_rng(0.0, get_base1(sigma_obs, itype, "sigma_obs", 1), base_rng__)), 0.0), 
-                                    "assigning variable sim_data_with_error");
-                    }
-                }
             }
             // validate, write generated quantities
             current_statement_begin__ = 249;
@@ -1705,15 +1679,6 @@ public:
             size_t Rt_k_0_max__ = nt;
             for (size_t k_0__ = 0; k_0__ < Rt_k_0_max__; ++k_0__) {
                 vars__.push_back(Rt[k_0__]);
-            }
-            current_statement_begin__ = 250;
-            check_greater_or_equal(function__, "sim_data_with_error", sim_data_with_error, 0.0);
-            size_t sim_data_with_error_j_2_max__ = nt;
-            size_t sim_data_with_error_j_1_max__ = nobs_types;
-            for (size_t j_2__ = 0; j_2__ < sim_data_with_error_j_2_max__; ++j_2__) {
-                for (size_t j_1__ = 0; j_1__ < sim_data_with_error_j_1_max__; ++j_1__) {
-                    vars__.push_back(sim_data_with_error(j_1__, j_2__));
-                }
             }
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
@@ -1839,15 +1804,6 @@ public:
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
-        size_t sim_data_with_error_j_2_max__ = nt;
-        size_t sim_data_with_error_j_1_max__ = nobs_types;
-        for (size_t j_2__ = 0; j_2__ < sim_data_with_error_j_2_max__; ++j_2__) {
-            for (size_t j_1__ = 0; j_1__ < sim_data_with_error_j_1_max__; ++j_1__) {
-                param_name_stream__.str(std::string());
-                param_name_stream__ << "sim_data_with_error" << '.' << j_1__ + 1 << '.' << j_2__ + 1;
-                param_names__.push_back(param_name_stream__.str());
-            }
-        }
     }
     void unconstrained_param_names(std::vector<std::string>& param_names__,
                                    bool include_tparams__ = true,
@@ -1946,15 +1902,6 @@ public:
             param_name_stream__.str(std::string());
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
-        }
-        size_t sim_data_with_error_j_2_max__ = nt;
-        size_t sim_data_with_error_j_1_max__ = nobs_types;
-        for (size_t j_2__ = 0; j_2__ < sim_data_with_error_j_2_max__; ++j_2__) {
-            for (size_t j_1__ = 0; j_1__ < sim_data_with_error_j_1_max__; ++j_1__) {
-                param_name_stream__.str(std::string());
-                param_name_stream__ << "sim_data_with_error" << '.' << j_1__ + 1 << '.' << j_2__ + 1;
-                param_names__.push_back(param_name_stream__.str());
-            }
         }
     }
 }; // model

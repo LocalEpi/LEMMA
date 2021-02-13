@@ -247,15 +247,7 @@ model {
 }
 generated quantities{
   real<lower=0.0> Rt[nt];
-  matrix<lower=0.0>[nobs_types,nt] sim_data_with_error = sim_data;
   for (it in 1:nt) {
     Rt[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * x[S, it] / npop;
-  }
-  for (itype in 1:nobs_types) {
-    if (nobs[itype] > 0) {
-      for (it in 1:nt) {
-        sim_data_with_error[itype, it] = fmax(sim_data[itype, it] + normal_rng(0.0, sigma_obs[itype]), 0.0);
-      }
-    }
   }
 }

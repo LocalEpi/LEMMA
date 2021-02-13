@@ -271,16 +271,24 @@ GetQuantiles <- function(fit, inputs) {
   }
 
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
-  sim.data <- rstan::extract(fit, pars = "sim_data_with_error")[[1]]
-  # sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
-
-  # scale <-  inputs$model.inputs$total.population / 1000000
+  sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
+  sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
 
   quantiles <- sapply(DataTypes(), function (i) {
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
-    q <- GetQuant(sim.data[, sim.data.index, ])
+    nrep <- 100
+    sim.data.without.error <- sim.data[, sim.data.index, ]
+    num.days <- ncol(sim.data.without.error)
+    niter <- nrow(sim.data.without.error)
+    sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=nrep), niter * nrep, num.days)
+    error.sd <- sigma.obs[, sim.data.index]
+    error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
+    sim.data.with.error <- sim.data.without.error.rep + error.term.rep
+    q <- GetQuant(sim.data.with.error)
+    q[q < 0] <- 0
     return(q)
   }, simplify = FALSE)
+
 
   rt.date <- max(inputs$obs.data$date) + 5 #output up to end of observed data here (add 5 to make sure LEMMA Rt is included in Ensemble), but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]
