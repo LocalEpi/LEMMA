@@ -1,6 +1,9 @@
 #' @import data.table
 #' @import matrixStats
 
+#no longer used in xlsx input - sigma_len_inter, sigma_frac_pui
+branchname <- function() "CIbugFixed" #fixme - remove this
+
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
@@ -50,10 +53,6 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
 # int obs_cum_admits = 4;
 DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits")
 
-ConvertNa <- function(dt) {
-  t(data.matrix(dt[, lapply(.SD, function (z) ifelse(is.na(z), -1, z))]))
-}
-
 GetStanInputs <- function(inputs) {
   data.types <- DataTypes()
   dt <- melt(inputs$params, id.vars = "name")
@@ -71,18 +70,45 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['nt']] = nt
 
   seir_inputs[['nobs_types']] <- length(data.types)
-  seir_inputs[['nobs']] <- nrow(inputs$obs.data)
-  seir_inputs[['tobs']] <- as.numeric(inputs$obs.data$date - day0)
 
   obs.data <- copy(inputs$obs.data)
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     obs.data[, deaths.conf := deaths.conf - inputs$internal.args$initial.deaths]
   }
 
-  # Observed Data - Confirmed
-  seir_inputs[['obs_data_conf']] <- ConvertNa(obs.data[, paste0(DataTypes(), ".", "conf")])
-  # Observed Data - PUI
-  seir_inputs[['obs_data_pui']] <- ConvertNa(obs.data[, paste0(DataTypes(), ".", "pui")])
+  # Observed Data
+  num.data.types <- length(DataTypes())
+  nobs <- rep(NA, num.data.types)
+  obs.mat <- tobs.mat <- matrix(-1, nrow(inputs$obs.data), num.data.types)
+  for (i in 1:num.data.types) {
+    data.type <- DataTypes()[i]
+    date <- inputs$obs.data$date
+    conf <- inputs$obs.data[, get(paste0(data.type, ".conf"))]
+    pui <- inputs$obs.data[, get(paste0(data.type, ".pui"))]
+    if (!all(is.na(pui))) {
+      if (any(is.na(conf) != is.na(pui))) {
+        stop(i, ": If some of Data PUI is not NA (blank), then all dates where Confirmed is NA should be have PUI is NA also and vice versa")
+      }
+    } else {
+      pui <- rep(0, length(pui))
+    }
+    frac_pui <- inputs$frac_pui[name == data.type, mu]
+    combined <- conf + frac_pui * pui
+    tobs <- as.numeric(date - day0)
+
+    index <- !is.na(combined)
+    nobs[i] <- sum(index)
+    if (nobs[i] > 0) {
+      obs.mat[1:nobs[i], i] <- combined[index]
+      tobs.mat[1:nobs[i], i] <- tobs[index]
+    }
+  }
+  nobs_max <- max(nobs)
+  seir_inputs[['nobs']] <- nobs
+  seir_inputs[['nobs_max']] <- nobs_max
+  seir_inputs[['obs_data']] <- t(obs.mat[1:nobs_max, ])
+  seir_inputs[['tobs']] <- t(tobs.mat[1:nobs_max, ])
+
 
   # total population
   seir_inputs[['npop']] = inputs$model.inputs$total.population
@@ -93,6 +119,7 @@ GetStanInputs <- function(inputs) {
 
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
+  setnames(inputs$interventions, "mu_len_inter", "len_inter")
   seir_inputs <- c(seir_inputs, lapply(inputs$interventions, as.array)) #as.array fixes problems if only one intervention
 
   # number of interventions
@@ -111,6 +138,24 @@ GetStanInputs <- function(inputs) {
   stopifnot(identical(inputs$frac_pui$name, data.types))
   frac_pui <- list(mu_frac_pui = inputs$frac_pui$mu, sigma_frac_pui = inputs$frac_pui$sigma)
   seir_inputs <- c(seir_inputs, frac_pui)
+  Loess <- function(values, span = 0.5) {
+    dt <- data.table(values, index = 1:length(values))
+    m <- loess(values ~ index, data = dt, degree = 1, span = span)
+    pmax(0, predict(m, newdata = dt))
+  }
+  EstSigmaObs <- function(data.type) {
+    j <- which(data.type == DataTypes())
+    if (nobs[j] > 10) {
+      y <- obs.mat[1:nobs[j], j]
+      yhat <- Loess(y)
+      return(sd(y - yhat))
+    } else {
+      return(1)
+    }
+  }
+  sigma_obs <- sapply(data.types, EstSigmaObs)
+  seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
+
   return(seir_inputs)
 }
 
@@ -125,8 +170,7 @@ RunSim <- function(inputs) {
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
     names(init) <- sub("beta_inter", "beta_multiplier", names(init)) #beta_multiplier is inconsistently named
-    names(init) <- sub("frac_pui", "frac_PUI", names(init)) #frac_PUI is inconsistently named
-    init <- c(init, list(sigma_obs = rep(1, length(init$frac_PUI)), ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
   if (IsValidInput(inputs$internal.args$warmup)) {
@@ -144,9 +188,9 @@ RunSim <- function(inputs) {
                                      cores = internal.args$cores,
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     pars = c("error"),
-                                     init = GetInit,
-                                     include = FALSE
+                                     #pars = c("error"),
+  init = GetInit #init = GetInit,
+                                     #include = FALSE
     )
   })
   print(run_time)
@@ -243,29 +287,22 @@ GetQuantiles <- function(fit, inputs) {
   dates <- seq(inputs$internal.args$simulation.start.date + 1, inputs$model.inputs$end.date, by = "day")
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
   sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
-  scale <-  inputs$model.inputs$total.population / 1000000
 
   quantiles <- sapply(DataTypes(), function (i) {
-    nrep <- 10
-
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
+    nrep <- 100
     sim.data.without.error <- sim.data[, sim.data.index, ]
-
     num.days <- ncol(sim.data.without.error)
     niter <- nrow(sim.data.without.error)
-
-    sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=10), niter * nrep, num.days)
-
-    error.sd <- sigma.obs[, sim.data.index] * scale
-    # error.term <- matrix(rnorm(num.days * niter) * error.sd, niter, num.days) #recycles error.sd
+    sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=nrep), niter * nrep, num.days)
+    error.sd <- sigma.obs[, sim.data.index]
     error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
-
-    # sim.data.with.error <- sim.data.without.error + error.term
     sim.data.with.error <- sim.data.without.error.rep + error.term.rep
     q <- GetQuant(sim.data.with.error)
     q[q < 0] <- 0
     return(q)
   }, simplify = FALSE)
+
 
   rt.date <- max(inputs$obs.data$date) + 5 #output up to end of observed data here (add 5 to make sure LEMMA Rt is included in Ensemble), but cut off last 14 days in pdf output (keep these last 14 in xlsx output for CalCAT)
   rt.all <- rstan::extract(fit, pars = "Rt")[[1]]

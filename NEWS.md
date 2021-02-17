@@ -1,3 +1,8 @@
+## LEMMA 0.6.0.9000
+### New Features
+* Added an error term to the projections so that future projections reflected the degree to which past projections differed from past actuals. This should increase the width of the short-term credibility intervals so that around 95% of the actuals lie within the 95% interval.
+* Make len_inter and frac_PUI fixed instead of estimated parameters (very minor impact on projections but increases speed)
+
 ## LEMMA 0.5.0.9007  
 ### Minor improvements and fixes  
 * Rt plot shows credibility interval
