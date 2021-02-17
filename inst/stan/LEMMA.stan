@@ -62,8 +62,11 @@ data {
   real<lower=0.0> vaccine_efficacy_transmission[nt];
   real<lower=1.0> duration_vaccinated[nt];
   real<lower=1.0> duration_natural[nt];
-
+  real<lower=0.0> frac_hosp_multiplier[nt];  //multiplier due to vaccines/variants
+  real<lower=0.0> frac_icu_multiplier[nt];   //multiplier due to vaccines/variants
+  real<lower=0.0> frac_mort_multiplier[nt];   //multiplier due to vaccines/variants
 }
+
 transformed data {
   //assigning indices for state matrix x
   int Su = 1;
@@ -220,14 +223,14 @@ transformed parameters {
       x[Sv, it+1] = x[Sv, it] - newEv + newSv - S_lostv + R_lostnatv;
       x[Eu, it+1] = x[Eu, it] + newEu - newIu;
       x[Ev, it+1] = x[Ev, it] + newEv - newIv;
-      x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hosp) - newrecu_mild;
+      x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hosp * frac_hosp_multiplier[it]) - newrecu_mild;
       x[Imildv, it+1] = x[Imildv, it] + newIv - newrecv_mild; //100% of vax are mild
-      x[Ipreh, it+1] = x[Ipreh, it] + newIu * frac_hosp - newhosp;
-      x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu) - newrec_mod;
-      x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu - leave_icu;
-      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrec_mod + leave_icu * (1 - frac_mort) - newRlivev + R_lostv - R_lostnatu;
+      x[Ipreh, it+1] = x[Ipreh, it] + newIu * frac_hosp * frac_hosp_multiplier[it] - newhosp;
+      x[Hmod, it+1] = x[Hmod, it] + newhosp * (1 - frac_icu * frac_icu_multiplier[it]) - newrec_mod;
+      x[Hicu, it+1] = x[Hicu, it] + newhosp * frac_icu * frac_icu_multiplier[it] - leave_icu;
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrec_mod + leave_icu * (1 - frac_mort * frac_mort_multiplier[it]) - newRlivev + R_lostv - R_lostnatu;
       x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newRlivev - R_lostv - R_lostnatv;
-      x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort;
+      x[Rmort, it+1] = x[Rmort, it] + leave_icu * frac_mort * frac_mort_multiplier[it];
 
       // cumulative hospital admissions
       Hadmits[it+1] = Hadmits[it] + newhosp;
@@ -313,7 +316,7 @@ generated quantities{
   real<lower=0.0> frac_inf_vac;
   for (it in 1:nt) {
     frac_inf_vac = x[Imildv, it] / (x[Imildv, it] + x[Imildu, it] + x[Ipreh, it]);
-    Rt_unvac[it] = beta[it] * (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop; //not quite right because the fraction that goes to hospital changes as more are vaccinated (but duration_pre_hosp is ~7 and duration_rec_mild is ~5, not much difference)
+    Rt_unvac[it] = beta[it] * (frac_hosp * frac_hosp_multiplier[it] * duration_pre_hosp + (1 - frac_hosp * frac_hosp_multiplier[it]) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop; //not quite right because the fraction that goes to hospital changes as more are vaccinated (but duration_pre_hosp is ~7 and duration_rec_mild is ~5, not much difference)
     Rt[it] = (1 - frac_inf_vac * (1 - vaccine_efficacy_transmission[it])) * Rt_unvac[it];
   }
 }
