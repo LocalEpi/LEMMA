@@ -18,7 +18,7 @@ data {
   matrix<lower=-1.0>[nobs_types, nobs_max] obs_data;  // observed confirmed (-1 = NA)
 
   int<lower=0> nt;                       // number of time steps
-  real npop;                             // total population
+  real<lower=0.0> npop;                             // total population
   int<lower=0, upper=1> extend;
 
   //////////////////////////////////////////
@@ -122,7 +122,7 @@ parameters {
 
 }
 transformed parameters {
-  matrix[ncompartments,nt] x;
+  matrix<lower=0.0>[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
@@ -141,8 +141,6 @@ transformed parameters {
     real newhosp;
     real leave_icu;
     real beta_0;
-    real obs;
-    real sim;
     real zero;
     real vaccinated;
     real frac_vac_S;
@@ -152,9 +150,6 @@ transformed parameters {
     real R_lostv;
     real R_lostnatu;
     real R_lostnatv;
-
-
-
 
     //////////////////////////////////////////
     // Calculate beta for each time point
