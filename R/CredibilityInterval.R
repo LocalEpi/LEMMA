@@ -109,6 +109,15 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['obs_data']] <- t(obs.mat[1:nobs_max, ])
   seir_inputs[['tobs']] <- t(tobs.mat[1:nobs_max, ])
 
+  # real<lower=0.0> mu_iniE;
+  # real<lower=0.0> sigma_iniE;
+  # real<lower=0.0> mu_ini_Imild;
+  # real<lower=0.0> sigma_ini_Imild;
+  # real<lower=0.0> mu_ini_Ipreh;
+  # real<lower=0.0> sigma_ini_Ipreh;
+  # real<lower=0.0> mu_ini_Rlive;
+  # real<lower=0.0> sigma_ini_Rlive;
+  seir_inputs <- c(seir_inputs, inputs$ini)
 
   # total population
   seir_inputs[['npop']] = inputs$model.inputs$total.population

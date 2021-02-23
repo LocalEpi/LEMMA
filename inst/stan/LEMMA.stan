@@ -44,7 +44,15 @@ data {
   real<lower=0.0> mu_frac_mort;           // mean mortality as fraction of ICU
   real<lower=0.0> sigma_frac_mort;        // sd mortality as fraction of ICU
 
-  real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
+  //real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
+  real<lower=0.0> mu_iniE;
+  real<lower=0.0> sigma_iniE;
+  real<lower=0.0> mu_ini_Imild;
+  real<lower=0.0> sigma_ini_Imild;
+  real<lower=0.0> mu_ini_Ipreh;
+  real<lower=0.0> sigma_ini_Ipreh;
+  real<lower=0.0> mu_ini_Rlive;
+  real<lower=0.0> sigma_ini_Rlive;
 
   //////////////////////////////////////////
   // interventions
@@ -112,7 +120,10 @@ parameters {
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
 
-  real<lower=0.0> ini_exposed;
+  real<lower=0.0> ini_E;
+  real<lower=0.0> ini_Imild;
+  real<lower=0.0> ini_Ipreh;
+  real<lower=0.0> ini_Rlive;
   real<lower=0.0> sigma_obs[nobs_types];
 
 
@@ -164,11 +175,19 @@ transformed parameters {
     }
 
     // initial cond
-    zero = ini_exposed * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
+    zero = ini_E * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
-    x[Su,1] = npop-ini_exposed;
-    x[Eu,1] = ini_exposed;
-    Hadmits[1] = zero;
+
+    x[Eu,1] = ini_E;
+    x[Hmod, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
+    x[Hicu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
+    x[Rmort, 1] = obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
+    x[Imildu, 1] = ini_Imild;
+    x[Ipreh, 1] = ini_Ipreh;
+    x[Rliveu, 1] = ini_Rlive;
+    x[Su,1] = npop - sum(x[2:ncompartments, 1]);
+
+    Hadmits[1] = zero; //FIXME - this is wrong
 
     //////////////////////////////////////////
     // the SEIR model
@@ -267,7 +286,10 @@ model {
     frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
     frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
 
-    ini_exposed ~ exponential(lambda_ini_exposed);
+    ini_E ~ normal(mu_iniE, sigma_iniE);
+    ini_Imild ~ normal(mu_ini_Imild, sigma_ini_Imild);
+    ini_Ipreh ~ normal(mu_ini_Ipreh, sigma_ini_Ipreh);
+    ini_Rlive ~ normal(mu_ini_Rlive, sigma_ini_Rlive);
 
     //////////////////////////////////////////
     // fitting observations

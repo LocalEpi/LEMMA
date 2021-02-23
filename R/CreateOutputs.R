@@ -186,8 +186,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
             "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort",
-            # "beta_multiplier", "t_inter", "ini_exposed")
-            "beta_multiplier", "t_inter", "ini_exposed", "sigma_obs")
+            "beta_multiplier", "t_inter", "sigma_obs", "ini_E", "ini_Imild", "ini_Ipreh", "ini_Rlive")
   lapply(pars, function (p) print(PlotHist(fit, p, base.date = inputs$internal.args$simulation.start.date)))
 
   grDevices::dev.off()
