@@ -176,10 +176,18 @@ RunSim <- function(inputs) {
 
   GetInit <- function(chain_id) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)
+    if (inputs$ini$from_beginning) {
+      init.names <- setdiff(init.names, c("mu_ini_Imild", "mu_ini_Ipreh", "mu_ini_Rlive"))
+    }
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
     names(init) <- sub("beta_inter", "beta_multiplier", names(init)) #beta_multiplier is inconsistently named
-    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv))
+    if (!inputs$ini$from_beginning) {
+      init$ini_Imild <- as.array(init$ini_Imild)
+      init$ini_Ipreh <- as.array(init$ini_Ipreh)
+      init$ini_Rlive <- as.array(init$ini_Rlive)
+    }
     return(init)
   }
   if (IsValidInput(inputs$internal.args$warmup)) {
@@ -221,6 +229,11 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
   }
   GetInit <- function(chain_id) {
     init <- lapply(params, ExtractIter, chain_id)
+    if (!lemma.object$inputs$ini$from_beginning) {
+      init$ini_Imild <- as.array(init$ini_Imild)
+      init$ini_Ipreh <- as.array(init$ini_Ipreh)
+      init$ini_Rlive <- as.array(init$ini_Rlive)
+    }
     if (!is.null(new.interventions)) {
       n <- nrow(new.interventions)
       new_beta_multiplier <- pmax(0.01, rnorm(n, new.interventions$mu_beta_inter, new.interventions$sigma_beta_inter))

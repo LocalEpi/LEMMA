@@ -20,6 +20,7 @@ data {
   int<lower=0> nt;                       // number of time steps
   real<lower=0.0> npop;                             // total population
   int<lower=0, upper=1> extend;
+  int<lower=0, upper=1> from_beginning;
 
   //////////////////////////////////////////
   // prior parameter distributions
@@ -121,9 +122,9 @@ parameters {
   real<lower=0.0, upper=1.0> frac_mort;
 
   real<lower=0.0> ini_E;
-  real<lower=0.0> ini_Imild;
-  real<lower=0.0> ini_Ipreh;
-  real<lower=0.0> ini_Rlive;
+  real<lower=0.0> ini_Imild[1 - from_beginning];
+  real<lower=0.0> ini_Ipreh[1 - from_beginning];
+  real<lower=0.0> ini_Rlive[1 - from_beginning];
   real<lower=0.0> sigma_obs[nobs_types];
 
 
@@ -179,12 +180,15 @@ transformed parameters {
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
 
     x[Eu,1] = ini_E;
-    x[Hmod, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
-    x[Hicu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
-    x[Rmort, 1] = obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
-    x[Imildu, 1] = ini_Imild;
-    x[Ipreh, 1] = ini_Ipreh;
-    x[Rliveu, 1] = ini_Rlive;
+    if (from_beginning == 0) {
+      x[Hmod, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hicu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Rmort, 1] = obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Imildu, 1] = ini_Imild[1];
+      x[Ipreh, 1] = ini_Ipreh[1];
+      x[Rliveu, 1] = ini_Rlive[1];
+    }
+
     x[Su,1] = npop - sum(x[2:ncompartments, 1]);
 
     Hadmits[1] = zero; //FIXME - this is wrong
@@ -286,10 +290,15 @@ model {
     frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
     frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
 
-    ini_E ~ normal(mu_iniE, sigma_iniE);
-    ini_Imild ~ normal(mu_ini_Imild, sigma_ini_Imild);
-    ini_Ipreh ~ normal(mu_ini_Ipreh, sigma_ini_Ipreh);
-    ini_Rlive ~ normal(mu_ini_Rlive, sigma_ini_Rlive);
+    if (from_beginning == 1) {
+      ini_E ~ exponential(1.0 / mu_iniE);
+    } else {
+      ini_E ~ normal(mu_iniE, sigma_iniE);
+      ini_Imild ~ normal(mu_ini_Imild, sigma_ini_Imild);
+      ini_Ipreh ~ normal(mu_ini_Ipreh, sigma_ini_Ipreh);
+      ini_Rlive ~ normal(mu_ini_Rlive, sigma_ini_Rlive);
+    }
+
 
     //////////////////////////////////////////
     // fitting observations
