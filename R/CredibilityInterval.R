@@ -134,9 +134,17 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
+
   #each of these is vector length nt - may be passed in as up to end of simulation but in RunSim we only run up to end of observed data
-  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day[1:nt] #this is number SUCCESSFULLY vaccinated
-  seir_inputs[['vaccine_efficacy_transmission']] <- inputs$vaccines$efficacy_transmission[1:nt]
+
+  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day[1:nt]
+  seir_inputs[['vaccine_efficacy_for_susceptibility']] <- inputs$vaccines$vaccine_efficacy_for_susceptibility[1:nt]
+  seir_inputs[['vaccine_efficacy_against_infectiousness']] <- inputs$vaccines$vaccine_efficacy_against_infectiousness[1:nt]
+  seir_inputs[['vaccine_efficacy_against_progression']] <- inputs$vaccines$vaccine_efficacy_against_progression[1:nt]
+
+  stopifnot(seir_inputs[['vaccine_efficacy_against_infectiousness']] <= seir_inputs[['vaccine_efficacy_against_progression']])
+  stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
+
   seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated[1:nt]
   seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural[1:nt]
   seir_inputs[['frac_hosp_multiplier']] <- inputs$vaccines$frac_hosp_multiplier[1:nt]

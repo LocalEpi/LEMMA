@@ -65,14 +65,27 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter];    // sd change in beta through intervention
 
-  real<lower=0.0> vaccinated_per_day[nt]; //SUCCESSFULLY vaccinated per day
-  real<lower=0.0> vaccine_efficacy_transmission[nt];
+  real<lower=0.0> vaccinated_per_day[nt]; //vaccinated per day total
+  real<lower=0.0, upper=0.0> vaccine_efficacy_for_susceptibility[nt];
+  real<lower=0.0, upper=0.0> vaccine_efficacy_against_infectiousness[nt];
+  real<lower=0.0, upper=0.0> vaccine_efficacy_against_progression[nt];
+
   real<lower=1.0> duration_vaccinated[nt];
   real<lower=1.0> duration_natural[nt];
   real<lower=0.0> frac_hosp_multiplier[nt];  //multiplier due to vaccines/variants
   real<lower=0.0> frac_icu_multiplier[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_mort_multiplier[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
+
+  // VE_S vaccine efficacy for susceptibility
+  // VE_I vaccine efficacy against infectiousness
+  // VE_P vaccine efficacy against progression
+  // "x" transmission reduction factor
+  // x = 1 – (1 – VE_S)(1 – VE_I)
+
+//VE_S | VE_P = VE_S & VE_P / VE_P = VE_S * VE_P | VE_S / VE_P = VE_S / VE_P - if not susceptible, can't progress VE_P | VE_S = 1
+//VE_I | VE_P = VE_I & VE_P / VE_P = VE_I * VE_P | VE_I / VE_P = VE_I / VE_P - assume if can't transmit can't progress VE_P | VE_I = 1
+// require VE_S < VE_P, VE_I < VE_P
 }
 
 transformed data {
@@ -83,14 +96,17 @@ transformed data {
   int Ev = 4;
   int Imildu = 5;
   int Imildv = 6;
-  int Ipreh = 7;
-  int Hmod  = 8;
-  int Hicu  = 9;
-  int Rliveu = 10;
-  int Rlivev = 11;
-  int Rmort = 12;
+  int Iprehu = 7;
+  int Iprehv = 8;
+  int Hmodu  = 9;
+  int Hmodv  = 10;
+  int Hicuu  = 11;
+  int Hicuv  = 12;
+  int Rliveu = 13;
+  int Rlivev = 14;
+  int Rmort = 15;
 
-  int ncompartments = 12;
+  int ncompartments = 15;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -101,10 +117,20 @@ transformed data {
 
   real beta_limit;
 
+  real<lower=0.0, upper=1.0> VE_IgP[nt]; //VE_I given VE_P
+  real<lower=0.0, upper=1.0> VE_SgP[nt]; //VE_S given VE_P
+  real<lower=0.0, upper=1.0> transmission_reduction_factor[nt];
+
   if (extend == 1) {
     beta_limit = 1e10; // no limit on beta if extending simulation
   } else {
     beta_limit = 2.0;
+  }
+
+  for (it in 1:nt) {
+    VE_IgP[it] = vaccine_efficacy_against_infectiousness[it] / vaccine_efficacy_against_progression[it];
+    VE_SgP[it] = vaccine_efficacy_for_susceptibility[it] / vaccine_efficacy_against_progression[it];
+    transmission_reduction_factor[it] = 1 - (1 - vaccine_efficacy_against_infectiousness[it]) * (1 - vaccine_efficacy_for_susceptibility[it]);
   }
 
 
@@ -149,9 +175,12 @@ transformed parameters {
     real newIv;
     real newrecu_mild;
     real newrecv_mild;
-    real newrec_mod;
-    real newhosp;
-    real leave_icu;
+    real newrecu_mod;
+    real newrecv_mod;
+    real newhospu;
+    real newhospv;
+    real leave_icuu;
+    real leave_icuv;
     real beta_0;
     real zero;
     real vaccinated;
@@ -181,11 +210,11 @@ transformed parameters {
 
     x[Eu,1] = ini_E;
     if (from_beginning == 0) {
-      x[Hmod, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Hicu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hmodu, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hicuu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
       x[Rmort, 1] = obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
       x[Imildu, 1] = ini_Imild[1];
-      x[Ipreh, 1] = ini_Ipreh[1];
+      x[Iprehu, 1] = ini_Ipreh[1];
       x[Rliveu, 1] = ini_Rlive[1];
     }
 
@@ -198,8 +227,13 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
-      newEu = fmin(x[Su,it],  x[Su,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission[it]) * x[Imildv,it]));
-      newEv = fmin(x[Sv,it],  x[Sv,it] * beta[it]/npop * (x[Imildu,it] + x[Ipreh,it] + (1 - vaccine_efficacy_transmission[it]) * x[Imildv,it]));
+      newEu = fmin(x[Su,it],
+        x[Su,it] * beta[it] / npop *
+        (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
+
+      newEv = fmin(x[Sv,it],
+        (1 - vaccine_efficacy_for_susceptibility[it]) * x[Sv,it] * beta[it] / npop *
+        (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
 
 
       if (it > 1 && it < 200 && extend == 0) {
@@ -213,12 +247,15 @@ transformed parameters {
 
       newIu = 1.0/duration_latent * x[Eu, it];
       newIv = 1.0/duration_latent * x[Ev, it];
-      newhosp = 1.0/duration_pre_hosp * x[Ipreh,it];
-      newrecu_mild = 1.0/duration_rec_mild * x[Imildu,it];
-      newrecv_mild = 1.0/duration_rec_mild * x[Imildv,it];
-      newrec_mod = 1.0/duration_hosp_mod * x[Hmod,it];
-      leave_icu = 1.0/duration_hosp_icu * x[Hicu, it];
-      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]);
+      newhospu = 1.0/duration_pre_hosp * x[Iprehu, it];
+      newhospv = 1.0/duration_pre_hosp * x[Iprehv, it];
+      newrecu_mild = 1.0/duration_rec_mild * x[Imildu, it];
+      newrecv_mild = 1.0/duration_rec_mild * x[Imildv, it];
+      newrecu_mod = 1.0/duration_hosp_mod * x[Hmodu, it];
+      newrecv_mod = 1.0/duration_hosp_mod * x[Hmodv, it];
+      leave_icuu = 1.0/duration_hosp_icu * x[Hicuu, it];
+      leave_icuv = 1.0/duration_hosp_icu * x[Hicuv, it];
+      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
       newSv = vaccinated * frac_vac_S;
       newRlivev = vaccinated * (1 - frac_vac_S);
 
@@ -316,10 +353,10 @@ model {
 generated quantities{
   real<lower=0.0> Rt[nt];
   real<lower=0.0> Rt_unvac[nt];
-  real<lower=0.0> frac_inf_vac;
+  real<lower=0.0> frac_vac;
   for (it in 1:nt) {
-    frac_inf_vac = x[Imildv, it] / (x[Imildv, it] + x[Imildu, it] + x[Ipreh, it]);
-    Rt_unvac[it] = beta[it] * (frac_hosp * frac_hosp_multiplier[it] * duration_pre_hosp + (1 - frac_hosp * frac_hosp_multiplier[it]) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop; //not quite right because the fraction that goes to hospital changes as more are vaccinated (but duration_pre_hosp is ~7 and duration_rec_mild is ~5, not much difference)
-    Rt[it] = (1 - frac_inf_vac * (1 - vaccine_efficacy_transmission[it])) * Rt_unvac[it];
+    frac_vac = (x[Sv, it] + x[Ev, it] + x[Imildv, it]) / (x[Su, it] + x[Eu, it] + x[Imildu, it] + x[Sv, it] + x[Ev, it] + x[Imildv, it] + x[Ipreh, it]);
+    Rt_unvac[it] = beta[it] * (frac_hosp * frac_hosp_multiplier[it] * duration_pre_hosp + (1 - frac_hosp * frac_hosp_multiplier[it]) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop;
+    Rt[it] = (1 - frac_vac * transmission_reduction_factor[it]) * Rt_unvac[it];
   }
 }
