@@ -139,10 +139,8 @@ GetStanInputs <- function(inputs) {
 
   seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day[1:nt]
   seir_inputs[['vaccine_efficacy_for_susceptibility']] <- inputs$vaccines$vaccine_efficacy_for_susceptibility[1:nt]
-  seir_inputs[['vaccine_efficacy_against_infectiousness']] <- inputs$vaccines$vaccine_efficacy_against_infectiousness[1:nt]
   seir_inputs[['vaccine_efficacy_against_progression']] <- inputs$vaccines$vaccine_efficacy_against_progression[1:nt]
 
-  stopifnot(seir_inputs[['vaccine_efficacy_against_infectiousness']] <= seir_inputs[['vaccine_efficacy_against_progression']])
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
 
   seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated[1:nt]
@@ -345,24 +343,26 @@ GetQuantiles <- function(fit, inputs) {
   # int Ev = 4;
   # int Imildu = 5;
   # int Imildv = 6;
-  # int Ipreh = 7;
-  # int Hmod  = 8;
-  # int Hicu  = 9;
-  # int Rliveu = 10;
-  # int Rlivev = 11;
-  # int Rmort = 12;
+  # int Iprehu = 7;
+  # int Iprehv = 8;
+  # int Hmodu  = 9;
+  # int Hmodv  = 10;
+  # int Hicuu  = 11;
+  # int Hicuv  = 12;
+  # int Rliveu = 13;
+  # int Rlivev = 14;
+  # int Rmort = 15;
 
   #these don't have a sigma_obs, would need to add it if we had an observed quantity for any of these (not likely)
   x <- rstan::extract(fit, pars = "x")[[1]]
 
   exposed <- GetQuant(x[, 3, ] + x[, 4, ])
-  infected <- GetQuant(x[, 5, ] + x[, 6, ] + x[, 7, ])
-  active.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ])
-  total.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
-  vaccinated = GetQuant(x[, 2, ] + x[, 4, ] + x[, 6, ] + x[, 11, ])
+  infected <- GetQuant(x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
+  active.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
+  total.cases <- GetQuant(rstan::extract(fit, pars = "total_cases")[[1]])
   Su <- GetQuant(x[, 1, ])
 
-  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases, vaccinated = vaccinated, Su = Su))
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases, Su = Su))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }
