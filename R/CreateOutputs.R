@@ -20,7 +20,11 @@ GetExcelOutput <- function(quantile.list, inputs) {
 StanHist <- function (object, pars, base.date, ...) {
   dots <- rstan:::.add_aesthetics(list(...), c("fill", "color"))
   samp <- melt(as.data.table(as.matrix(object, pars = pars)), id.vars = integer(0))
-
+  all.zero <- samp[, .(max.zero = max(abs(value)) < 1e-10), by = "variable"]
+  if (all.zero[, all(max.zero)]) return(NULL)
+  all.zero.vars <- all.zero[max.zero == TRUE, variable]
+  samp <- samp[!(variable %in% all.zero.vars)] #all near zero causes errors
+  samp[, variable := factor(variable)]
   if (!is.null(base.date)) {
     samp$value <- base.date + samp$value
   }
