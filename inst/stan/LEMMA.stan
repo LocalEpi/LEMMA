@@ -54,6 +54,9 @@ data {
   real<lower=0.0> sigma_ini_Ipreh;
   real<lower=0.0> mu_ini_Rlive;
   real<lower=0.0> sigma_ini_Rlive;
+  real<lower=0.0> mu_ini_cases;
+  real<lower=0.0> sigma_ini_cases;
+
 
   //////////////////////////////////////////
   // interventions
@@ -142,7 +145,7 @@ transformed parameters {
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
   real<lower=1e-10> newE_temp[nt-1];
-  real<lower=0.0> total_cases[nt];
+  real<lower=0.0> total_cases_increase[nt];
 
   {
     // variables in curly brackets will not have output, they are local variables
@@ -186,6 +189,8 @@ transformed parameters {
     // initial cond
     zero = ini_E * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
+    Hadmits[1] = zero; //FIXME - this is wrong, would need obs_data[obs_cum_admits, 1]
+    total_cases_increase[1] = zero;
 
     x[Eu,1] = ini_E;
     if (from_beginning == 0) {
@@ -199,8 +204,8 @@ transformed parameters {
 
     x[Su,1] = npop - sum(x[2:ncompartments, 1]);
 
-    Hadmits[1] = zero; //FIXME - this is wrong, would need obs_data[obs_cum_admits, 1]
-    total_cases[1] = zero; //FIXME - this is wrong, would need ini_totalcases
+
+
     //////////////////////////////////////////
     // the SEIR model
     for (it in 1:nt-1){
@@ -214,7 +219,7 @@ transformed parameters {
         (1 - vaccine_efficacy_for_susceptibility[it]) * x[Sv,it] * beta[it] / npop *
         (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
 
-      total_cases[it + 1] = newEu + newEv + total_cases[it];
+      total_cases_increase[it + 1] = newEu + newEv + total_cases_increase[it];
 
       if (it > 1 && it < 200 && extend == 0) {
         newE_temp[it] = newEu;
@@ -340,9 +345,17 @@ generated quantities{
   real<lower=0.0> Rt[nt];
   real<lower=0.0> Rt_unvac[nt];
   real<lower=0.0> frac_vac;
+  real<lower=0.0> total_cases[nt];
+  real<lower=0.0> ini_cases;
+  if (from_beginning) {
+    ini_cases = 0;
+  } else {
+    ini_cases = fmax(0.0, normal_rng(mu_ini_cases, sigma_ini_cases));
+  }
   for (it in 1:nt) {
     frac_vac = x[Sv, it] / (x[Su, it] + x[Sv, it]);
     Rt_unvac[it] = beta[it] * (frac_hosp * frac_hosp_multiplier[it] * duration_pre_hosp + (1 - frac_hosp * frac_hosp_multiplier[it]) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop;
     Rt[it] = (1 - frac_vac * vaccine_efficacy_for_susceptibility[it]) * Rt_unvac[it];
+    total_cases[it] = total_cases_increase[it] + ini_cases;
   }
 }

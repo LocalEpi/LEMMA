@@ -117,7 +117,15 @@ GetStanInputs <- function(inputs) {
   # real<lower=0.0> sigma_ini_Ipreh;
   # real<lower=0.0> mu_ini_Rlive;
   # real<lower=0.0> sigma_ini_Rlive;
-  seir_inputs <- c(seir_inputs, inputs$ini)
+  # real<lower=0.0> mu_ini_cases;
+  # real<lower=0.0> sigma_ini_cases;
+
+  stopifnot(inputs$initial.state$from_beginning %in% 0:1)
+  if (inputs$initial.state$from_beginning) {
+    na <- 999 #not actually used in LEMMA.stan
+    inputs$initial.state <- c(inputs$initial.state, sigma_iniE = na, mu_ini_Imild = na, sigma_ini_Imild = na, mu_ini_Ipreh = na, sigma_ini_Ipreh = na, mu_ini_Rlive = na, sigma_ini_Rlive = na, mu_ini_cases = na, sigma_ini_cases = na)
+  }
+  seir_inputs <- c(seir_inputs, inputs$initial.state)
 
   # total population
   seir_inputs[['npop']] = inputs$model.inputs$total.population
@@ -316,12 +324,13 @@ GetQuantiles <- function(fit, inputs) {
   sim.data <- rstan::extract(fit, pars = "sim_data")[[1]]
   sigma.obs <- rstan::extract(fit, pars = "sigma_obs")[[1]]
 
+
   quantiles <- sapply(DataTypes(), function (i) {
     sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
     nrep <- 100
     sim.data.without.error <- sim.data[, sim.data.index, ]
-    num.days <- ncol(sim.data.without.error)
     niter <- nrow(sim.data.without.error)
+    num.days <- ncol(sim.data.without.error)
     sim.data.without.error.rep <- matrix(rep(sim.data.without.error, each=nrep), niter * nrep, num.days)
     error.sd <- sigma.obs[, sim.data.index]
     error.term.rep <- matrix(rnorm(num.days * niter * nrep) * error.sd, niter * nrep, num.days) #recycles error.sd
