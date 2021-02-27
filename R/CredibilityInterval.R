@@ -171,7 +171,7 @@ GetStanInputs <- function(inputs) {
     if (nobs[j] > 10) {
       y <- obs.mat[1:nobs[j], j]
       yhat <- Loess(y)
-      return(sd(y - yhat))
+      return(pmax(1, sd(y - yhat))) #pmax(1, ) to avoid problems with sd = 0
     } else {
       return(1)
     }
