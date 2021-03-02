@@ -78,6 +78,10 @@ data {
   real<lower=0.0> frac_icu_multiplier[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_mort_multiplier[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
+
+  real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
+  real<lower=0.0> sigma_frac_tested;      // sd of infected who test positiveof infected who test positive
+
 }
 
 transformed data {
@@ -104,8 +108,8 @@ transformed data {
   int obs_icu_census = 2;
   int obs_cum_deaths = 3;
   int obs_cum_admits = 4;
-
-  int nobs_notmissing = 0;
+  int obs_cases = 5;
+  int obs_seroprev = 6;
 
   real beta_limit;
 
@@ -126,6 +130,7 @@ parameters {
   real<lower=0.005, upper=1.0> frac_hosp;
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
+  real<lower=0.0, upper=1.0> frac_tested;
 
   real<lower=0.0> ini_E;
   real<lower=0.0> ini_Imild[1 - from_beginning];
@@ -144,6 +149,7 @@ transformed parameters {
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=beta_limit> beta[nt];
   row_vector<lower=0.0>[nt] Hadmits;
+  row_vector<lower=0.0>[nt] new_cases;
   real<lower=1e-10> newE_temp[nt-1];
   real<lower=0.0> total_cases_increase[nt];
 
@@ -190,13 +196,15 @@ transformed parameters {
     zero = ini_E * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
     Hadmits[1] = zero; //FIXME - this is wrong, would need obs_data[obs_cum_admits, 1]
+    new_cases[1] = zero;
     total_cases_increase[1] = zero;
 
     x[Eu,1] = ini_E;
     if (from_beginning == 0) {
-      x[Hmodu, 1] = obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Hicuu, 1] = obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Rmort, 1] = obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hmodu, 1] += obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hicuu, 1] += obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Rmort, 1] += obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
+      new_cases[1] += obs_data[obs_cases, 1]; //FIXME - works as special case only (needs non NA value)
       x[Imildu, 1] = ini_Imild[1];
       x[Iprehu, 1] = ini_Ipreh[1];
       x[Rliveu, 1] = ini_Rlive[1];
@@ -273,6 +281,8 @@ transformed parameters {
 
       // cumulative hospital admissions
       Hadmits[it+1] = Hadmits[it] + newhospu + newhospv;
+      // new cases that are tested (assumes everyone tests positive on day transitions from E to I - not quite right but minor issue)
+      new_cases[it+1] = (newIu + newIv) * frac_tested;
 
       //////////////////////////////////////////
       // test
@@ -292,6 +302,10 @@ transformed parameters {
       sim_data[itype] = x[Rmort];
     } else if (itype == obs_cum_admits) {
       sim_data[itype] = Hadmits;
+    } else if (itype == obs_cases) {
+      sim_data[itype] = new_cases;
+    } else if (itype == obs_seroprev) {
+      sim_data[itype] = (x[Sv] + x[Ev] + x[Imildv] + x[Iprehv] + x[Hmodv] + x[Hicuv] + x[Rliveu] + x[Rlivev]) / npop;
     } else {
       reject("unexpected itype")
     }
@@ -317,6 +331,7 @@ model {
     frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
     frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
     frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
+    frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
 
     if (from_beginning == 1) {
       ini_E ~ exponential(1.0 / mu_iniE);

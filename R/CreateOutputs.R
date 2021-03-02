@@ -50,6 +50,8 @@ GetYLabel <- function(data.type, long.name) {
          icu = "Number of COVID19 Patients in ICU",
          deaths = "Number of COVID19 Deaths",
          cum.admits = "Number of Cumulative COVID19 Admissions to Hospital",
+         cases = "Number of COVID19 Cases",
+         seroprev = "Seroprevalence (natural or vaccine) Fraction",
          stop("unexpected data.type"))
 }
 
@@ -59,6 +61,8 @@ GetTitleLabel <- function(data.type) {
          icu = "ICU",
          deaths = "Death",
          cum.admits = "Cumulative Admission",
+         cases = "Cases",
+         seroprev = "Seroprevalence",
          stop("unexpected data.type"))
 }
 
@@ -190,7 +194,7 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
             "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort",
-            "beta_multiplier", "t_inter", "sigma_obs", "ini_E", "ini_Imild", "ini_Ipreh", "ini_Rlive")
+            "beta_multiplier", "t_inter", "sigma_obs", "ini_E", "ini_Imild", "ini_Ipreh", "ini_Rlive", "frac_tested")
   if (inputs$ini$from_beginning) {
     pars <- setdiff(pars, c("ini_Imild", "ini_Ipreh", "ini_Rlive"))
   }

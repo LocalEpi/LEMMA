@@ -51,7 +51,9 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
 # int obs_icu_census = 2;
 # int obs_cum_deaths = 3;
 # int obs_cum_admits = 4;
-DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits")
+# int obs_cases = 5;
+# int obs_seroprev = 6;
+DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits", "cases", "seroprev")
 
 GetStanInputs <- function(inputs) {
   data.types <- DataTypes()
@@ -132,7 +134,7 @@ GetStanInputs <- function(inputs) {
 
 
   # lambda parameter for initial conditions of "exposed"
-  seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed
+  # seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed #fixme - moved this to initial.state (remove from xlsx)
 
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
@@ -177,6 +179,7 @@ GetStanInputs <- function(inputs) {
     }
   }
   sigma_obs <- sapply(data.types, EstSigmaObs)
+  sigma_obs["seroprev"] <- inputs$internal.args$sigma_obs_seroprev
   seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
 
   return(seir_inputs)
@@ -326,7 +329,7 @@ GetQuantiles <- function(fit, inputs) {
 
 
   quantiles <- sapply(DataTypes(), function (i) {
-    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, stop("unexpected bounds name"))
+    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, cases = 5, seroprev = 6, stop("unexpected bounds name"))
     nrep <- 100
     sim.data.without.error <- sim.data[, sim.data.index, ]
     niter <- nrow(sim.data.without.error)
