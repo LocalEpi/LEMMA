@@ -1,8 +1,7 @@
 #' @import data.table
 #' @import matrixStats
 
-#no longer used in xlsx input - sigma_len_inter, sigma_frac_pui
-branchname <- function() "CIbugFixed" #fixme - remove this
+#FIXME: no longer used in xlsx input - sigma_len_inter, sigma_frac_pui
 
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
@@ -148,21 +147,19 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-
-  #each of these is vector length nt - may be passed in as up to end of simulation but in RunSim we only run up to end of observed data
-
-  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day[1:nt]
-  seir_inputs[['vaccine_efficacy_for_susceptibility']] <- inputs$vaccines$vaccine_efficacy_for_susceptibility[1:nt]
-  seir_inputs[['vaccine_efficacy_against_progression']] <- inputs$vaccines$vaccine_efficacy_against_progression[1:nt]
+  stopifnot(isTRUE(all.equal(inputs$vaccines$date, seq(day0 + 1, day0 + nt, by = "day"))))
+  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day
+  seir_inputs[['vaccine_efficacy_for_susceptibility']] <- inputs$vaccines$vaccine_efficacy_for_susceptibility
+  seir_inputs[['vaccine_efficacy_against_progression']] <- inputs$vaccines$vaccine_efficacy_against_progression
 
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
 
-  seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated[1:nt]
-  seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural[1:nt]
-  seir_inputs[['frac_hosp_multiplier']] <- inputs$vaccines$frac_hosp_multiplier[1:nt]
-  seir_inputs[['frac_icu_multiplier']] <- inputs$vaccines$frac_icu_multiplier[1:nt]
-  seir_inputs[['frac_mort_multiplier']] <- inputs$vaccines$frac_mort_multiplier[1:nt]
-  seir_inputs[['transmission_variant_multiplier']] <- inputs$vaccines$transmission_variant_multiplier[1:nt]
+  seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated
+  seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural
+  seir_inputs[['frac_hosp_multiplier']] <- inputs$vaccines$frac_hosp_multiplier
+  seir_inputs[['frac_icu_multiplier']] <- inputs$vaccines$frac_icu_multiplier
+  seir_inputs[['frac_mort_multiplier']] <- inputs$vaccines$frac_mort_multiplier
+  seir_inputs[['transmission_variant_multiplier']] <- inputs$vaccines$transmission_variant_multiplier
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
@@ -373,11 +370,12 @@ GetQuantiles <- function(fit, inputs) {
 
   exposed <- GetQuant(x[, 3, ] + x[, 4, ])
   infected <- GetQuant(x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ])
-  active.cases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
-  total.cases <- GetQuant(rstan::extract(fit, pars = "total_cases")[[1]])
+  activeCases <- GetQuant(x[, 3, ] + x[, 4, ] + x[, 5, ] + x[, 6, ] + x[, 7, ] + x[, 8, ] + x[, 9, ] + x[, 10, ]+ x[, 11, ] + x[, 12, ])
+  totalCases <- GetQuant(rstan::extract(fit, pars = "total_cases")[[1]])
   Su <- GetQuant(x[, 1, ])
+  effectivelyVaccinated <- GetQuant(x[, 2, ] + x[, 4, ] + x[, 6, ] + x[, 8, ] + x[, 10, ] + x[, 12, ] + x[, 14, ])
 
-  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = active.cases, totalCases = total.cases, Su = Su))
+  quantiles <- c(quantiles, list(rt = rt.quantiles, exposed = exposed, infected = infected, activeCases = activeCases, totalCases = totalCases, susceptibleUnvax = Su, effectivelyVaccinated = effectivelyVaccinated))
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     quantiles$deaths <- quantiles$deaths + inputs$internal.args$initial.deaths
   }
