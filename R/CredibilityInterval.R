@@ -147,19 +147,16 @@ GetStanInputs <- function(inputs) {
   # number of interventions
   seir_inputs[['ninter']] = nrow(inputs$interventions)
 
-  stopifnot(isTRUE(all.equal(inputs$vaccines$date, seq(day0 + 1, day0 + nt, by = "day"))))
-  seir_inputs[['vaccinated_per_day']] <- inputs$vaccines$vaccinated_per_day
-  seir_inputs[['vaccine_efficacy_for_susceptibility']] <- inputs$vaccines$vaccine_efficacy_for_susceptibility
-  seir_inputs[['vaccine_efficacy_against_progression']] <- inputs$vaccines$vaccine_efficacy_against_progression
+  dates <- seq(day0 + 1, day0 + nt, by = "day")
+  vaccines <- inputs$vaccines[date %in% dates]
+  stopifnot(isTRUE(all.equal(vaccines$date, dates)))
+  stopifnot(setequal(names(vaccines), c("date", "vaccinated_per_day", "vaccine_efficacy_for_susceptibility",
+                                        "vaccine_efficacy_against_progression", "duration_vaccinated",
+                                        "duration_natural", "frac_hosp_multiplier", "frac_icu_multiplier",
+                                        "frac_mort_multiplier", "transmission_variant_multiplier")))
+  seir_inputs <- c(seir_inputs, vaccines)
 
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
-
-  seir_inputs[['duration_vaccinated']] <- inputs$vaccines$duration_vaccinated
-  seir_inputs[['duration_natural']] <- inputs$vaccines$duration_natural
-  seir_inputs[['frac_hosp_multiplier']] <- inputs$vaccines$frac_hosp_multiplier
-  seir_inputs[['frac_icu_multiplier']] <- inputs$vaccines$frac_icu_multiplier
-  seir_inputs[['frac_mort_multiplier']] <- inputs$vaccines$frac_mort_multiplier
-  seir_inputs[['transmission_variant_multiplier']] <- inputs$vaccines$transmission_variant_multiplier
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
