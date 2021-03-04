@@ -162,6 +162,7 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['frac_hosp_multiplier']] <- inputs$vaccines$frac_hosp_multiplier[1:nt]
   seir_inputs[['frac_icu_multiplier']] <- inputs$vaccines$frac_icu_multiplier[1:nt]
   seir_inputs[['frac_mort_multiplier']] <- inputs$vaccines$frac_mort_multiplier[1:nt]
+  seir_inputs[['transmission_variant_multiplier']] <- inputs$vaccines$transmission_variant_multiplier[1:nt]
 
   # fraction of PUI that are true positive
   stopifnot(identical(inputs$frac_pui$name, data.types))
