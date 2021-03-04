@@ -49,7 +49,7 @@ GetYLabel <- function(data.type, long.name) {
          hosp = "Number of COVID19 Patients in Hospital",
          icu = "Number of COVID19 Patients in ICU",
          deaths = "Number of COVID19 Deaths",
-         cum.admits = "Number of Cumulative COVID19 Admissions to Hospital",
+         admits = "Number of New COVID19 Admissions to Hospital",
          cases = "Number of COVID19 Cases",
          seroprev = "Seroprevalence (natural or vaccine) Fraction",
          stop("unexpected data.type"))
@@ -60,7 +60,7 @@ GetTitleLabel <- function(data.type) {
          hosp = "Hospitalization",
          icu = "ICU",
          deaths = "Death",
-         cum.admits = "Cumulative Admission",
+         admits = "Admissions",
          cases = "Cases",
          seroprev = "Seroprevalence",
          stop("unexpected data.type"))

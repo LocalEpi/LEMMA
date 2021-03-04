@@ -77,6 +77,7 @@ data {
   real<lower=0.0> frac_hosp_multiplier[nt];  //multiplier due to vaccines/variants
   real<lower=0.0> frac_icu_multiplier[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_mort_multiplier[nt];   //multiplier due to vaccines/variants
+  real<lower=0.0> transmission_variant_multiplier[nt]; //multiplier due to variants only (vaccine effect is in vaccine_efficacy_for_susceptibility)
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
   real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
@@ -148,7 +149,7 @@ transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0, upper=beta_limit> beta[nt];
-  row_vector<lower=0.0>[nt] Hadmits;
+  row_vector<lower=0.0>[nt] new_admits;
   row_vector<lower=0.0>[nt] new_cases;
   real<lower=1e-10> newE_temp[nt-1];
   real<lower=0.0> total_cases_increase[nt];
@@ -184,7 +185,7 @@ transformed parameters {
     // Calculate beta for each time point
     beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
     for (it in 1:nt) {
-      beta[it] = beta_0;
+      beta[it] = beta_0 * transmission_variant_multiplier[it];
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
@@ -195,13 +196,12 @@ transformed parameters {
     // initial cond
     zero = ini_E * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
     x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
-    Hadmits[1] = zero; //FIXME - this is wrong, would need obs_data[obs_cum_admits, 1]
-    new_cases[1] = zero;
+
     total_cases_increase[1] = zero;
 
     x[Eu,1] = ini_E;
     if (from_beginning == 0) {
-      x[Hmodu, 1] += obs_data[obs_hosp_census, 1]; //FIXME - works as special case only (needs non NA value)
+      x[Hmodu, 1] += obs_data[obs_hosp_census, 1] - obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
       x[Hicuu, 1] += obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
       x[Rmort, 1] += obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
       new_cases[1] += obs_data[obs_cases, 1]; //FIXME - works as special case only (needs non NA value)
@@ -280,7 +280,7 @@ transformed parameters {
       x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it];
 
       // cumulative hospital admissions
-      Hadmits[it+1] = Hadmits[it] + newhospu + newhospv;
+      new_admits[it+1] = newhospu + newhospv;
       // new cases that are tested (assumes everyone tests positive on day transitions from E to I - not quite right but minor issue)
       new_cases[it+1] = (newIu + newIv) * frac_tested;
 
@@ -292,6 +292,10 @@ transformed parameters {
     }
   }
 
+  //FIXME - we could pass in initial values for these but they're not used for anything other than fitting (but need nonNA value)
+  new_admits[1] = new_admits[2];
+  new_cases[1] = new_cases[2];
+
   // Data for fitting
   for (itype in 1:nobs_types) {
     if (itype == obs_hosp_census) {
@@ -301,7 +305,7 @@ transformed parameters {
     } else if (itype == obs_cum_deaths) {
       sim_data[itype] = x[Rmort];
     } else if (itype == obs_cum_admits) {
-      sim_data[itype] = Hadmits;
+      sim_data[itype] = new_admits;
     } else if (itype == obs_cases) {
       sim_data[itype] = new_cases;
     } else if (itype == obs_seroprev) {

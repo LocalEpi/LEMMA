@@ -53,7 +53,7 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
 # int obs_cum_admits = 4;
 # int obs_cases = 5;
 # int obs_seroprev = 6;
-DataTypes <- function() c("hosp", "icu", "deaths", "cum.admits", "cases", "seroprev")
+DataTypes <- function() c("hosp", "icu", "deaths", "admits", "cases", "seroprev")
 
 GetStanInputs <- function(inputs) {
   data.types <- DataTypes()
@@ -76,6 +76,10 @@ GetStanInputs <- function(inputs) {
   obs.data <- copy(inputs$obs.data)
   if (IsValidInput(inputs$internal.args$initial.deaths)) {
     obs.data[, deaths.conf := deaths.conf - inputs$internal.args$initial.deaths]
+  }
+
+  if ("cum.admits.conf" %in% names(inputs$obs.data)) {
+    stop("cum.admits has been replaced by (new) admits. Please update your input file.")
   }
 
   # Observed Data
@@ -214,7 +218,7 @@ RunSim <- function(inputs) {
   }
   run_time <- system.time({
     stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-  # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+                                     # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
                                      data = seir_inputs,
                                      seed = internal.args$random.seed,
                                      iter = internal.args$iter,
@@ -222,9 +226,7 @@ RunSim <- function(inputs) {
                                      cores = internal.args$cores,
                                      refresh = internal.args$refresh,
                                      control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     #pars = c("error"),
-  init = GetInit #init = GetInit,
-                                     #include = FALSE
+                                     init = GetInit
     )
   })
   print(run_time)
@@ -329,7 +331,7 @@ GetQuantiles <- function(fit, inputs) {
 
 
   quantiles <- sapply(DataTypes(), function (i) {
-    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, cum.admits = 4, cases = 5, seroprev = 6, stop("unexpected bounds name"))
+    sim.data.index <- switch(i, hosp = 1, icu = 2, deaths = 3, admits = 4, cases = 5, seroprev = 6, stop("unexpected bounds name"))
     nrep <- 100
     sim.data.without.error <- sim.data[, sim.data.index, ]
     niter <- nrow(sim.data.without.error)
