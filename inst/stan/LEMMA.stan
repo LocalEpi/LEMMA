@@ -204,7 +204,6 @@ transformed parameters {
       x[Hmodu, 1] += obs_data[obs_hosp_census, 1] - obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
       x[Hicuu, 1] += obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
       x[Rmort, 1] += obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
-      new_cases[1] += obs_data[obs_cases, 1]; //FIXME - works as special case only (needs non NA value)
       x[Imildu, 1] = ini_Imild[1];
       x[Iprehu, 1] = ini_Ipreh[1];
       x[Rliveu, 1] = ini_Rlive[1];
@@ -369,7 +368,7 @@ generated quantities{
   if (from_beginning) {
     ini_cases = 0;
   } else {
-    ini_cases = fmax(0.0, normal_rng(mu_ini_cases, sigma_ini_cases));
+    ini_cases = fmax(0.0, normal_rng(mu_ini_cases, sigma_ini_cases)); //FIXME: this isnt right - mu_ini_cases isn't tied to anything so if for example ini_Rlive is increased to fit seroprev then ini_cases doesnt change
   }
   for (it in 1:nt) {
     frac_vac = x[Sv, it] / (x[Su, it] + x[Sv, it]);
