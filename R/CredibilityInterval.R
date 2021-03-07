@@ -224,6 +224,21 @@ RunSim <- function(inputs) {
                                      init = GetInit
     )
   })
+  if (is.null(rstan::extract(stan_seir_fit, pars = "r0"))) {
+    cat("Retrying with random init\n")
+    run_time <- system.time({
+      stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+                                       # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+                                       data = seir_inputs,
+                                       seed = internal.args$random.seed,
+                                       iter = internal.args$iter,
+                                       warmup = warmup,
+                                       cores = internal.args$cores,
+                                       refresh = internal.args$refresh,
+                                       control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta)
+      )
+    })
+  }
   print(run_time)
   return(stan_seir_fit)
 }
