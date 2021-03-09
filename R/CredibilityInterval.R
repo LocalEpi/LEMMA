@@ -12,9 +12,11 @@ CredibilityInterval <- function(inputs) {
 
   cat("Fitting to observed data\n")
   fit.to.data <- RunSim(inputs)
-  cat("Projecting\n")
-
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
+  # cat("Projecting\n")
+  # fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions, extend.iter = NULL)
+  cat("Temp - only projecting to end of data\n")
+  inputs$model.inputs$end.date <- max(inputs$obs.data$date)
+  fit.extended <- fit.to.data
 
   posterior.quantiles <- GetQuantiles(fit.extended, inputs)
 
@@ -172,7 +174,7 @@ GetStanInputs <- function(inputs) {
     if (nobs[j] > 10) {
       y <- obs.mat[1:nobs[j], j]
       yhat <- Loess(y)
-      return(pmax(1, sd(y - yhat))) #pmax(1, ) to avoid problems with sd = 0
+      return(pmax(0.001, sd(y - yhat))) #pmax to avoid problems with sd = 0
     } else {
       return(1)
     }
@@ -181,6 +183,7 @@ GetStanInputs <- function(inputs) {
   sigma_obs["seroprev"] <- inputs$internal.args$sigma_obs_seroprev
   seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
 
+  seir_inputs$date <- NULL
   return(seir_inputs)
 }
 
@@ -212,33 +215,34 @@ RunSim <- function(inputs) {
     warmup <- floor(internal.args$iter / 2)
   }
   run_time <- system.time({
-    stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-                                     # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
-                                     data = seir_inputs,
-                                     seed = internal.args$random.seed,
-                                     iter = internal.args$iter,
-                                     warmup = warmup,
-                                     cores = internal.args$cores,
-                                     refresh = internal.args$refresh,
-                                     control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
-                                     init = GetInit
+    # stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+    #                                  # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
+    #                                  data = seir_inputs,
+    #                                  seed = internal.args$random.seed,
+    #                                  iter = internal.args$iter,
+    #                                  warmup = warmup,
+    #                                  cores = internal.args$cores,
+    #                                  refresh = internal.args$refresh,
+    #                                  control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta),
+    #                                  init = GetInit
+    # )
+    mod <- cmdstanr::cmdstan_model(system.file("extdata", "LEMMA1.stan", package = "LEMMA"))
+    fit <- mod$sample(
+      data = seir_inputs,
+      seed = internal.args$random.seed,
+      refresh = internal.args$refresh,
+      iter_warmup = warmup,
+      iter_sampling = internal.args$iter - warmup,
+      adapt_delta = internal.args$adapt_delta,
+      max_treedepth = internal.args$max_treedepth,
+      parallel_chains = internal.args$cores
     )
+    stan_seir_fit <- rstan::read_stan_csv(fit$output_files())
   })
-  if (is.null(rstan::extract(stan_seir_fit, pars = "r0"))) {
-    cat("Retrying with random init\n")
-    run_time <- system.time({
-      stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-                                       # stan_seir_fit <- rstan::stan("inst/stan/LEMMA.stan",
-                                       data = seir_inputs,
-                                       seed = internal.args$random.seed,
-                                       iter = internal.args$iter,
-                                       warmup = warmup,
-                                       cores = internal.args$cores,
-                                       refresh = internal.args$refresh,
-                                       control = list(max_treedepth = internal.args$max_treedepth, adapt_delta = internal.args$adapt_delta)
-      )
-    })
-  }
+  rhat.dt <- as.data.table(fit$summary(NULL, "rhat"))
+  cat("max Rhat = ", rhat.dt[, max(rhat, na.rm = T)], "\n")
+  setorder(rhat.dt, -rhat)
+  print(head(rhat.dt, 10))
   print(run_time)
   return(stan_seir_fit)
 }
@@ -304,21 +308,35 @@ ExtendSim <- function(lemma.object, new.interventions, extend.iter) {
 
   out <- capture.output(
     run_time <- system.time({
-      stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
-                                       data = seir_inputs,
-                                       seed = internal.args$random.seed,
-                                       iter = 1,
-                                       algorithm = "Fixed_param",
-                                       chains = extend.iter,
-                                       chain_id = chain.id,
-                                       cores = 1,
-                                       refresh = internal.args$refresh,
-                                       pars = c("error"),
-                                       include = FALSE,
-                                       refresh = 0,
-                                       init = GetInit
+      # stan_seir_fit <- rstan::sampling(stanmodels$LEMMA,
+      #                                  data = seir_inputs,
+      #                                  seed = internal.args$random.seed,
+      #                                  iter = 1,
+      #                                  algorithm = "Fixed_param",
+      #                                  chains = extend.iter,
+      #                                  chain_id = chain.id,
+      #                                  cores = 1,
+      #                                  refresh = internal.args$refresh,
+      #                                  pars = c("error"),
+      #                                  include = FALSE,
+      #                                  refresh = 0,
+      #                                  init = GetInit
+      # )
+      mod <- cmdstanr::cmdstan_model(system.file("extdata", "LEMMA1.stan", package = "LEMMA"))
+      fit <- mod$sample(
+        data = seir_inputs,
+        seed = internal.args$random.seed,
+        fixed_param = T,
+        iter_sampling = 1,
+        # chain_ids = chain.id,
+        chains = extend.iter,
+        parallel_chains = 1,
+        refresh = 0,
+        init = GetInit
       )
+      stan_seir_fit <- rstan::read_stan_csv(fit$output_files())
     })
+
   )
   if (any(grepl("error", out, ignore.case = T))) {
     print(out)
