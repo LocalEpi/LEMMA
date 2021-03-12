@@ -11,7 +11,7 @@ CredibilityInterval <- function(inputs) {
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
 
   fit.to.data <- RunSim(inputs)
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data), new.interventions)
+  fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
   projection <- GetProjection(fit.extended, inputs)
 
   excel.output <- GetExcelOutput(projection, fit.to.data, inputs)
@@ -34,9 +34,9 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
     inputs$internal.args$output.filestr <- new.output.filestr
   }
   TestOutputFile(inputs$internal.args$output.filestr)
-  fit.extended <- ExtendSim(lemma.object, new.interventions)
+  fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
   projection <- GetProjection(fit.extended, inputs)
-  excel.output <- GetExcelOutput(projection, inputs)
+  excel.output <- GetExcelOutput(projection, fit.to.data, inputs) #pass fit.to.data for posteriors
   gplot <- GetPdfOutput(fit.extended, projection, inputs)
   invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, projection = projection, gplot = gplot, excel.output = excel.output, inputs = inputs))
 }
@@ -152,7 +152,9 @@ GetStanInputs <- function(inputs) {
     }
   }
   sigma_obs <- sapply(data.types, EstSigmaObs)
-  sigma_obs["seroprev"] <- inputs$internal.args$sigma_obs_seroprev
+  if (inputs$internal.args$sigma_obs_seroprev > 0) {
+    sigma_obs["seroprev"] <- inputs$internal.args$sigma_obs_seroprev
+  }
   seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
 
   return(seir_inputs)
@@ -171,7 +173,10 @@ RunSim <- function(inputs) {
     init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
     return(init)
   }
-  browser()
+  cat("NOTE: If you see a message saying:\n")
+  cat("   Error evaluating model log probability: Non-finite gradient.\n")
+  cat("That is fine - LEMMA is working properly as long as it says:\n")
+  cat("   Optimization terminated normally\n\n")
   fit <- rstan::optimizing(stanmodels$LEMMA,
                     data = seir_inputs,
                     seed = inputs$internal.args$random.seed,
@@ -186,9 +191,9 @@ RunSim <- function(inputs) {
   return(fit)
 }
 
-ExtendSim <- function(lemma.object, new.interventions) {
+ExtendSim <- function(inputs, fit.to.data, new.interventions) {
   GetInit <- function(chain_id) {
-    init <- lemma.object$fit$par
+    init <- fit.to.data$par
     if (!is.null(new.interventions)) {
       n <- nrow(new.interventions)
       init$beta_multiplier <- as.array(c(init$beta_multiplier, new.interventions$mu_beta_inter))
@@ -197,7 +202,6 @@ ExtendSim <- function(lemma.object, new.interventions) {
     }
     return(init)
   }
-  inputs <- lemma.object$inputs
   if (!is.null(new.interventions)) {
     max.obs.data.date <- max(inputs$obs.data$date)
     if (any(new.interventions$mu_t_inter <= max.obs.data.date)) {
