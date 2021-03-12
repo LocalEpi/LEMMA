@@ -1,14 +1,16 @@
 #' @import ggplot2
 
-GetExcelOutput <- function(quantile.list, inputs) {
+GetExcelOutput <- function(projection, fit, inputs) {
   options("openxlsx.numFmt" = "0.00")
+  display.date.range <- seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day")
+  output.list <- list(projection = projection[date %in% display.date.range])
 
-  output.list <- lapply(quantile.list, function (quant) {
-    display.date.range <- as.character(seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day"))
-    index <- rownames(quant) %in% display.date.range
-    output <- data.table(date = rownames(quant)[index], quant[index, ])
-    return(output)
-  })
+  pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
+            "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort", "frac_tested",
+            "ini_exposed")
+  output.list$posteriorParams <- data.table(param = pars, posterior = unlist(fit$par[pars]))
+  output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date))
+
   output.list$all.inputs = inputs$all.inputs.str
   filestr.out <- paste0(inputs$internal.args$output.filestr, ".xlsx")
   openxlsx::write.xlsx(output.list, file = filestr.out)
@@ -16,33 +18,6 @@ GetExcelOutput <- function(quantile.list, inputs) {
   return(output.list)
 }
 
-#modification of rstan::stan_hist to deal with dates (also rstan::stan_hist crashes when using ExtendSim)
-StanHist <- function (object, pars, base.date, ...) {
-  dots <- rstan:::.add_aesthetics(list(...), c("fill", "color"))
-  samp <- melt(as.data.table(as.matrix(object, pars = pars)), id.vars = integer(0))
-  all.zero <- samp[, .(max.zero = max(abs(value)) < 1e-10), by = "variable"]
-  if (all.zero[, all(max.zero)]) return(NULL)
-  all.zero.vars <- all.zero[max.zero == TRUE, variable]
-  samp <- samp[!(variable %in% all.zero.vars)] #all near zero causes errors
-  samp[, variable := factor(variable)]
-  if (!is.null(base.date)) {
-    samp$value <- base.date + samp$value
-  }
-  thm <- rstan:::.rstanvis_defaults$hist_theme
-  base <- ggplot2::ggplot(samp, ggplot2::aes_string(x = "value", y = "..density.."))
-  graph <- base + do.call(ggplot2::geom_histogram, dots) +
-    ggplot2::xlab("") + thm
-  if (uniqueN(samp$variable) == 1) {
-    graph + ggplot2::xlab(unique(samp$variable))
-  } else {
-    graph + ggplot2::facet_wrap(~variable, scales = "free")
-  }
-}
-
-PlotHist <- function(fit, pars, base.date) {
-  base.date <- if (pars == "t_inter") base.date else NULL
-  return(StanHist(fit, pars = pars, fill="steelblue3", alpha = 0.2, bins=30, base.date = base.date))
-}
 
 GetYLabel <- function(data.type, long.name) {
   switch(data.type,
@@ -66,11 +41,12 @@ GetTitleLabel <- function(data.type) {
          stop("unexpected data.type"))
 }
 
-GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
+GetProjectionPlot <- function(short.term, projection, data.type, inputs) {
   obs.data <- inputs$obs.data[, .(date, conf = get(paste0(data.type, ".conf")), pui = get(paste0(data.type, ".pui")))]
   if (all(is.na(obs.data$conf))) return(NULL)
-  quantiles.dt <- data.table(date = as.Date(rownames(quantiles[[data.type]])), quantiles[[data.type]])
-  dt.plot <- merge(obs.data, quantiles.dt, all = T, by = "date")
+  projection.dt <- projection[, c("date", data.type), with = F]
+  names(projection.dt)[2] <- "proj"
+  dt.plot <- merge(obs.data, projection.dt, all = T, by = "date")
 
   if (short.term) {
     max.date <- obs.data[!is.na(conf), max(date)] + 3
@@ -97,7 +73,7 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   dt.plot <- dt.plot[date >= min.date & date <= max.date]
   gg <- ggplot(dt.plot, aes(x=date)) +
     theme_light() +
-    geom_line(aes(y = `50%`, color = "Median"))
+    geom_line(aes(y = proj, color = "Median"))
 
 
   if (plot.observed.data) {
@@ -112,16 +88,11 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
     over.aes <- list()
   }
 
-  gg <- gg + geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%"), fill = "blue") +
-    geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%"), fill = "blue") +
-    geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%"), fill = "blue")
-
   gg <- gg +
     xlab("") +
     ylab(GetYLabel(data.type)) +
     labs(title = title1, caption = "localepi.github.io/LEMMA") +
     scale_color_manual("", values = c("blue", "palegreen4", "red4"), breaks = c("Median", lb, ub)) +
-    scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d", expand = expansion()) +
     guides(color = guide_legend("", order = 1, override.aes = over.aes), alpha = guide_legend("", order = 2)) +
@@ -130,28 +101,23 @@ GetProjectionPlot <- function(short.term, quantiles, data.type, inputs) {
   return(gg)
 }
 
-GetRtPlot <- function(quantiles, inputs) {
-  sim.dates <- inputs$internal.args$simulation.start.date + 1:nrow(quantiles)
-  dt.plot <- data.table(date = sim.dates, quantiles)
+GetRtPlot <- function(projection, inputs) {
+  dt.plot <- projection[date <= (max(inputs$obs.data$date) - 14), .(date, rt)]
 
   min.date <- as.Date("2020/4/1")
-  if (max(sim.dates) > min.date) {
+  if (dt.plot[, max(date)] > min.date) {
     dt.plot <- dt.plot[date >= min.date]
   }
 
   gg <- ggplot(dt.plot, aes(x=date)) +
     theme_light() +
-    geom_line(aes(y = `50%`, color = "Median"))
-  gg <- gg + geom_ribbon(aes(ymin=`25%`, ymax=`75%`, alpha = "25%-75%"), fill = "blue") +
-    geom_ribbon(aes(ymin=`15%`, ymax=`85%`, alpha = "15%-85%"), fill = "blue") +
-    geom_ribbon(aes(ymin=`5%`, ymax=`95%`, alpha = "5%-95%"), fill = "blue")
+    geom_line(aes(y = rt, color = "Median"))
 
   gg <- gg +
     xlab("") +
     ylab("Re") +
-    labs(title = "Effective Reproduction Number") +
+    labs(title = "Effective Reproduction Number", subtitle = paste0("Rt as of ", as.character(dt.plot[, max(date)]), " = ", dt.plot[.N, sprintf("%2.2f", rt)])) +
     scale_color_manual("", values = "blue") +
-    scale_alpha_manual("", values = c(0.2, 0.3, 0.4), breaks = c("5%-95%", "15%-85%", "25%-75%")) +
     theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %d", expand = expansion()) +
     guides(color = guide_legend("", order = 1), alpha = guide_legend("", order = 2)) +
@@ -162,9 +128,9 @@ GetRtPlot <- function(quantiles, inputs) {
   return(gg)
 }
 
-expansion <- function() c(0, 0, 0, 0) #fixes a problem if AWS has old ggplot version
+expansion <- function() c(0, 0, 0, 0) #fixes a problem if old ggplot version
 
-GetPdfOutput <- function(fit, quantiles, inputs) {
+GetPdfOutput <- function(fit, projection, inputs) {
   devlist <- grDevices::dev.list()
   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
 
@@ -173,31 +139,13 @@ GetPdfOutput <- function(fit, quantiles, inputs) {
 
   short.term <- long.term <- list()
   for (i in DataTypes()) {
-    short.term[[i]] <- GetProjectionPlot(short.term = T, quantiles = quantiles, data.type = i, inputs = inputs)
-    print(short.term[[i]])
-    long.term[[i]] <- GetProjectionPlot(short.term = F, quantiles = quantiles, data.type = i, inputs = inputs)
-    print(long.term[[i]])
+    short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
+    if (!is.null(short.term[[i]])) print(short.term[[i]])
+    long.term[[i]] <- GetProjectionPlot(short.term = F, projection = projection, data.type = i, inputs = inputs)
+    if (!is.null(long.term[[i]])) print(long.term[[i]])
   }
 
-  rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 14)
-  # rt.index <- as.Date(rownames(quantiles$rt)) <= (max(inputs$obs.data$date) - 9)
-  rt <- quantiles$rt[rt.index, ] #cutoff Rt plot 14 days before last observed data
-  rt.plot <- GetRtPlot(rt, inputs)
-  rt.date <- rownames(rt)[nrow(rt)]
-  date.index <- as.numeric(as.Date(rt.date) - inputs$internal.args$simulation.start.date)
-  rt.pars <- paste0("Rt[", date.index, "]")
-  rt.quantiles <- round(quantile(rstan::extract(fit, pars = rt.pars)[[1]], c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95)), 2)
-  print(rt.quantiles)
-  subtitl <- paste0(capture.output(print(rt.quantiles)), collapse = "\n")
-  g <- PlotHist(fit, rt.pars) + xlab(NULL) + labs(title = paste("Rt as of", rt.date), subtitle = subtitl) + theme(plot.subtitle=element_text(family="Courier"))
-  print(g)
-
-  pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
-            "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort",
-            "beta_multiplier", "t_inter", "sigma_obs", "ini_E", "frac_tested")
-
-  lapply(pars, function (p) print(PlotHist(fit, p, base.date = inputs$internal.args$simulation.start.date)))
-
+  rt.plot <- GetRtPlot(projection, inputs)
   grDevices::dev.off()
   cat("\nPDF output: ", filestr.out, "\n")
   return(list(short.term = short.term, long.term = long.term, rt = rt.plot))

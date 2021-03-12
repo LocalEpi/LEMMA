@@ -6,21 +6,13 @@ data {
   //////////////////////////////////////////
   // data required to run model
 
-  // obs_data_conf = total hosp census, ICU census, cumulative deaths, cumulative total hosp
-
-
-  //want to have obs_data and tobs different sizes for each obs type
-
-  int<lower=0> nobs_types;
+  int<lower=0> nobs_types;                           // number of observation data types
   int<lower=0> nobs[nobs_types];                     // number of timesteps with observations
-  int <lower=0> nobs_max;
-  int<lower=-1> tobs[nobs_types, nobs_max];               // obs times; -1 = NA
+  int <lower=0> nobs_max;                            // maximum of nobs
+  int<lower=-1> tobs[nobs_types, nobs_max];           // obs times; -1 = NA
   matrix<lower=-1.0>[nobs_types, nobs_max] obs_data;  // observed confirmed (-1 = NA)
-
-  int<lower=0> nt;                       // number of time steps
-  real<lower=0.0> npop;                             // total population
-  int<lower=0, upper=1> extend;
-  int<lower=0, upper=1> from_beginning;
+  int<lower=0> nt;                                    // number of time steps
+  real<lower=0.0> npop;                               // total population
 
   //////////////////////////////////////////
   // prior parameter distributions
@@ -45,18 +37,7 @@ data {
   real<lower=0.0> mu_frac_mort;           // mean mortality as fraction of ICU
   real<lower=0.0> sigma_frac_mort;        // sd mortality as fraction of ICU
 
-  //real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
-  real<lower=0.0> mu_iniE;
-  real<lower=0.0> sigma_iniE;
-  real<lower=0.0> mu_ini_Imild;
-  real<lower=0.0> sigma_ini_Imild;
-  real<lower=0.0> mu_ini_Ipreh;
-  real<lower=0.0> sigma_ini_Ipreh;
-  real<lower=0.0> mu_ini_Rlive;
-  real<lower=0.0> sigma_ini_Rlive;
-  real<lower=0.0> mu_ini_cases;
-  real<lower=0.0> sigma_ini_cases;
-
+  real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
 
   //////////////////////////////////////////
   // interventions
@@ -111,17 +92,8 @@ transformed data {
   int obs_cum_admits = 4;
   int obs_cases = 5;
   int obs_seroprev = 6;
-
-  real beta_limit;
-
-  if (extend == 1) {
-    beta_limit = 1e10; // no limit on beta if extending simulation
-  } else {
-    beta_limit = 2.0;
-  }
 }
 parameters {
-
   real<lower=1.0> duration_latent; // duration is a minimum of 1 which is the stepsize of this model
   real<lower=1.0> duration_rec_mild;
   real<lower=1.0> duration_pre_hosp;
@@ -133,13 +105,8 @@ parameters {
   real<lower=0.0, upper=1.0> frac_mort;
   real<lower=0.0, upper=1.0> frac_tested;
 
-  real<lower=0.0> ini_E;
-  real<lower=0.0> ini_Imild[1 - from_beginning];
-  real<lower=0.0> ini_Ipreh[1 - from_beginning];
-  real<lower=0.0> ini_Rlive[1 - from_beginning];
+  real<lower=0.0> ini_exposed;
   real<lower=0.0> sigma_obs[nobs_types];
-
-
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
@@ -148,15 +115,13 @@ parameters {
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
   matrix<lower=0.0>[nobs_types,nt] sim_data;
-  real<lower=0.0, upper=beta_limit> beta[nt];
+  real<lower=0.0> beta[nt];
   row_vector<lower=0.0>[nt] new_admits;
   row_vector<lower=0.0>[nt] new_cases;
-  real<lower=1e-10> newE_temp[nt-1];
-  real<lower=0.0> total_cases_increase[nt];
+  real<lower=0.0> total_cases[nt];
 
   {
     // variables in curly brackets will not have output, they are local variables
-
     real newEu;
     real newEv;
     real newIu;
@@ -171,7 +136,6 @@ transformed parameters {
     real leave_icuu;
     real leave_icuv;
     real beta_0;
-    real zero;
     real vaccinated;
     real frac_vac_S;
     real newSv;
@@ -194,24 +158,12 @@ transformed parameters {
     }
 
     // initial cond
-    zero = ini_E * 1e-15; //should be zero, hack for RStan (causes problems with RHat if constant)
-    x[:,1] = rep_vector(zero, ncompartments); //: means all entries. puts a zero in x1-8 for initial entries
-
-    total_cases_increase[1] = zero;
-
-    x[Eu,1] = ini_E;
-    if (from_beginning == 0) {
-      x[Hmodu, 1] += obs_data[obs_hosp_census, 1] - obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Hicuu, 1] += obs_data[obs_icu_census, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Rmort, 1] += obs_data[obs_cum_deaths, 1]; //FIXME - works as special case only (needs non NA value)
-      x[Imildu, 1] = ini_Imild[1];
-      x[Iprehu, 1] = ini_Ipreh[1];
-      x[Rliveu, 1] = ini_Rlive[1];
-    }
-
-    x[Su,1] = npop - sum(x[2:ncompartments, 1]);
-
-
+    x[:,1] = rep_vector(0.0, ncompartments);
+    total_cases[1] = 0.0;
+    x[Eu,1] = ini_exposed;
+    x[Su,1] = npop - ini_exposed;
+    new_admits[1] = 0.0;
+    new_cases[1] = 0.0;
 
     //////////////////////////////////////////
     // the SEIR model
@@ -219,20 +171,14 @@ transformed parameters {
       //////////////////////////////////////////
       // set transition variables
       newEu = fmin(x[Su,it],
-        x[Su,it] * beta[it] / npop *
-        (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
+      x[Su,it] * beta[it] / npop *
+      (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
 
       newEv = fmin(x[Sv,it],
-        (1 - vaccine_efficacy_for_susceptibility[it]) * x[Sv,it] * beta[it] / npop *
-        (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
+      (1 - vaccine_efficacy_for_susceptibility[it]) * x[Sv,it] * beta[it] / npop *
+      (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
 
-      total_cases_increase[it + 1] = newEu + newEv + total_cases_increase[it];
-
-      if (it > 1 && it < 200 && extend == 0) {
-        newE_temp[it] = newEu;
-      } else {
-        newE_temp[it] = 1 + zero; //ignore this
-      }
+      total_cases[it + 1] = newEu + newEv + total_cases[it];
 
       vaccinated = fmin(vaccinated_per_day[it], x[Su, it] + x[Eu, it] + x[Rliveu, it]);
 
@@ -256,7 +202,6 @@ transformed parameters {
       R_lostnatu = 1.0/duration_natural[it] * x[Rliveu, it];
       R_lostnatv = 1.0/duration_natural[it] * x[Rlivev, it];
 
-      //frac_hospu = frac_hosp * frac_hosp_multiplier[it]
       frac_hospv = frac_hosp * frac_hosp_multiplier[it] * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
 
       //////////////////////////////////////////
@@ -286,14 +231,11 @@ transformed parameters {
       //////////////////////////////////////////
       // test
       if (fabs(sum(x[:,it+1])-npop) > 1e-1){
-        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop)
+        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
+        // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], x[:, it+1]);
       }
     }
   }
-
-  //FIXME - we could pass in initial values for these but they're not used for anything other than fitting (but need nonNA value)
-  new_admits[1] = new_admits[2];
-  new_cases[1] = new_cases[2];
 
   // Data for fitting
   for (itype in 1:nobs_types) {
@@ -310,51 +252,41 @@ transformed parameters {
     } else if (itype == obs_seroprev) {
       sim_data[itype] = (x[Sv] + x[Ev] + x[Imildv] + x[Iprehv] + x[Hmodv] + x[Hicuv] + x[Rliveu] + x[Rlivev]) / npop;
     } else {
-      reject("unexpected itype")
+      reject("unexpected itype");
     }
   }
 }
 model {
-  if (extend == 0) {
-    //////////////////////////////////////////
-    // prior distributions
-    r0 ~ normal(mu_r0, sigma_r0);
+  //////////////////////////////////////////
+  // prior distributions
+  r0 ~ normal(mu_r0, sigma_r0);
 
-    for (iinter in 1:ninter) {
-      beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
-      t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
-    }
+  for (iinter in 1:ninter) {
+    beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
+    t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
+  }
 
-    duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
-    duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
-    duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
-    duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
-    duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
+  duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);
+  duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
+  duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
+  duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
+  duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
 
-    frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
-    frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
-    frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
-    frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
+  frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
+  frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
+  frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
 
-    if (from_beginning == 1) {
-      ini_E ~ exponential(1.0 / mu_iniE);
-    } else {
-      ini_E ~ normal(mu_iniE, sigma_iniE);
-      ini_Imild ~ normal(mu_ini_Imild, sigma_ini_Imild);
-      ini_Ipreh ~ normal(mu_ini_Ipreh, sigma_ini_Ipreh);
-      ini_Rlive ~ normal(mu_ini_Rlive, sigma_ini_Rlive);
-    }
+  ini_exposed ~ exponential(lambda_ini_exposed);
 
+  //////////////////////////////////////////
+  // fitting observations
+  sigma_obs ~ exponential(sigma_obs_est_inv);
 
-    //////////////////////////////////////////
-    // fitting observations
-    sigma_obs ~ exponential(sigma_obs_est_inv);
-
-    //deal with PUIs and NAs in R
-    for (itype in 1:nobs_types) {
-      if (nobs[itype] > 0) {
-        obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
-      }
+  //deal with PUIs and NAs in R
+  for (itype in 1:nobs_types) {
+    if (nobs[itype] > 0) {
+      obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
     }
   }
 }
@@ -363,17 +295,10 @@ generated quantities{
   real<lower=0.0> Rt[nt];
   real<lower=0.0> Rt_unvac[nt];
   real<lower=0.0> frac_vac;
-  real<lower=0.0> total_cases[nt];
-  real<lower=0.0> ini_cases;
-  if (from_beginning) {
-    ini_cases = 0;
-  } else {
-    ini_cases = fmax(0.0, normal_rng(mu_ini_cases, sigma_ini_cases)); //FIXME: this isnt right - mu_ini_cases isn't tied to anything so if for example ini_Rlive is increased to fit seroprev then ini_cases doesnt change
-  }
+
   for (it in 1:nt) {
     frac_vac = x[Sv, it] / (x[Su, it] + x[Sv, it]);
     Rt_unvac[it] = beta[it] * (frac_hosp * frac_hosp_multiplier[it] * duration_pre_hosp + (1 - frac_hosp * frac_hosp_multiplier[it]) * duration_rec_mild) * (x[Su, it] + x[Sv, it]) / npop;
     Rt[it] = (1 - frac_vac * vaccine_efficacy_for_susceptibility[it]) * Rt_unvac[it];
-    total_cases[it] = total_cases_increase[it] + ini_cases;
   }
 }
