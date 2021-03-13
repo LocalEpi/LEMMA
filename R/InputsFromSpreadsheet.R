@@ -55,17 +55,22 @@ ReadInputs <- function(path) {
 }
 
 AddInterventions <- function(interventions, min.date, max.date) {
-  interval <- 14
-  d.set <- seq(max.date, min.date, by = "-1 day")
+  d.set <- seq(max.date - 10, min.date, by = "-1 day")
   for (i in seq_along(d.set)) {
     d <- d.set[i]
+    if (d < (max.date - 60)) {
+      interval <- 30
+      sigma_t_inter <- 5
+      mu_len_inter <- 15
+      sigma_len_inter <- 5
+    } else {
+      interval <- 14
+      sigma_t_inter <- 2
+      mu_len_inter <- 7
+      sigma_len_inter <- 2
+    }
     if ((length(interventions$mu_t_inter) == 0) || (min(abs(as.numeric(interventions$mu_t_inter - d))) >= interval)) {
-      if (i <= (2 * interval)) {
-        sd1 <- 0.1
-      } else {
-        sd1 <- 0.3
-      }
-      new.int <- data.table(mu_t_inter = d, sigma_t_inter = 2, mu_beta_inter = 1, sigma_beta_inter = sd1, mu_len_inter = 7, sigma_len_inter = 2)
+      new.int <- data.table(mu_t_inter = d, sigma_t_inter, mu_beta_inter = 1, sigma_beta_inter = 0.1, mu_len_inter, sigma_len_inter)
       interventions <- rbind(interventions, new.int)
     }
   }

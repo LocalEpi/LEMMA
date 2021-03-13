@@ -45,9 +45,10 @@ data {
   int<lower=0> ninter;                      // number of interventions
   real<lower=1.0> mu_t_inter[ninter];       // mean start time of each interventions
   real<lower=0.0> sigma_t_inter[ninter];    // sd start time of each interventions
-  real<lower=1.0> len_inter[ninter];     // mean length of each intervention
+  real<lower=1.0> mu_len_inter[ninter];     // mean length of each intervention
+  real<lower=1.0> sigma_len_inter[ninter];  // sd length of each intervention
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
-  real<lower=0.0> sigma_beta_inter[ninter];    // sd change in beta through intervention
+  real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
 
   real<lower=0.0> vaccinated_per_day[nt]; //vaccinated per day total
   real<lower=0.0, upper=1.0> vaccine_efficacy_for_susceptibility[nt];
@@ -110,6 +111,7 @@ parameters {
   real<lower=0.0> r0;
   real<lower=0.0> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
+  real<lower=1.0> len_inter[ninter];
 
 }
 transformed parameters {
@@ -264,6 +266,7 @@ model {
   for (iinter in 1:ninter) {
     beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
     t_inter[iinter] ~ normal(mu_t_inter[iinter], sigma_t_inter[iinter]);
+    len_inter[iinter] ~ normal(mu_len_inter[iinter], sigma_len_inter[iinter]);
   }
 
   duration_latent ~ normal(mu_duration_latent, sigma_duration_latent);

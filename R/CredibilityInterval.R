@@ -1,7 +1,7 @@
 #' @import data.table
 #' @import matrixStats
 
-#FIXME: no longer used in xlsx input - sigma_len_inter, sigma_frac_pui
+#FIXME: no longer used in xlsx input - sigma_len_inter?, sigma_frac_pui
 
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
@@ -117,7 +117,6 @@ GetStanInputs <- function(inputs) {
 
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)
-  setnames(inputs$interventions, "mu_len_inter", "len_inter")
   seir_inputs <- c(seir_inputs, lapply(inputs$interventions, as.array)) #as.array fixes problems if only one intervention
 
   # number of interventions

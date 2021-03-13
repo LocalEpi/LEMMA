@@ -9,7 +9,7 @@ GetExcelOutput <- function(projection, fit, inputs) {
             "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort", "frac_tested",
             "ini_exposed")
   output.list$posteriorParams <- data.table(param = pars, posterior = unlist(fit$par[pars]))
-  output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date))
+  output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date), len_inter = as.vector(fit$par$len_inter))
 
   output.list$all.inputs = inputs$all.inputs.str
   filestr.out <- paste0(inputs$internal.args$output.filestr, ".xlsx")
