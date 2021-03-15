@@ -6,7 +6,7 @@ GetExcelOutput <- function(projection, fit, inputs) {
   output.list <- list(projection = projection[date %in% display.date.range])
 
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
-            "duration_hosp_icu", "frac_hosp", "frac_icu", "frac_mort", "frac_tested",
+            "duration_hosp_icu", "duration_mort_nonhosp",  "frac_hosp", "frac_icu", "frac_mort", "frac_mort_nonhosp" , "frac_tested",
             "ini_exposed")
   output.list$posteriorParams <- data.table(param = pars, posterior = unlist(fit$par[pars]))
   output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date), len_inter = as.vector(fit$par$len_inter))

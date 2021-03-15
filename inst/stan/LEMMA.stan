@@ -26,6 +26,10 @@ data {
   real<lower=0.0> sigma_duration_hosp_mod;// sd duration in hospital for non-ICU cases
   real<lower=1.0> mu_duration_hosp_icu;   // mean duration in hospital for ICU cases
   real<lower=0.0> sigma_duration_hosp_icu;// sd duration in hospital for ICU cases
+  real<lower=1.0> mu_duration_mort_nonhosp;
+  real<lower=0.0> sigma_duration_mort_nonhosp;
+
+
 
   real<lower=0.0> mu_r0;                  // mean initial beta estimate
   real<lower=0.0> sigma_r0;               // sd initial beta estimate
@@ -36,6 +40,9 @@ data {
   real<lower=0.0> sigma_frac_icu;         // sd ICU as fraction of hosp
   real<lower=0.0> mu_frac_mort;           // mean mortality as fraction of ICU
   real<lower=0.0> sigma_frac_mort;        // sd mortality as fraction of ICU
+  real<lower=0.0> mu_frac_mort_nonhosp;
+  real<lower=0.0> sigma_frac_mort_nonhosp;
+
 
   real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
 
@@ -84,8 +91,9 @@ transformed data {
   int Rliveu = 13;
   int Rlivev = 14;
   int Rmort = 15;
+  int Rpremort_nonhosp = 16;
 
-  int ncompartments = 15;
+  int ncompartments = 16;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
@@ -100,11 +108,13 @@ parameters {
   real<lower=1.0> duration_pre_hosp;
   real<lower=1.0> duration_hosp_mod;
   real<lower=1.0> duration_hosp_icu;
+  real<lower=1.0> duration_mort_nonhosp;
 
   real<lower=0.005, upper=1.0> frac_hosp;
   real<lower=0.0, upper=1.0> frac_icu;
   real<lower=0.0, upper=1.0> frac_mort;
   real<lower=0.0, upper=1.0> frac_tested;
+  real<lower=0.0, upper=1.0> frac_mort_nonhosp;
 
   real<lower=0.0> ini_exposed;
   real<lower=0.0> sigma_obs[nobs_types];
@@ -221,9 +231,11 @@ transformed parameters {
       x[Hmodv, it+1] = x[Hmodv, it] + newhospv * (1 - frac_icu * frac_icu_multiplier[it]) - newrecv_mod + leave_icuv * (1 - frac_mort * frac_mort_multiplier[it]);
       x[Hicuu, it+1] = x[Hicuu, it] + newhospu * frac_icu * frac_icu_multiplier[it] - leave_icuu;
       x[Hicuv, it+1] = x[Hicuv, it] + newhospv * frac_icu * frac_icu_multiplier[it] - leave_icuv;
-      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrecu_mod - newRlivev + R_lostv - R_lostnatu;
-      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
-      x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it];
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild * (1 - frac_mort_nonhosp) + newrecu_mod - newRlivev + R_lostv - R_lostnatu;
+      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild * (1 - frac_mort_nonhosp) + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
+      x[Rpremort_nonhosp, it+1] = x[Rpremort_nonhosp, it] + newrecu_mild * frac_mort_nonhosp + newrecv_mild * frac_mort_nonhosp - 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
+      x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it] + 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
+//fixme - need to use frac_mort_multiplier and vaccine_efficacy_against_progression in mort_nonhosp calcs
 
       // cumulative hospital admissions
       new_admits[it+1] = newhospu + newhospv;
@@ -233,8 +245,8 @@ transformed parameters {
       //////////////////////////////////////////
       // test
       if (fabs(sum(x[:,it+1])-npop) > 1e-1){
-        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
-        // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], x[:, it+1]);
+        // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
+        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], x[:, it+1]);
       }
     }
   }
@@ -274,11 +286,13 @@ model {
   duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
   duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
   duration_hosp_icu ~ normal(mu_duration_hosp_icu, sigma_duration_hosp_icu);
+  duration_mort_nonhosp ~ normal(mu_duration_mort_nonhosp, sigma_duration_mort_nonhosp);
 
   frac_hosp ~ normal(mu_frac_hosp, sigma_frac_hosp);
   frac_icu ~ normal(mu_frac_icu, sigma_frac_icu);
   frac_mort ~ normal(mu_frac_mort, sigma_frac_mort);
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
+  frac_mort_nonhosp ~ normal(mu_frac_mort_nonhosp, sigma_frac_mort_nonhosp);
 
   ini_exposed ~ exponential(lambda_ini_exposed);
 
