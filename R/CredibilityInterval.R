@@ -152,9 +152,7 @@ GetStanInputs <- function(inputs) {
     }
   }
   sigma_obs <- sapply(data.types, EstSigmaObs)
-  if (inputs$internal.args$sigma_obs_seroprev > 0) {
-    sigma_obs["seroprev"] <- inputs$internal.args$sigma_obs_seroprev
-  }
+  sigma_obs <- sigma_obs / inputs$internal.args$weights #e.g. weight 0.5 = make prior on sigma_obs twice as large - less exact fit to that data type
   seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
 
   return(seir_inputs)
