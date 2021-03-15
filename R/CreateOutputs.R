@@ -12,6 +12,7 @@ GetExcelOutput <- function(projection, fit, inputs) {
   output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date), len_inter = as.vector(fit$par$len_inter))
 
   output.list$all.inputs = inputs$all.inputs.str
+  output.list$all.inputs.asrun <- inputs$all.inputs.str.asrun
   filestr.out <- paste0(inputs$internal.args$output.filestr, ".xlsx")
   openxlsx::write.xlsx(output.list, file = filestr.out)
   cat("\nExcel output: ", filestr.out, "\n")

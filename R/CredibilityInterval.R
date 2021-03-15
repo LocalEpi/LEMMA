@@ -6,6 +6,7 @@
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
+  inputs$all.inputs.str.asrun <- ToString(inputs)
 
   new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
