@@ -1390,12 +1390,12 @@ public:
                 current_statement_begin__ = 220;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod), 
+                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
                             "assigning variable x");
                 current_statement_begin__ = 221;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod), 
+                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
                             "assigning variable x");
                 current_statement_begin__ = 222;
                 stan::model::assign(x, 
@@ -1410,12 +1410,12 @@ public:
                 current_statement_begin__ = 224;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rliveu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((((get_base1(x, Rliveu, it, "x", 1) + newrecu_mild) + newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))) - newRlivev) + R_lostv) - R_lostnatu), 
+                            (((((get_base1(x, Rliveu, it, "x", 1) + newrecu_mild) + newrecu_mod) - newRlivev) + R_lostv) - R_lostnatu), 
                             "assigning variable x");
                 current_statement_begin__ = 225;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlivev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((((get_base1(x, Rlivev, it, "x", 1) + newrecv_mild) + newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))) + newRlivev) - R_lostv) - R_lostnatv), 
+                            (((((get_base1(x, Rlivev, it, "x", 1) + newrecv_mild) + newrecv_mod) + newRlivev) - R_lostv) - R_lostnatv), 
                             "assigning variable x");
                 current_statement_begin__ = 226;
                 stan::model::assign(x, 
@@ -2084,12 +2084,12 @@ public:
                 current_statement_begin__ = 220;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod), 
+                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
                             "assigning variable x");
                 current_statement_begin__ = 221;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod), 
+                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
                             "assigning variable x");
                 current_statement_begin__ = 222;
                 stan::model::assign(x, 
@@ -2104,12 +2104,12 @@ public:
                 current_statement_begin__ = 224;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rliveu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((((get_base1(x, Rliveu, it, "x", 1) + newrecu_mild) + newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))) - newRlivev) + R_lostv) - R_lostnatu), 
+                            (((((get_base1(x, Rliveu, it, "x", 1) + newrecu_mild) + newrecu_mod) - newRlivev) + R_lostv) - R_lostnatu), 
                             "assigning variable x");
                 current_statement_begin__ = 225;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlivev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((((get_base1(x, Rlivev, it, "x", 1) + newrecv_mild) + newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))) + newRlivev) - R_lostv) - R_lostnatv), 
+                            (((((get_base1(x, Rlivev, it, "x", 1) + newrecv_mild) + newrecv_mod) + newRlivev) - R_lostv) - R_lostnatv), 
                             "assigning variable x");
                 current_statement_begin__ = 226;
                 stan::model::assign(x, 

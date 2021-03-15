@@ -217,12 +217,12 @@ transformed parameters {
       x[Imildv, it+1] = x[Imildv, it] + newIv * (1 - frac_hospv) - newrecv_mild;
       x[Iprehu, it+1] = x[Iprehu, it] + newIu * frac_hosp * frac_hosp_multiplier[it] - newhospu;
       x[Iprehv, it+1] = x[Iprehv, it] + newIv * frac_hospv - newhospv;
-      x[Hmodu, it+1] = x[Hmodu, it] + newhospu * (1 - frac_icu * frac_icu_multiplier[it]) - newrecu_mod;
-      x[Hmodv, it+1] = x[Hmodv, it] + newhospv * (1 - frac_icu * frac_icu_multiplier[it]) - newrecv_mod;
+      x[Hmodu, it+1] = x[Hmodu, it] + newhospu * (1 - frac_icu * frac_icu_multiplier[it]) - newrecu_mod + leave_icuu * (1 - frac_mort * frac_mort_multiplier[it]);
+      x[Hmodv, it+1] = x[Hmodv, it] + newhospv * (1 - frac_icu * frac_icu_multiplier[it]) - newrecv_mod + leave_icuv * (1 - frac_mort * frac_mort_multiplier[it]);
       x[Hicuu, it+1] = x[Hicuu, it] + newhospu * frac_icu * frac_icu_multiplier[it] - leave_icuu;
       x[Hicuv, it+1] = x[Hicuv, it] + newhospv * frac_icu * frac_icu_multiplier[it] - leave_icuv;
-      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrecu_mod + leave_icuu * (1 - frac_mort * frac_mort_multiplier[it]) - newRlivev + R_lostv - R_lostnatu;
-      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newrecv_mod + leave_icuv * (1 - frac_mort * frac_mort_multiplier[it]) + newRlivev - R_lostv - R_lostnatv;
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild + newrecu_mod - newRlivev + R_lostv - R_lostnatu;
+      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
       x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it];
 
       // cumulative hospital admissions
