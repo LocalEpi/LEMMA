@@ -6,7 +6,7 @@
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs) {
   TestOutputFile(inputs$internal.args$output.filestr)
-  inputs$all.inputs.str.asrun <- ToString(inputs)
+  inputs$all.inputs.str <- ToString(inputs)
 
   new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
@@ -265,6 +265,25 @@ GetProjection <- function(fit, inputs) {
   return(data.table(date, as.data.table(projection)))
 }
 
+ToString <- function(inputs.orig) {
+  #Make a human readable string from the inputs
 
+  inputs <- copy(inputs.orig)
+  if (inputs$internal.args$hide.nonpublic.data) {
+    inputs$obs.data$seroprev.conf <- rep("nonpublic", nrow(inputs$obs.data))
+  }
+
+  inputs$time.of.run <- as.character(Sys.time())
+  inputs$LEMMA.version <- getNamespaceVersion("LEMMA")
+
+  prev.width <- getOption("width")
+  prev.print.nrows <- getOption("datatable.print.nrows")
+  prev.max.print <- getOption("max.print")
+  options(width = 300, datatable.print.nrows = 10000, max.print = 10000)
+  all.inputs.str <- utils::capture.output(print(inputs))
+  options(width = prev.width, datatable.print.nrows = prev.print.nrows, max.print = prev.max.print)
+  all.inputs.str <- c("NOTE: set font to Courier to read", all.inputs.str)
+  return(all.inputs.str)
+}
 
 

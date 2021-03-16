@@ -140,8 +140,12 @@ GetPdfOutput <- function(fit, projection, inputs) {
 
   short.term <- long.term <- list()
   for (i in DataTypes()) {
-    short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
-    if (!is.null(short.term[[i]])) print(short.term[[i]])
+    if (i == "seroprev" & inputs$internal.args$hide.nonpublic.data) {
+      #do not show seroprev (nonpublic)
+    } else {
+      short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
+      if (!is.null(short.term[[i]])) print(short.term[[i]])
+    }
     long.term[[i]] <- GetProjectionPlot(short.term = F, projection = projection, data.type = i, inputs = inputs)
     if (!is.null(long.term[[i]])) print(long.term[[i]])
   }

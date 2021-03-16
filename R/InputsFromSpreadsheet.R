@@ -26,22 +26,6 @@ TableToList <- function(x) {
   return(as.list(values))
 }
 
-ToString <- function(sheets) {
-  #Make a human readable string from the raw Excel input
-
-  sheets$time.of.run <- as.character(Sys.time())
-  sheets$LEMMA.version <- getNamespaceVersion("LEMMA")
-
-  prev.width <- getOption("width")
-  prev.print.nrows <- getOption("datatable.print.nrows")
-  prev.max.print <- getOption("max.print")
-  options(width = 300, datatable.print.nrows = 10000, max.print = 10000)
-  all.inputs.str <- utils::capture.output(print(sheets))
-  options(width = prev.width, datatable.print.nrows = prev.print.nrows, max.print = prev.max.print)
-  all.inputs.str <- c("NOTE: set font to Courier to read", all.inputs.str)
-  return(all.inputs.str)
-}
-
 ReadInputs <- function(path) {
   sheets <- list(ReadExcel(path, sheet = "Parameters with Distributions"),
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
@@ -82,8 +66,7 @@ ProcessSheets <- function(sheets, path) {
   # seir_inputs <- list()
   params <- sheets$`Parameters with Distributions`[, .(name = internal.name, mu = Mean, sigma = `Standard Deviation`)]
   params[, sigma := pmax(sigma, mu / 100)] #Stan crashes if sigma = 0
-  frac_pui <- sheets$`PUI Details`[, .(name = internal.name, mu = Mean, sigma = `Standard Deviation`)]
-  frac_pui[, sigma := pmax(sigma, mu / 100)]
+  frac_pui <- sheets$`PUI Details`[, .(name = internal.name, mu = Mean)]
 
   model.inputs <- TableToList(sheets$`Model Inputs`)
   internal.args <- TableToList(sheets$Internal)
@@ -117,12 +100,8 @@ ProcessSheets <- function(sheets, path) {
   if (internal.args$add.timestamp.to.filestr) {
     internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
-  if (is.na(internal.args$cores)) {
-    internal.args$cores <- parallel::detectCores()
-  }
 
-  all.inputs.str <- ToString(sheets)
-  return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data, all.inputs.str = all.inputs.str))
+  return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data))
 }
 
 
