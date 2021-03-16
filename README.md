@@ -1,3 +1,5 @@
+** The `vaxNonhospmort` including vaccine and variants will be merged to `master` by March 19. See https://github.com/LocalEpi/LEMMA-Forecasts for example code **
+
 We recommend instead for easier reading of documentation:  
 https://localepi.github.io/LEMMA/
 
