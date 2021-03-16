@@ -144,9 +144,13 @@ transformed parameters {
     real newrecv_mod;
     real newhospu;
     real newhospv;
+    real frac_hospu;
     real frac_hospv;
+    real frac_mort_nonhospu;
+    real frac_mort_nonhospv;
     real leave_icuu;
     real leave_icuv;
+    real leave_premort_nonhosp;
     real beta_0;
     real vaccinated;
     real frac_vac_S;
@@ -205,6 +209,7 @@ transformed parameters {
       newrecv_mod = 1.0/duration_hosp_mod * x[Hmodv, it];
       leave_icuu = 1.0/duration_hosp_icu * x[Hicuu, it];
       leave_icuv = 1.0/duration_hosp_icu * x[Hicuv, it];
+      leave_premort_nonhosp = 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
       frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
       newSv = vaccinated * frac_vac_S;
       newRlivev = vaccinated * (1 - frac_vac_S);
@@ -214,8 +219,12 @@ transformed parameters {
       R_lostnatu = 1.0/duration_natural[it] * x[Rliveu, it];
       R_lostnatv = 1.0/duration_natural[it] * x[Rlivev, it];
 
-      frac_hospv = frac_hosp * frac_hosp_multiplier[it] * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
+      frac_hospu = frac_hosp * frac_hosp_multiplier[it];
+      frac_hospv = frac_hospu * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
 
+      //these need to multiplier hosp*icu*mort because frac_mort is fraction died given icu, frac_icu is fraction icu given hosp
+      frac_mort_nonhospu = frac_mort_nonhosp * frac_hosp_multiplier[it] * frac_icu_multiplier[it] * frac_mort_multiplier[it];
+      frac_mort_nonhospv = frac_mort_nonhospu * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
       //////////////////////////////////////////
       // S -> E -> I
 
@@ -223,19 +232,18 @@ transformed parameters {
       x[Sv, it+1] = x[Sv, it] - newEv + newSv - S_lostv + R_lostnatv;
       x[Eu, it+1] = x[Eu, it] + newEu - newIu;
       x[Ev, it+1] = x[Ev, it] + newEv - newIv;
-      x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hosp * frac_hosp_multiplier[it]) - newrecu_mild;
+      x[Imildu, it+1] = x[Imildu, it] + newIu * (1 - frac_hospu) - newrecu_mild;
       x[Imildv, it+1] = x[Imildv, it] + newIv * (1 - frac_hospv) - newrecv_mild;
-      x[Iprehu, it+1] = x[Iprehu, it] + newIu * frac_hosp * frac_hosp_multiplier[it] - newhospu;
+      x[Iprehu, it+1] = x[Iprehu, it] + newIu * frac_hospu - newhospu;
       x[Iprehv, it+1] = x[Iprehv, it] + newIv * frac_hospv - newhospv;
       x[Hmodu, it+1] = x[Hmodu, it] + newhospu * (1 - frac_icu * frac_icu_multiplier[it]) - newrecu_mod + leave_icuu * (1 - frac_mort * frac_mort_multiplier[it]);
       x[Hmodv, it+1] = x[Hmodv, it] + newhospv * (1 - frac_icu * frac_icu_multiplier[it]) - newrecv_mod + leave_icuv * (1 - frac_mort * frac_mort_multiplier[it]);
       x[Hicuu, it+1] = x[Hicuu, it] + newhospu * frac_icu * frac_icu_multiplier[it] - leave_icuu;
       x[Hicuv, it+1] = x[Hicuv, it] + newhospv * frac_icu * frac_icu_multiplier[it] - leave_icuv;
-      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild * (1 - frac_mort_nonhosp) + newrecu_mod - newRlivev + R_lostv - R_lostnatu;
-      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild * (1 - frac_mort_nonhosp) + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
-      x[Rpremort_nonhosp, it+1] = x[Rpremort_nonhosp, it] + newrecu_mild * frac_mort_nonhosp + newrecv_mild * frac_mort_nonhosp - 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
-      x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it] + 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
-//fixme - need to use frac_mort_multiplier and vaccine_efficacy_against_progression in mort_nonhosp calcs
+      x[Rliveu, it+1] = x[Rliveu, it] + newrecu_mild * (1 - frac_mort_nonhospu) + newrecu_mod - newRlivev + R_lostv - R_lostnatu;
+      x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild * (1 - frac_mort_nonhospv) + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
+      x[Rpremort_nonhosp, it+1] = x[Rpremort_nonhosp, it] + newrecu_mild * frac_mort_nonhospu + newrecv_mild * frac_mort_nonhospv - leave_premort_nonhosp;
+      x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it] + leave_premort_nonhosp;
 
       // cumulative hospital admissions
       new_admits[it+1] = newhospu + newhospv;
