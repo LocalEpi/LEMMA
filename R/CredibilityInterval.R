@@ -175,10 +175,7 @@ RunSim <- function(inputs) {
     }
     return(init)
   }
-  cat("NOTE: If you see a message saying:\n")
-  cat("   Error evaluating model log probability: Non-finite gradient.\n")
-  cat("That is fine - LEMMA is working properly as long as it says:\n")
-  cat("   Optimization terminated normally\n\n")
+  message('NOTE: You may see an error message about non-finite gradient or validate transformed params.\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
   fit <- rstan::optimizing(stanmodels$LEMMA,
                     data = seir_inputs,
                     seed = inputs$internal.args$random.seed,
