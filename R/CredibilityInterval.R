@@ -52,7 +52,6 @@ ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr 
 DataTypes <- function() c("hosp", "icu", "deaths", "admits", "cases", "seroprev")
 
 GetStanInputs <- function(inputs) {
-  data.types <- DataTypes()
   dt <- melt(inputs$params, id.vars = "name")
   setkey(dt, "name")
 
@@ -67,7 +66,7 @@ GetStanInputs <- function(inputs) {
   nt <- as.numeric(inputs$model.inputs$end.date - day0)
   seir_inputs[['nt']] = nt
 
-  seir_inputs[['nobs_types']] <- length(data.types)
+  seir_inputs[['nobs_types']] <- length(DataTypes())
 
   obs.data <- copy(inputs$obs.data)
 
@@ -151,7 +150,8 @@ GetStanInputs <- function(inputs) {
       return(1)
     }
   }
-  sigma_obs <- sapply(data.types, EstSigmaObs)
+  sigma_obs <- sapply(DataTypes(), EstSigmaObs)
+  stopifnot(length(inputs$internal.args$weights) == num.data.types)
   sigma_obs <- sigma_obs / inputs$internal.args$weights #e.g. weight 0.5 = make prior on sigma_obs twice as large - less exact fit to that data type
   seir_inputs[['sigma_obs_est_inv']] <- 1 / sigma_obs
 
@@ -169,6 +169,10 @@ RunSim <- function(inputs) {
     names(init) <- sub("mu_", "", init.names)
     names(init) <- sub("beta_inter", "beta_multiplier", names(init)) #beta_multiplier is inconsistently named
     init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    if (!is.null(inputs$internal.args$init_frac_mort_nonhosp)) {
+      #some small counties need a smaller initial value of frac_mort_nonhosp to converge
+      init$frac_mort_nonhosp <- inputs$internal.args$init_frac_mort_nonhosp
+    }
     return(init)
   }
   cat("NOTE: If you see a message saying:\n")
