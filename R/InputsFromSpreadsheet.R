@@ -32,7 +32,12 @@ ReadInputs <- function(path) {
                  ReadExcel(path, sheet = "Interventions", skip = 2),
                  ReadExcel(path, sheet = "Data", skip = 3),
                  ReadExcel(path, sheet = "PUI Details", skip = 4),
-                 ReadExcel(path, col_types = c("text", "list", "skip", "skip"), sheet = "Internal"))
+                 ReadExcel(path, col_types = c("text", "list", "skip", "skip"), sheet = "Internal"),
+                 ReadExcel(path, sheet = "VaccinesDoses", skip = 1),
+                 ReadExcel(path, sheet = "VaccinesVariants", skip = 1),
+                 ReadExcel(path, sheet = "VaccinesPopulation", skip = 1),
+                 ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "VaccinesMisc"))
+
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
   return(sheets)
@@ -100,8 +105,24 @@ ProcessSheets <- function(sheets, path) {
   if (internal.args$add.timestamp.to.filestr) {
     internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
+  internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
-  return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data))
+  sheets$VaccinesMisc <- TableToList(sheets$VaccinesMisc)
+  start_date <- internal.args$simulation.start.date + 1
+  end_date <- model.inputs$end.date
+  vaccines.list <- GetVaccineParams(doses_actual = sheets$VaccinesDoses,
+                    doses_per_day_base = sheets$VaccinesMisc$doses_per_day_base,
+                    doses_per_day_increase  = sheets$VaccinesMisc$doses_per_day_increase,
+                    doses_per_day_maximum = sheets$VaccinesMisc$doses_per_day_maximum,
+                    start_increase_day = sheets$VaccinesMisc$start_increase_day,
+                    start_date = start_date,
+                    end_date = end_date,
+                    population = sheets$VaccinesPopulation,
+                    vax_uptake = sheets$VaccinesMisc$vax_uptake,
+                    max_second_dose_frac = rep(sheets$VaccinesMisc$max_second_dose_frac, length(start_date:end_date)),
+                    variants = sheets$VaccinesVariants,
+                    variant_day0 = sheets$VaccinesMisc$variant_day0)
+  return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data, vaccines = vaccines.list$vaccines, vaccines_nonstan = vaccines.list$vaccines_nonstan))
 }
 
 

@@ -1548,15 +1548,10 @@ public:
                             "assigning variable new_cases");
                 current_statement_begin__ = 255;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 257;
+                    current_statement_begin__ = 256;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
-                    errmsg_stream__ << "it= ";
-                    errmsg_stream__ << it;
-                    errmsg_stream__ << " ";
-                    errmsg_stream__ << stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list())), "x");
-                    errmsg_stream__ << stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x");
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }
@@ -2294,15 +2289,10 @@ public:
                             "assigning variable new_cases");
                 current_statement_begin__ = 255;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 257;
+                    current_statement_begin__ = 256;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
-                    errmsg_stream__ << "it= ";
-                    errmsg_stream__ << it;
-                    errmsg_stream__ << " ";
-                    errmsg_stream__ << stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list())), "x");
-                    errmsg_stream__ << stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x");
                     throw std::domain_error(errmsg_stream__.str());
                 }
             }

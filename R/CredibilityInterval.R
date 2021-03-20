@@ -113,7 +113,8 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['npop']] = inputs$model.inputs$total.population
 
   # lambda parameter for initial conditions of "exposed"
-  seir_inputs[['lambda_ini_exposed']] = inputs$internal.args$lambda_ini_exposed
+  mean.ini <- 1e-5 * inputs$model.inputs$total.population
+  seir_inputs[['lambda_ini_exposed']] = 1 / mean.ini
 
   # interventions
   inputs$interventions$mu_t_inter <- as.numeric(inputs$interventions$mu_t_inter - day0)

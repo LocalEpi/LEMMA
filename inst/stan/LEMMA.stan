@@ -253,8 +253,8 @@ transformed parameters {
       //////////////////////////////////////////
       // test
       if (fabs(sum(x[:,it+1])-npop) > 1e-1){
-        // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
-        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], x[:, it+1]);
+        reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
+        // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], x[:, it+1]);
       }
     }
   }
