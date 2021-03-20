@@ -1,5 +1,3 @@
-** The `vaxNonhospmort` including vaccine and variants will be merged to `master` by March 19. See https://github.com/LocalEpi/LEMMA-Forecasts for example code **
-
 We recommend instead for easier reading of documentation:  
 https://localepi.github.io/LEMMA/
 
@@ -9,6 +7,8 @@ https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
 
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use, ventilator use, active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospitalizations.
+
+** We will add documentation for the new vaccines and variants inputs by Wednesday March 24**
 
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to
@@ -21,10 +21,10 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 
 We have moved our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
 
-## Installation
+## Installation 
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
 2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-3. For this step there are several choices, depending on your local machine.
+3. [we will add an option to download binaries again soon]
 
     **Installing From Source (available for all platforms, but requires a C/C++ compiler)**
     
@@ -35,41 +35,21 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
 install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")
 ```
-    **Installing From Binary (for MacOS using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")
-```
-    
-    **Installing From Binary (for Windows using R 3.6)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-3-6-3.zip?raw=true", repos = NULL, type = "binary")
-```
-    
-    **Installing From Binary (for Windows using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-4-0.zip?raw=true", repos = NULL, type = "binary")
-```
 
 4. Copy and paste these lines into the RStudio console:
     
 ```{r}
 setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
-file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)
+file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "template.xlsx", overwrite = TRUE)
 ```
 
-LEMMA is in early development and is changing rapidly. Please restart RStudio and repeat step 3 once per day.
-
-If you get an error something like 
-"lazy-load database 'Library/R/3.6/library/LEMMA/R/LEMMA.rdb' is corrupt"
-restart R and try step 3 again.
-
-
-## Running LEMMA
-1. Edit the Excel file ~/Documents/MyFolder/example.xlsx and save under a new name. For example, "MyCity.xlsx"
-2. Run the following code.
+## Example code
 ```{r}
-LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
+library(LEMMA)
+input.file <- "template.xlsx" #assumes this was copied to current working directory
+lemma <- CredibilityIntervalFromExcel(input.file)
 ```
+See https://github.com/LocalEpi/LEMMA-Forecasts/code for additional example code to run all California counties.
 
 ## Additional Documentation 
 (work in progress)
