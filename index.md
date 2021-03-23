@@ -5,6 +5,8 @@ https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use, ventilator use, active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospitalizations.
 
+As of LEMMA 2.0, vaccine and variant modeling is now supported. Documentation for these new features will be updated by Friday March 26.
+
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to
 
@@ -19,25 +21,15 @@ We have moved our model fitting from R to Stan. Our Stan implementation is based
 ## Installation
 1. Install RStudio. (https://rstudio.com/products/rstudio/download/#download)
 2. Create a folder to store your LEMMA inputs and outputs. For example, create a folder "MyFolder" within Documents.
-3. For this step there are several choices, depending on your local machine.
+3. 
+**Installing From Source (available for all platforms, but requires a C/C++ compiler)**
+    
+If you do not have a toolchain including a C/C++ compiler, see here for installing one:
+https://support.rstudio.com/hc/en-us/articles/200486498
 
-    **Installing From Source (available for all platforms, but requires a C/C++ compiler)**
-    
-    If you do not have a toolchain including a C/C++ compiler, see here for installing one:
-    
-    https://support.rstudio.com/hc/en-us/articles/200486498
 ```{r}
 install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")
-```
-    **Installing From Binary (for MacOS using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_MacOS_R-4-0.tgz?raw=true", repos = NULL, type = "binary")
-```
-    
-    **Installing From Binary (for Windows using R 4.0)**
-```{r}
-install.packages("https://github.com/joshuaschwab/LEMMAstan/blob/master/LEMMA_Win_R-4-0.zip?raw=true", repos = NULL, type = "binary")
 ```
 
 4. Copy and paste these lines into the RStudio console:

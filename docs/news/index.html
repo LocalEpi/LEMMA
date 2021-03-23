@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.0.9011</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.1.0</span>
       </span>
     </div>
 
@@ -79,7 +79,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -94,9 +94,6 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/case_study.html">Case Study</a>
-    </li>
-    <li>
       <a href="../articles/faq.html">FAQ</a>
     </li>
   </ul>
@@ -108,7 +105,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/LocalEpi/LEMMA/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -129,12 +126,58 @@
       <small>Source: <a href='https://github.com/LocalEpi/LEMMA/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="lemma-0509007" class="section level2">
+    <div id="lemma-2010" class="section level2">
 <h2 class="hasAnchor">
-<a href="#lemma-0509007" class="anchor"></a>LEMMA 0.5.0.9007</h2>
+<a href="#lemma-2010" class="anchor"></a>LEMMA 2.0.1.0</h2>
 <div id="minor-improvements-and-fixes" class="section level3">
 <h3 class="hasAnchor">
 <a href="#minor-improvements-and-fixes" class="anchor"></a>Minor improvements and fixes</h3>
+<ul>
+<li>New Excel input file format</li>
+</ul>
+</div>
+</div>
+    <div id="lemma-2000" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lemma-2000" class="anchor"></a>LEMMA 2.0.0.0</h2>
+<div id="new-features" class="section level3">
+<h3 class="hasAnchor">
+<a href="#new-features" class="anchor"></a>New Features</h3>
+<ul>
+<li>Accounts for vaccines, including dose-specific efficacy for blocking transmission and hospitalizations/deaths</li>
+<li>Accounts for age targeting in vaccine rollout</li>
+<li>Allows for variants, including the possibility of increased transmission, increased hospitalization/death, decreased vaccine efficacy, decreased duration of vaccine and/or natural immunity</li>
+<li>Fits to seroprevalence estimates, hospital admissions, cases (in addition to hospital census, ICU census, deaths)</li>
+<li>Runs quickly (~20 seconds - old LEMMA was taking over 12 hours)</li>
+<li>In order to run in reasonable time, we removed the calculation of credibility intervals by default and now only compute a point estimate. [in progress - bringing back credibility intervals as an option]</li>
+</ul>
+</div>
+<div id="minor-improvements-and-fixes-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#minor-improvements-and-fixes-1" class="anchor"></a>Minor improvements and fixes</h3>
+<ul>
+<li>Made len_inter an estimated parameter again</li>
+</ul>
+</div>
+</div>
+    <div id="lemma-0609000" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lemma-0609000" class="anchor"></a>LEMMA 0.6.0.9000</h2>
+<div id="new-features-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#new-features-1" class="anchor"></a>New Features</h3>
+<ul>
+<li>Added an error term to the projections so that future projections reflected the degree to which past projections differed from past actuals. This should increase the width of the short-term credibility intervals so that around 95% of the actuals lie within the 95% interval.</li>
+<li>Make len_inter and frac_PUI fixed instead of estimated parameters (very minor impact on projections but increases speed)</li>
+</ul>
+</div>
+</div>
+    <div id="lemma-0509007" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lemma-0509007" class="anchor"></a>LEMMA 0.5.0.9007</h2>
+<div id="minor-improvements-and-fixes-2" class="section level3">
+<h3 class="hasAnchor">
+<a href="#minor-improvements-and-fixes-2" class="anchor"></a>Minor improvements and fixes</h3>
 <ul>
 <li>Rt plot shows credibility interval</li>
 </ul>
@@ -143,9 +186,9 @@
     <div id="lemma-0509001" class="section level2">
 <h2 class="hasAnchor">
 <a href="#lemma-0509001" class="anchor"></a>LEMMA 0.5.0.9001</h2>
-<div id="new-features" class="section level3">
+<div id="new-features-2" class="section level3">
 <h3 class="hasAnchor">
-<a href="#new-features" class="anchor"></a>New Features</h3>
+<a href="#new-features-2" class="anchor"></a>New Features</h3>
 <ul>
 <li>Moved credibility interval calculation to Stan based on the Santa Cruz County COVID-19 Model (<a href="https://github.com/jpmattern/seir-covid19" class="uri">https://github.com/jpmattern/seir-covid19</a>). Many thanks to Jann Paul Mattern and Mikala Caton!</li>
 </ul>
@@ -154,9 +197,9 @@
     <div id="lemma-0409000" class="section level2">
 <h2 class="hasAnchor">
 <a href="#lemma-0409000" class="anchor"></a>LEMMA 0.4.0.9000</h2>
-<div id="new-features-1" class="section level3">
+<div id="new-features-3" class="section level3">
 <h3 class="hasAnchor">
-<a href="#new-features-1" class="anchor"></a>New Features</h3>
+<a href="#new-features-3" class="anchor"></a>New Features</h3>
 <ul>
 <li>Added fitting to ICU, deaths and cumulative hospital admissions</li>
 </ul>
@@ -165,9 +208,9 @@
     <div id="lemma-0309005" class="section level2">
 <h2 class="hasAnchor">
 <a href="#lemma-0309005" class="anchor"></a>LEMMA 0.3.0.9005</h2>
-<div id="minor-improvements-and-fixes-1" class="section level3">
+<div id="minor-improvements-and-fixes-3" class="section level3">
 <h3 class="hasAnchor">
-<a href="#minor-improvements-and-fixes-1" class="anchor"></a>Minor improvements and fixes</h3>
+<a href="#minor-improvements-and-fixes-3" class="anchor"></a>Minor improvements and fixes</h3>
 <ul>
 <li>CredibilityIntervalFromExcel now supports up to 9 interventions (see FAQ for details)</li>
 </ul>
@@ -176,9 +219,9 @@
     <div id="lemma-0309004" class="section level2">
 <h2 class="hasAnchor">
 <a href="#lemma-0309004" class="anchor"></a>LEMMA 0.3.0.9004</h2>
-<div id="new-features-2" class="section level3">
+<div id="new-features-4" class="section level3">
 <h3 class="hasAnchor">
-<a href="#new-features-2" class="anchor"></a>New Features</h3>
+<a href="#new-features-4" class="anchor"></a>New Features</h3>
 <ul>
 <li><p>“Best Guess” was sometimes misinterpreted so we changed “Best Guess” to “User’s Prior Projection”. User’s Prior Projection is only displayed if niter &lt; 100.</p></li>
 <li><p>PDF now includes short-term (dates of observed data) and long-term (until Projection End Date) plots</p></li>
@@ -186,9 +229,9 @@
 <li><p><code>lower.bound.label</code>, <code>upper.bound.label</code> added to internal.args (Internal sheet). For example, in San Francisco these are “Confirmed COVID19” and “Confirmed COVID19 + 30%PUI”.</p></li>
 </ul>
 </div>
-<div id="minor-improvements-and-fixes-2" class="section level3">
+<div id="minor-improvements-and-fixes-4" class="section level3">
 <h3 class="hasAnchor">
-<a href="#minor-improvements-and-fixes-2" class="anchor"></a>Minor improvements and fixes</h3>
+<a href="#minor-improvements-and-fixes-4" class="anchor"></a>Minor improvements and fixes</h3>
 <ul>
 <li>Case Studies was updated to include plots</li>
 </ul>
