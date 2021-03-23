@@ -113,7 +113,7 @@ GetStanInputs <- function(inputs) {
   seir_inputs[['npop']] = inputs$model.inputs$total.population
 
   # lambda parameter for initial conditions of "exposed"
-  mean.ini <- 1e-5 * inputs$model.inputs$total.population
+  mean.ini <- 1e-5 * seir_inputs[['npop']]
   seir_inputs[['lambda_ini_exposed']] = 1 / mean.ini
 
   # interventions
@@ -135,6 +135,9 @@ GetStanInputs <- function(inputs) {
 
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
 
+  #duration_natural and duration_vaccinated are years in Excel input but should be days here
+  stopifnot(seir_inputs[["duration_natural"]] > 90)
+  stopifnot(seir_inputs[["duration_vaccinated"]] > 90)
 
   Loess <- function(values, span = 0.5) {
     dt <- data.table(values, index = 1:length(values))

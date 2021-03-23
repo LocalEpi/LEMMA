@@ -5,7 +5,7 @@
 #' @export
 CredibilityIntervalFromExcel <- function(input.file) {
   sheets <- ReadInputs(input.file)
-  inputs <- ProcessSheets(sheets, input.file)
+  inputs <- ProcessSheets(sheets)
 
   cred.int <- CredibilityInterval(inputs)
   cat("\nDone\n\n")
@@ -19,27 +19,34 @@ ReadExcel <- function(path, col_types = "guess", sheet, ...) {
   return(x)
 }
 
-TableToList <- function(x) {
+TableToList <- function(x, value.name = NULL) {
   names1 <- x$internal.name
-  values <- x$value
-  names(values) <- names1
+  if (is.null(value.name)) {
+    values <- x$value
+    names(values) <- names1
+  } else {
+    values <- x[[value.name]]
+    names(values) <- paste0(names1, "_", value.name)
+  }
   return(as.list(values))
 }
 
 ReadInputs <- function(path) {
+  #suppress warning in Vaccine Doses about date
   sheets <- list(ReadExcel(path, sheet = "Parameters with Distributions"),
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
                  ReadExcel(path, sheet = "Interventions", skip = 2),
                  ReadExcel(path, sheet = "Data", skip = 3),
+                 ReadExcel(path, sheet = "Vaccine Distribution", skip = 1),
+                 ReadExcel(path, sheet = "Vaccine Doses - Observed", skip = 1),
+                 ReadExcel(path, sheet = "Vaccine Doses - Future", skip = 1, col_types = c("text", "skip", "list", "list")),
+                 ReadExcel(path, sheet = "Variants", skip = 2),
                  ReadExcel(path, sheet = "PUI Details", skip = 4),
-                 ReadExcel(path, col_types = c("text", "list", "skip", "skip"), sheet = "Internal"),
-                 ReadExcel(path, sheet = "VaccinesDoses", skip = 1),
-                 ReadExcel(path, sheet = "VaccinesVariants", skip = 1),
-                 ReadExcel(path, sheet = "VaccinesPopulation", skip = 1),
-                 ReadExcel(path, col_types = c("text", "list", "skip"), sheet = "VaccinesMisc"))
-
+                 ReadExcel(path, col_types = c("text", "list", "skip", "skip"), sheet = "Internal"))
   names(sheets) <- sapply(sheets, function (z) attr(z, "sheetname"))
   sheets <- rapply(sheets, as.Date, classes = "POSIXt", how = "replace") #convert dates
+
+  sheets$Internal <- rbind(sheets$Internal, data.table(internal.name = "input.file", value = path))
   return(sheets)
 }
 
@@ -67,26 +74,21 @@ AddInterventions <- function(interventions, min.date, max.date) {
   return(interventions)
 }
 
-ProcessSheets <- function(sheets, path) {
-  # seir_inputs <- list()
+ProcessSheets <- function(sheets) {
   params <- sheets$`Parameters with Distributions`[, .(name = internal.name, mu = Mean, sigma = `Standard Deviation`)]
   params[, sigma := pmax(sigma, mu / 100)] #Stan crashes if sigma = 0
   frac_pui <- sheets$`PUI Details`[, .(name = internal.name, mu = Mean)]
 
   model.inputs <- TableToList(sheets$`Model Inputs`)
+  model.inputs$total.population <- sheets$`Vaccine Distribution`[, sum(pop)]
   internal.args <- TableToList(sheets$Internal)
   interventions <- sheets$Interventions
   obs.data <- sheets$Data
 
+
   all.na <- rowAlls(is.na(as.matrix(obs.data[, -"date"])))
   obs.data <- obs.data[all.na == F]
 
-  if (is.null(internal.args$automatic.interventions)) {
-    internal.args$automatic.interventions <- T #this was left off early versions
-  }
-  if ("skip1" %in% names(interventions)) {
-    interventions$skip1 <- interventions$skip2 <- NULL #these are just notes, but not in all versions
-  }
   interventions[, sigma_t_inter := pmax(sigma_t_inter, 0.01)]
   interventions[, sigma_beta_inter := pmax(sigma_beta_inter, 0.001)]
   interventions[, sigma_len_inter := pmax(sigma_len_inter, 0.01)]
@@ -100,28 +102,27 @@ ProcessSheets <- function(sheets, path) {
   }
 
   if (is.na(internal.args$output.filestr)) {
-    internal.args$output.filestr <- sub(".xlsx", " output", path, fixed = T)
+    internal.args$output.filestr <- sub(".xlsx", " output", internal.args$input.file, fixed = T)
   }
   if (internal.args$add.timestamp.to.filestr) {
     internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
   internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
-  sheets$VaccinesMisc <- TableToList(sheets$VaccinesMisc)
   start_date <- internal.args$simulation.start.date + 1
   end_date <- model.inputs$end.date
-  vaccines.list <- GetVaccineParams(doses_actual = sheets$VaccinesDoses,
-                    doses_per_day_base = sheets$VaccinesMisc$doses_per_day_base,
-                    doses_per_day_increase  = sheets$VaccinesMisc$doses_per_day_increase,
-                    doses_per_day_maximum = sheets$VaccinesMisc$doses_per_day_maximum,
-                    start_increase_day = sheets$VaccinesMisc$start_increase_day,
+  doses_future <- c(TableToList(sheets$`Vaccine Doses - Future`, "mrna"), TableToList(sheets$`Vaccine Doses - Future`, "jj"))
+
+  if (sheets$`Vaccine Distribution`[, abs(sum(dose_proportion) - 1)] > 1e-4) {
+    stop("The Percentage of Vaccinated column on Vaccine Distribution should sum to 100%")
+  }
+
+  vaccines.list <- GetVaccineParams(doses_actual = sheets$`Vaccine Doses - Observed`,
+                                    doses_future = doses_future,
                     start_date = start_date,
                     end_date = end_date,
-                    population = sheets$VaccinesPopulation,
-                    vax_uptake = sheets$VaccinesMisc$vax_uptake,
-                    max_second_dose_frac = rep(sheets$VaccinesMisc$max_second_dose_frac, length(start_date:end_date)),
-                    variants = sheets$VaccinesVariants,
-                    variant_day0 = sheets$VaccinesMisc$variant_day0)
+                    population = sheets$`Vaccine Distribution`,
+                    variants = sheets$Variants)
   return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data, vaccines = vaccines.list$vaccines, vaccines_nonstan = vaccines.list$vaccines_nonstan))
 }
 
