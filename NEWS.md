@@ -1,3 +1,19 @@
+## LEMMA 2.0.1.0
+### Minor improvements and fixes 
+* New Excel input file format
+
+## LEMMA 2.0.0.0
+### New Features
+* Accounts for vaccines, including dose-specific efficacy for blocking transmission and hospitalizations/deaths
+* Accounts for age targeting in vaccine rollout
+* Allows for variants, including the possibility of increased transmission, increased hospitalization/death, decreased vaccine efficacy, decreased duration of vaccine and/or natural immunity
+* Fits to seroprevalence estimates, hospital admissions, cases (in addition to hospital census, ICU census, deaths)
+* Runs quickly (~20 seconds - old LEMMA was taking over 12 hours)
+* In order to run in reasonable time, we removed the calculation of credibility intervals by default and now only compute a point estimate. [in progress - bringing back credibility intervals as an option]
+
+### Minor improvements and fixes 
+* Made len_inter an estimated parameter again
+
 ## LEMMA 0.6.0.9000
 ### New Features
 * Added an error term to the projections so that future projections reflected the degree to which past projections differed from past actuals. This should increase the width of the short-term credibility intervals so that around 95% of the actuals lie within the 95% interval.
