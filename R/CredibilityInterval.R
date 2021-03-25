@@ -264,8 +264,8 @@ GetProjection <- function(fit, inputs) {
   projection$infected <- colSums(x[5:8, ])
   projection$activeCases <- colSums(x[3:12, ])
   projection$totalCases <- fit$par$total_cases
-  projection$Su <- x[1, ]
-  projection$effectivelyVaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14), ])
+  projection$susceptibleUnvax <- x[1, ]
+  projection$vaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14), ])
 
   return(data.table(date, as.data.table(projection)))
 }
