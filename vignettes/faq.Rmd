@@ -27,35 +27,5 @@ Re after third intervention = `R0 * intervention1.multiplier * intervention2.mul
 
 ## How many interventions can I have?
 
-You can have any number of interventions. The template Excel input comes with 3. If you want fewer, delete one or more rows. If you want more, just add rows using the same format.
-
-## How can I speed up LEMMA?
-
-You can decrease `iter` on the Internal sheet to 500 or less. The results will be less reliable and you will probably get some warnings from Stan, but if you just want to test something out, this may work. You should increase `iter` back to at least 1000 for final projections.
-
-## What should I do if I get a warning from Stan?
-
-### There were ___ divergent transitions after warmup. Increasing adapt_delta above ___ may help. Examine the pairs() plot to diagnose sampling problems
-
-If there are a small number of divergent transitions (less than ~10), there is usually little impact on the projections ((but this is not guaranteed). If there are a larger number, increase `adapt_delta` to 0.9 or 0.95 or 0.99 on the Internal sheet. Run time will be slower. We don't recommnd using `pairs()`. If increasing `adapt_delta` does not help, there may be a problem with your parameter distributions or data (e.g. hospital census data is not compatible with cumulative hospitals). 
-
-### Maximum treedepth exceeded
-
-Increase `max_treedepth` to 13 or 15 or more on the Internal sheet. Run time will be slower.
-
-### BFMI low
-
-Increase `iter` on the Interal sheet to 1500 or 2000 or more. Run time will be slower.
-
-### R-hat
-
-Increase `iter` on the Interal sheet to 1500 or 2000 or more. Run time will be slower.
-
-### Bulk ESS
-
-Increase `iter` on the Interal sheet to 1500 or 2000 or more. Run time will be slower.
-
-### Tail ESS
-
-Increase `iter` on the Interal sheet to 1500 or 2000 or more. Run time will be slower.
+You can have any number of interventions. If you want more, just add rows using the same format.
 
