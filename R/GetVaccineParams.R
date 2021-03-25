@@ -10,10 +10,10 @@ GetDoses <- function(doses_actual, doses_future, population, start_date, end_dat
   doses[is.na(doseJ), doseJ := 0]
   max_actual_vaccine_date <- doses_actual[, max(date)]
   doses[date > max_actual_vaccine_date, doses_available_mrna := doses_future$doses_per_day_base_mrna]
-  doses[date >= doses_future$start_increase_day_mrna, doses_available_mrna := pmin(doses_future$doses_per_day_maximum_mrna, doses_future$doses_per_day_base_mrna + seq(from = 0, by = doses_future$doses_per_day_increase_mrna, length.out = length(doses_future$start_increase_day_mrna:end_date)))]
+  doses[date >= doses_future$start_increase_day_mrna, doses_available_mrna := pmax(0, pmin(doses_future$doses_per_day_maximum_mrna, doses_future$doses_per_day_base_mrna + seq(from = 0, by = doses_future$doses_per_day_increase_mrna, length.out = length(doses_future$start_increase_day_mrna:end_date))))]
 
   doses[date > max_actual_vaccine_date, doses_available_jj := doses_future$doses_per_day_base_jj]
-  doses[date >= doses_future$start_increase_day_jj, doses_available_jj := pmin(doses_future$doses_per_day_maximum_jj, doses_future$doses_per_day_base_jj + seq(from = 0, by = doses_future$doses_per_day_increase_jj, length.out = length(doses_future$start_increase_day_jj:end_date)))]
+  doses[date >= doses_future$start_increase_day_jj, doses_available_jj := pmax(0, pmin(doses_future$doses_per_day_maximum_jj, doses_future$doses_per_day_base_jj + seq(from = 0, by = doses_future$doses_per_day_increase_jj, length.out = length(doses_future$start_increase_day_jj:end_date))))]
 
   dose_spacing <- 24 #avg Moderna and Pfizer
   nt <- nrow(doses)
