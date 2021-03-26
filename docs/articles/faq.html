@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.2.0</span>
       </span>
     </div>
 
@@ -85,7 +85,7 @@
       <h1 data-toc-skip>FAQ</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/LocalEpi/LEMMA/blob/master/vignettes/faq.Rmd"><code>vignettes/faq.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/LocalEpi/LEMMA/blob/master/../../Documents/GitHub/LEMMA-Forecasts/vignettes/faq.Rmd"><code>../../Documents/GitHub/LEMMA-Forecasts/vignettes/faq.Rmd</code></a></small>
       <div class="hidden name"><code>faq.Rmd</code></div>
 
     </div>
@@ -101,46 +101,7 @@
 <div id="how-many-interventions-can-i-have" class="section level2">
 <h2 class="hasAnchor">
 <a href="#how-many-interventions-can-i-have" class="anchor"></a>How many interventions can I have?</h2>
-<p>You can have any number of interventions. The template Excel input comes with 3. If you want fewer, delete one or more rows. If you want more, just add rows using the same format.</p>
-</div>
-<div id="how-can-i-speed-up-lemma" class="section level2">
-<h2 class="hasAnchor">
-<a href="#how-can-i-speed-up-lemma" class="anchor"></a>How can I speed up LEMMA?</h2>
-<p>You can decrease <code>iter</code> on the Internal sheet to 500 or less. The results will be less reliable and you will probably get some warnings from Stan, but if you just want to test something out, this may work. You should increase <code>iter</code> back to at least 1000 for final projections.</p>
-</div>
-<div id="what-should-i-do-if-i-get-a-warning-from-stan" class="section level2">
-<h2 class="hasAnchor">
-<a href="#what-should-i-do-if-i-get-a-warning-from-stan" class="anchor"></a>What should I do if I get a warning from Stan?</h2>
-<div id="there-were-___-divergent-transitions-after-warmup--increasing-adapt_delta-above-___-may-help--examine-the-pairs-plot-to-diagnose-sampling-problems" class="section level3">
-<h3 class="hasAnchor">
-<a href="#there-were-___-divergent-transitions-after-warmup--increasing-adapt_delta-above-___-may-help--examine-the-pairs-plot-to-diagnose-sampling-problems" class="anchor"></a>There were ___ divergent transitions after warmup. Increasing adapt_delta above ___ may help. Examine the pairs() plot to diagnose sampling problems</h3>
-<p>If there are a small number of divergent transitions (less than ~10), there is usually little impact on the projections ((but this is not guaranteed). If there are a larger number, increase <code>adapt_delta</code> to 0.9 or 0.95 or 0.99 on the Internal sheet. Run time will be slower. We don’t recommnd using <code><a href="https://rdrr.io/r/graphics/pairs.html">pairs()</a></code>. If increasing <code>adapt_delta</code> does not help, there may be a problem with your parameter distributions or data (e.g. hospital census data is not compatible with cumulative hospitals).</p>
-</div>
-<div id="maximum-treedepth-exceeded" class="section level3">
-<h3 class="hasAnchor">
-<a href="#maximum-treedepth-exceeded" class="anchor"></a>Maximum treedepth exceeded</h3>
-<p>Increase <code>max_treedepth</code> to 13 or 15 or more on the Internal sheet. Run time will be slower.</p>
-</div>
-<div id="bfmi-low" class="section level3">
-<h3 class="hasAnchor">
-<a href="#bfmi-low" class="anchor"></a>BFMI low</h3>
-<p>Increase <code>iter</code> on the Interal sheet to 1500 or 2000 or more. Run time will be slower.</p>
-</div>
-<div id="r-hat" class="section level3">
-<h3 class="hasAnchor">
-<a href="#r-hat" class="anchor"></a>R-hat</h3>
-<p>Increase <code>iter</code> on the Interal sheet to 1500 or 2000 or more. Run time will be slower.</p>
-</div>
-<div id="bulk-ess" class="section level3">
-<h3 class="hasAnchor">
-<a href="#bulk-ess" class="anchor"></a>Bulk ESS</h3>
-<p>Increase <code>iter</code> on the Interal sheet to 1500 or 2000 or more. Run time will be slower.</p>
-</div>
-<div id="tail-ess" class="section level3">
-<h3 class="hasAnchor">
-<a href="#tail-ess" class="anchor"></a>Tail ESS</h3>
-<p>Increase <code>iter</code> on the Interal sheet to 1500 or 2000 or more. Run time will be slower.</p>
-</div>
+<p>You can have any number of interventions. If you want more, just add rows using the same format.</p>
 </div>
   </div>
 

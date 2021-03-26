@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.2.0</span>
       </span>
     </div>
 
@@ -86,8 +86,8 @@
 <div id="lemma" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#lemma" class="anchor"></a>LEMMA</h1></div>
-<p>LEMMA (Local Epidemic Modeling for Management &amp; Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use, ventilator use, active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospitalizations.</p>
-<p>As of LEMMA 2.0, vaccine and variant modeling is now supported. Documentation for these new features will be updated by Friday March 26.</p>
+<p>LEMMA (Local Epidemic Modeling for Management and Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospital and ICU census, hospital admissions, deaths, cases and seroprevalence.</p>
+<p>As of LEMMA 2.0, vaccine and variant modeling is now supported - see documentation below.</p>
 <div id="contributors" class="section level2">
 <h2 class="hasAnchor">
 <a href="#contributors" class="anchor"></a>Contributors</h2>
@@ -107,13 +107,16 @@
 <ol>
 <li>Install RStudio. (<a href="https://rstudio.com/products/rstudio/download/#download" class="uri">https://rstudio.com/products/rstudio/download/#download</a>)</li>
 <li>Create a folder to store your LEMMA inputs and outputs. For example, create a folder “MyFolder” within Documents.</li>
-<li><strong>Installing From Source (available for all platforms, but requires a C/C++ compiler)</strong></li>
+<li>Install toolchain if needed.<br>
+If you do not have a toolchain including a C/C++ compiler, see here for installing one: <a href="https://support.rstudio.com/hc/en-us/articles/200486498" class="uri">https://support.rstudio.com/hc/en-us/articles/200486498</a>
+</li>
+<li>Install LEMMA package.</li>
 </ol>
-<p>If you do not have a toolchain including a C/C++ compiler, see here for installing one: <a href="https://support.rstudio.com/hc/en-us/articles/200486498" class="uri">https://support.rstudio.com/hc/en-us/articles/200486498</a></p>
 <pre class="{r}"><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("remotes")  #if you do not already have the remotes package
 remotes::install_github("LocalEpi/LEMMA")</a></code></pre>
 <ol>
-<li>Copy and paste these lines into the RStudio console:</li>
+<li>Copy and paste these lines into the RStudio console:<br>
+</li>
 </ol>
 <pre class="{r}"><code><a href="https://rdrr.io/r/base/getwd.html">setwd("~/Documents/MyFolder")   # replace "~/Documents/MyFolder" with the path/folder you created
 file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = TRUE), "example.xlsx", overwrite = TRUE)</a></code></pre>
@@ -128,72 +131,229 @@ file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = 
 </ol>
 <pre class="{r}"><code><a href="reference/CredibilityIntervalFromExcel.html">LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")</a></code></pre>
 </div>
-<div id="additional-documentation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#additional-documentation" class="anchor"></a>Additional Documentation</h2>
-<p>(work in progress)</p>
-<p><a href="https://localepi.github.io/LEMMA/articles/case_study.html" class="uri">https://localepi.github.io/LEMMA/articles/case_study.html</a></p>
-<p><a href="https://localepi.github.io/LEMMA/articles/faq.html" class="uri">https://localepi.github.io/LEMMA/articles/faq.html</a></p>
-</div>
 <div id="input" class="section level2">
 <h2 class="hasAnchor">
 <a href="#input" class="anchor"></a>Input</h2>
-<p>The provided spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in four tabs.</p>
+<p>The provided spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in 10 sheets.</p>
 <div id="sheet-1-parameters-with-distributions" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-1-parameters-with-distributions" class="anchor"></a>Sheet 1: Parameters with Distributions</h3>
 <p>Briefly, LEMMA requires parameters related to the epidemic modeling (e.g., basic reproductive number, duration of infectiousness, percent of infected persons who are hospitalized). LEMMA also allows the user to specify the timing and impact of public health interventions, such as school closures and shelter-in-place orders. Interventions may occur before the current date to reflect such public health interventions. Interventions may also occur after the current date and can be used to simulate epidemic if measures are implemented or lifted at a future date. Explanations for specific parameters are provided below. Users can input a mean and standard deviation for each parameter. Each parameter will be drawn from a normal distribution.</p>
 <ul>
-<li>Basic reproductive number R0 before Intervention1: This should represent initial epidemic growth before any public health interventions were implemented.</li>
+<li>Basic reproductive number R0 before Intervention1: initial epidemic growth before any public health interventions were implemented.</li>
+<li>Number of Days from Infection to Becoming Infectious (Latent Period)</li>
+<li>Duration of infectiousness (days)</li>
+<li>Time from onset of infectiousness to hospitalization (days)</li>
+<li>Average Hospital (non-ICU) Length of Stay for Patients (days)</li>
+<li>Average ICU Length of Stay (days): ICU patients will stay for this number of days in ICU and (if recover) transition to non-ICU for the above number of days</li>
+<li>Average length of time after infectious that patients die out of hospital (days): delay time for death outside of hospital (see <em>Fraction of infected that die outside of hospital</em>)</li>
+<li>Percent of Infected that are Hospitalized</li>
+<li>Percent of Hospitalized COVID-19 Patients That are Currently in the ICU</li>
+<li>Mortality Rate among ICU COVID-19 Patients</li>
+<li>Percent of true positives tested: detection rate</li>
+<li>Percent of infected that die outside of hospital: Most deaths occur from the ICU but some deaths may occur in persons not reaching the hospital. This is the fraction of all infected () that die but do not reach the hospital.</li>
 </ul>
+<p>Total infection fatality rate = (<em>Percent of Infected that are Hospitalized</em> * <em>Percent of Hospitalized COVID-19 Patients That are Currently in the ICU</em> * <em>Mortality Rate among ICU COVID-19 Patients</em>) + <em>Percent of infected that die outside of hospital</em></p>
 </div>
-<div id="sheet-2-interventions" class="section level3">
+<div id="sheet-2-model-inputs" class="section level3">
 <h3 class="hasAnchor">
-<a href="#sheet-2-interventions" class="anchor"></a>Sheet 2: Interventions</h3>
+<a href="#sheet-2-model-inputs" class="anchor"></a>Sheet 2: Model Inputs</h3>
+<p>Specify the starting and final date of projections.<br>
+Note: total population was specified here in previous versions. Total population is now taken from the sum of age bracket populations on <code>Vaccine Distribution</code></p>
+</div>
+<div id="sheet-3-interventions" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-3-interventions" class="anchor"></a>Sheet 3: Interventions</h3>
+<p>Interventions will be added automatically if not specified here. It is recommended to specify an intervention to represent initial lockdown with Re multiplier = 1/R0.</p>
+<p>You can have any number of interventions. If you want more, just add rows using the same format.</p>
 <ul>
-<li><p>Intervention Date: Specify the date of the public health intervention. You can set standard deviation to zero to indicate that the intervention definitely starts on a certain day, or set standard deviation to a positive number to indicate there is some uncertainty about when the intervention took/takes effect. Intervention Date can be in the past or in the future.</p></li>
-<li><p>Re Multiplier: Specify the impact of the first intervention in terms of multiplicative reductions in the basic reproductive number. Suppose this is 60%. Then the effective reproductive number after the first intervention would be <span class="math inline"><em>R</em><em>e</em> = 0.6 * <em>R</em>0</span>, where R0 is the basic reproductive number provided on the Parameters with Distributions sheet. If Re Multiplier for the second intervention is 50%, the effective reproductive number after the second intervention would be <span class="math inline"><em>R</em><em>e</em> = 0.5 * 0.6 * <em>R</em>0</span>.</p></li>
-<li><p>Days to reach new Re: LEMMA assumes the effects of interventions do not happen instantaneously. Therefore, specify the number of days to reach the new effective reproductive number.</p></li>
+<li>Intervention Date: Specify the date of the public health intervention. You can set standard deviation to near zero to indicate that the intervention definitely starts on a certain day, or set standard deviation to a positive number to indicate there is some uncertainty about when the intervention took/takes effect. Intervention Date can be in the past or in the future.</li>
+<li>Re Multiplier: Specify the impact of the first intervention in terms of multiplicative reductions in the basic reproductive number. Suppose this is 60%. Then the effective reproductive number after the first intervention would be <span class="math inline"><em>R</em><em>e</em> = 0.6 * <em>R</em>0</span>, where R0 is the basic reproductive number provided on the Parameters with Distributions sheet. If Re Multiplier for the second intervention is 50%, the effective reproductive number after the second intervention would be <span class="math inline"><em>R</em><em>e</em> = 0.5 * 0.6 * <em>R</em>0</span>.</li>
+<li>Days to reach new Re: LEMMA assumes the effects of interventions do not happen instantaneously. Therefore, specify the number of days to reach the new effective reproductive number.</li>
 </ul>
-</div>
-<div id="sheet-3-model-inputs" class="section level3">
-<h3 class="hasAnchor">
-<a href="#sheet-3-model-inputs" class="anchor"></a>Sheet 3: Model Inputs</h3>
-<p>Specify the number of people in the area of interest; this could be a region, city, or hospital catchement area. Specify the starting and final date of projections.</p>
 </div>
 <div id="sheet-4-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-4-data" class="anchor"></a>Sheet 4: Data</h3>
-<p>Provide hospital, ICU and/or death case series data. PUI (Persons Under Investigation, or “Probable” cases) can be entered if available. Any entries (either an entire column or specific rows) can be left blank if the data is not available.</p>
+<p>Provide hospital, ICU, death, cases, hospital admissions and/or seroprevalence time series data. PUI (Persons Under Investigation, or “Probable” cases) can be entered if available. Any entries (either an entire column or specific rows) can be left blank if the data is not available.</p>
 <ul>
-<li>Hospitalizations: Number of patients with COVID19 hospitalized on a given day, <em>including</em> those in ICU.</li>
-<li>ICU: Number of patients in ICU with COVID19 on a given day</li>
-<li>Cumulative Deaths: Total number of persons who have died due to COVID19 by a given day</li>
-<li>Cumulative Hospitalizations: Total number of patients who have been hospitalized with COVID19 by a given day</li>
+<li>Hospitalizations: Number of patients with COVID19 hospitalized on a given day, <em>including</em> those in ICU.<br>
+</li>
+<li>ICU: Number of patients in ICU with COVID19 on a given day<br>
+</li>
+<li>Cumulative Deaths: Total number of persons who have died due to COVID19 by a given day<br>
+</li>
+<li>New Admits: Number of new patients who have been hospitalized (ICU or nonICU) with COVID19 on a given day (previous versions of LEMMA used cumulative admissions but LEMMA now uses new admissions)<br>
+</li>
+<li>New Cases: Number of new detected COVID19 cases (e.g by PCR or antigen test)<br>
+</li>
+<li>Seroprevalence: Percent of population with natural or vaccine immunity</li>
 </ul>
 </div>
-<div id="sheet-5-pui-details" class="section level3">
+<div id="sheet-5-vaccine-distribution" class="section level3">
 <h3 class="hasAnchor">
-<a href="#sheet-5-pui-details" class="anchor"></a>Sheet 5: PUI Details</h3>
-<p>If PUIs are used on the Data sheet, a mean and standard deviation for the fraction of PUIs who are actually COVID19 positive can be entered. If PUIs are not used for a given category on the Data sheet, the mean and standard deviation for that category on the PUI Details sheet will be ignored.</p>
+<a href="#sheet-5-vaccine-distribution" class="anchor"></a>Sheet 5: Vaccine Distribution</h3>
+<ul>
+<li>Lower Bound of Age Group<br>
+</li>
+<li>Percentage of Vaccinated: Number vaccinated to date in age bracket / Total number of vaccinated to date [NOTE: this is <em>not</em> the percentage of each bracket that has been vaccinated]<br>
+</li>
+<li>Total Population: Number of residents in age bracket<br>
+</li>
+<li>Vaccine Eligiblity Start Date: Date age bracket was or will be eligible to receive vaccines<br>
+</li>
+<li>Maximum Uptake: Maximum percentage of age bracket that will be vaccinated</li>
+</ul>
 </div>
-<div id="sheet-6-internal" class="section level3">
+<div id="sheet-6-vaccine-doses---observed" class="section level3">
 <h3 class="hasAnchor">
-<a href="#sheet-6-internal" class="anchor"></a>Sheet 6: Internal</h3>
-<p>This allows for more nuanced changes including changing the file names (output.filestr) and plotting details (plot.observed.data.long.term, plot.observed.data.short.term). Control arguments passed to Stan can also be specified (iter, cores, refresh, max_treedepth, adapt_delta). See <code><a href="https://mc-stan.org/rstan/reference/stan.html">?rstan::stan</a></code> for details. Note that iter is now the number of <em>posterior</em> draws (in previous versions of LEMMA, the number of prior iterations was specified.) The total number of posterior draws is 2 * iter because there are 4 chains, each with iter draws, but 50% of these are warmup draws which are not used.</p>
+<a href="#sheet-6-vaccine-doses---observed" class="anchor"></a>Sheet 6: Vaccine Doses - Observed</h3>
+<ul>
+<li>Date<br>
+</li>
+<li>Number of First Doses Pfizer/Moderna: number of new first Pfizer/Moderna doses given</li>
+<li>Number of Second Doses Pfizer/Moderna: number of new second Pfizer/Moderna doses given<br>
+</li>
+<li>Number of J&amp;J Doses: number of new (single) Johnson&amp;Johnson doses given</li>
+</ul>
+</div>
+<div id="sheet-7-vaccine-doses---future" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-7-vaccine-doses---future" class="anchor"></a>Sheet 7: Vaccine Doses - Future</h3>
+<p>Future doses for (combined Pfizer and Moderna) and Johnson&amp;Johnson</p>
+<ul>
+<li>Date to Begin Increasing Vaccinations: date doses increase beyond baseline<br>
+</li>
+<li>Baseline Number of Daily Doses: number of doses per day after observed doses and before <em>Date to Begin Increasing Vaccinations</em><br>
+</li>
+<li>Daily Increase in Number of Doses: daily increase (if negative, decrease)<br>
+</li>
+<li>Maximum Doses per Day: maximum number that will be given on any day</li>
+</ul>
+</div>
+<div id="sheet-8-variants" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-8-variants" class="anchor"></a>Sheet 8: Variants</h3>
+<p>Note: All vaccine/variant values are modelled as fixed quantities, not parameters with distributions to be estimated</p>
+<ul>
+<li>Variant Name: name given does not affect projections<br>
+</li>
+<li>Reference Date: date on which proportion of cases with variant is considered known<br>
+</li>
+<li>Proportion of Cases with Variant on Reference Date: should add to 100%<br>
+</li>
+<li>Transmission Multiplier: e.g. 1.5 = variant is 50% more transmissable than wild-type/ancestral strain<br>
+</li>
+<li>Hospitalization Multiplier: e.g. 1.3 = variant causes 30% more hospitalizations per infection than wild-type/ancestral strain<br>
+</li>
+<li>Mortality Multiplier: e.g. 1.4 = variant causes 40% more deaths per infection than wild-type/ancestral strain [note: this is the increase in deaths per infection, not in deaths per ICU or deaths per hospitalization]<br>
+</li>
+<li>Daily Growth Prior to Reference Date: e.g. 1.03 = variant was growing by 3% per day before <em>Reference Date</em><br>
+</li>
+<li>Daily Growth after Reference Date: e.g. 1.04 = variant grows by 4% per day after <em>Reference Date</em>
+</li>
+</ul>
+<p>The following can be specified separately for 1 or 2 doses of Pfizer/Moderna and (single dose of) Johnson&amp;Johnson</p>
+<ul>
+<li>Vaccine Efficacy for Susceptibility (%): e.g. 85% = 85% of persons who would otherwise have become infected will not become infected, pass on infection, become hospitalized or die<br>
+</li>
+<li>Vaccine Efficacy for Progression (%): 90% = 90% of persons who would otherwise have been hospitalized or die will not (they will either not get infected or will have a mild infection). <em>Vaccine Efficacy for Progression</em> can not be less than <em>Vaccine Efficacy for Susceptibility</em>.<br>
+If <em>Vaccine Efficacy for Susceptibility</em> = 85% and <em>Vaccine Efficacy for Progression</em> = 90% this implies that the efficacy for progression conditional on infection is <code>1 - (1 - 0.9) / ( 1 - 0.85) = 33%</code>.<br>
+</li>
+<li>Duration of Immunity (years) - Vaccine Protection: average duration of immunity from (any) vaccine. e.g. 5 years = 1/5 of persons who are vaccinated will lose all protection after 1 year<br>
+</li>
+<li>Duration of Immunity (years) - Natural Immunity: average duration of immunity after recovery from infection. e.g. 3 years = 1/3 of persons who are vaccinated will lose all protection after 1 year</li>
+</ul>
+</div>
+<div id="sheet-9-pui-details" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-9-pui-details" class="anchor"></a>Sheet 9: PUI Details</h3>
+<p>If PUIs are used on the Data sheet, a mean for the fraction of PUIs who are actually COVID19 positive can be entered. If PUIs are not used for a given category on the Data sheet, the mean for that category on the PUI Details sheet will be ignored.</p>
+</div>
+<div id="sheet-10-internal" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-10-internal" class="anchor"></a>Sheet 10: Internal</h3>
+<ul>
+<li>random.seed</li>
+<li>output.filestr: output filename (without extension)</li>
+<li>add.timestamp.to.filestr</li>
+<li>simulation.start.date: date at beginning of pandemic with small number of exposed, all other persons susceptible</li>
+<li>plot.observed.data.long.term</li>
+<li>plot.observed.data.short.term</li>
+<li>automatic.interventions: if TRUE, add interventions at regular intervals</li>
+<li>optimize.iter: passed to rstan::optimize, maximum number of iterations (changing not recommended)</li>
+<li>hide.nonpublic.data: hides observed seroprev in outputs (these estimates are not public in California)</li>
+</ul>
+<p>This allows for more nuanced changes including changing the file names (output.filestr) and plotting details (plot.observed.data.long.term, plot.observed.data.short.term).</p>
 </div>
 </div>
 <div id="output" class="section level2">
 <h2 class="hasAnchor">
 <a href="#output" class="anchor"></a>Output</h2>
-<p>Given the above input, LEMMA runs specified number of simulations, where in each simulation the parameters are sampled from the specified prior distributions. The default total number of simulations is 2000, but can be changed with iter on the Internal tab (see Sheet 6: Internal, above). The posterior distribution is provided for the model outputs: number hospitalized, number in ICU, number of deaths, cumulative number of admissions.</p>
-<p>The main output is provided in pdf format. Plots include short term and long term projections of umber hospitalized, in the ICU, cumulative deaths and cumulative hospital admissions (these are only shown for categories in which data was entered on the Data sheet). A histogram of Re and a plot of Re over time are shown up to 14 days before the last observed data. It is difficult to estimate Re beyond that date because it takes at least two weeks for changes in Re to be reflected in hospitalizations. Posterior distributions for each parameter are also shown.</p>
-<p>The Excel spreadsheet output provides detailed output for daily number hospitalized, in the ICU, cumulative deaths and cumulative hospital admissions.</p>
+<p>Previous versions of LEMMA calculated crediblity intervals and reported quantiles. The current version only calculates a point estimate by maximizing the joint posterior. Future versions may include crediblity intervals again as an option.</p>
+<div id="pdf-output" class="section level3">
+<h3 class="hasAnchor">
+<a href="#pdf-output" class="anchor"></a>PDF output</h3>
+<p>The main output is provided in pdf format. Plots include short term and long term projections for number hospitalized, in the ICU, cumulative deaths, new hospital admissions, detected cases and seroprevalence (these are only shown for categories in which data was entered on the Data sheet). A plot of Re over time is shown up to 14 days before the last observed data. It is difficult to estimate Re beyond that date because it takes at least two weeks for changes in Re to be reflected in hospitalizations.</p>
+<p>Detailed outputs are provided in Excel format.</p>
+</div>
+<div id="sheet-1-projection" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-1-projection" class="anchor"></a>Sheet 1: Projection</h3>
+<p>The outputs on the “projection” sheet are all raw values, except seroprev and rt.</p>
+<ul>
+<li>hosp: hospital census<br>
+</li>
+<li>icu: ICU census<br>
+</li>
+<li>deaths: cumulative deaths<br>
+</li>
+<li>admits: new admits<br>
+</li>
+<li>cases: new detected cases [to match the cases inputs]<br>
+</li>
+<li>seroprev: fraction (0 to 1) of population with natural or vaccine immunity<br>
+</li>
+<li>rt: effective reproductive number<br>
+</li>
+<li>exposed: number currently exposed<br>
+</li>
+<li>infected: number currently infected<br>
+</li>
+<li>activeCases: true cases (not just detected) - exposed, infected, hospitalized<br>
+</li>
+<li>totalCases: true cases (not just detected) - ever exposed/infected/hospitalized [could include reinfections] + deaths<br>
+</li>
+<li>susceptibleUnvax: susceptible and unvaccinated<br>
+</li>
+<li>vaccinated: number with vaccine immunity</li>
+</ul>
+</div>
+<div id="sheet-2-posteriorparams" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-2-posteriorparams" class="anchor"></a>Sheet 2: posteriorParams</h3>
+<p>Posterior mode for each parameter (except interventions).</p>
+</div>
+<div id="sheet-3-posteriorintervention" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-3-posteriorintervention" class="anchor"></a>Sheet 3: posteriorIntervention</h3>
+<p>Posterior mode for each interventions parameter.</p>
+</div>
+<div id="sheet-4-allinputs" class="section level3">
+<h3 class="hasAnchor">
+<a href="#sheet-4-allinputs" class="anchor"></a>Sheet 4: all.inputs</h3>
+<p>Text dump of all inputs</p>
+</div>
+</div>
+<div id="faq" class="section level2">
+<h2 class="hasAnchor">
+<a href="#faq" class="anchor"></a>FAQ</h2>
+<p><a href="https://localepi.github.io/LEMMA/articles/faq.html" class="uri">https://localepi.github.io/LEMMA/articles/faq.html</a></p>
 <div id="license" class="section level3">
 <h3 class="hasAnchor">
 <a href="#license" class="anchor"></a>License</h3>
 <p>The MIT License (MIT)</p>
-<p>Copyright (c) 2020 LEMMA</p>
+<p>Copyright (c) 2021 LEMMA</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
