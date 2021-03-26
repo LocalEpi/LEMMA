@@ -1,4 +1,4 @@
-We recommend instead for easier reading of documentation:  
+Documentation:  
 https://localepi.github.io/LEMMA/
 
 Forecasts and scenarios for California counties:  
