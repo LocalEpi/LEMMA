@@ -1,17 +1,18 @@
 #' @import data.table
 #' @import matrixStats
 
-#FIXME: no longer used in xlsx input - sigma_len_inter?, sigma_frac_pui
 
 #` Main function to calculate credibility interval
-CredibilityInterval <- function(inputs) {
+CredibilityInterval <- function(inputs, fit.to.data = NULL) {
   TestOutputFile(inputs$internal.args$output.filestr)
   inputs$all.inputs.str <- ToString(inputs)
 
   new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
 
-  fit.to.data <- RunSim(inputs)
+  if (is.null(fit.to.data)) {
+    fit.to.data <- RunSim(inputs)
+  }
   fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
   projection <- GetProjection(fit.extended, inputs)
 
@@ -20,26 +21,14 @@ CredibilityInterval <- function(inputs) {
   invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, projection = projection, gplot = gplot, excel.output = excel.output, inputs = inputs))
 }
 
+ProjectScenario <- function(lemma.object, new.inputs) {
+  orig.inputs <- lemma.object$inputs
+  new.inputs$all.inputs.str <- ToString(new.inputs)
+  #check that new.inputs only changes values after end of observed data
+  CompareInputs(orig.inputs, new.inputs)
 
-#Example:
-# z <- LEMMA::CredibilityIntervalFromExcel("~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1.xlsx")
-# #new.interventions is the same structure as sheets$Interventions (it can have more than one row)
-# new.int <- structure(list(mu_t_inter = structure(18437, class = "Date"),
-#                sigma_t_inter = 2, mu_beta_inter = 1.5, sigma_beta_inter = 1e-04,
-#                mu_len_inter = 7, sigma_len_inter = 2), row.names = c(NA, -1L), class = "data.frame")
-# ProjectScenario(z, new.int, "~/Dropbox/LEMMA_shared/JS code branch/lemma input and output/SF June 13/SFJune13sd0.1-new1.5")
-ProjectScenario <- function(lemma.object, new.interventions, new.output.filestr = NULL) {
-  inputs <- lemma.object$inputs
   fit.to.data <- lemma.object$fit.to.data
-  if (!is.null(new.output.filestr)) {
-    inputs$internal.args$output.filestr <- new.output.filestr
-  }
-  TestOutputFile(inputs$internal.args$output.filestr)
-  fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
-  projection <- GetProjection(fit.extended, inputs)
-  excel.output <- GetExcelOutput(projection, fit.to.data, inputs) #pass fit.to.data for posteriors
-  gplot <- GetPdfOutput(fit.extended, projection, inputs)
-  invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, projection = projection, gplot = gplot, excel.output = excel.output, inputs = inputs))
+  invisible(CredibilityInterval(new.inputs, lemma.object$fit.to.data))
 }
 
 #order needs to match LEMMA.stan:
@@ -291,4 +280,44 @@ ToString <- function(inputs.orig) {
   return(all.inputs.str)
 }
 
+CompareInputs <- function(orig.inputs, new.inputs) {
+  orig.inputs <- copy(orig.inputs)
+  new.inputs <- copy(new.inputs)
+
+  match.not.needed <- c("vaccines_nonstan", "all.inputs.str", "internal.args", "model.inputs")
+  match.needed <- c("params", "frac_pui", "obs.data")
+  partial.match.needed <- c("vaccines", "interventions")
+  stopifnot(setequal(names(orig.inputs), names(new.inputs)))
+  stopifnot(setequal(names(orig.inputs), c(match.not.needed, match.needed, partial.match.needed)))
+  for (i in match.needed) {
+    eq <- all.equal(orig.inputs[[i]], new.inputs[[i]], tolerance = 1e-4, check.attributes = F)
+    if (!isTRUE(eq)) {
+      cat(i, " does not match\n")
+      print(eq)
+      stop("in ProjectScenario, lemma.object$inputs must be the same as new.inputs, other than changes that are after the last observed data")
+    }
+  }
+  last.obs.date <-  max(orig.inputs$obs.data$date)
+  for (i in partial.match.needed) {
+    orig <- orig.inputs[[i]]
+    new <- new.inputs[[i]]
+    if (i == "vaccines") {
+      orig <- orig[date <= last.obs.date]
+      new <- new[date <= last.obs.date]
+    } else if (i == "interventions") {
+      orig <- orig[mu_t_inter <= last.obs.date]
+      new <- new[mu_t_inter <= last.obs.date]
+    } else {
+      stop("not expected")
+    }
+    eq <- all.equal(orig.inputs[[i]], new.inputs[[i]], tolerance = 1e-4, check.attributes = F)
+    if (!isTRUE(eq)) {
+      cat("last.obs.date = ", as.character(last.obs.date), "\n")
+      cat(i, " does not match up to last.obs.date\n")
+      print(eq)
+      stop("in ProjectScenario, lemma.object$inputs must be the same as new.inputs, other than changes that are after the last observed data")
+    }
+  }
+  invisible(NULL)
+}
 
