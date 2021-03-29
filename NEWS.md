@@ -1,8 +1,16 @@
-## LEMMA 2.0.1.0
+## LEMMA 2.0.3
+### Minor improvements and fixes 
+* Update documentation
+
+## LEMMA 2.0.2
+### Minor improvements and fixes 
+* Update `ProjectScenario` to quickly run new scenarios if interventions/vaccines/variants only change after last observed data
+
+## LEMMA 2.0.1
 ### Minor improvements and fixes 
 * New Excel input file format
 
-## LEMMA 2.0.0.0
+## LEMMA 2.0.0
 ### New Features
 * Accounts for vaccines, including dose-specific efficacy for blocking transmission and hospitalizations/deaths
 * Accounts for age targeting in vaccine rollout
