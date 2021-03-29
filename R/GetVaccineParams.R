@@ -1,5 +1,4 @@
-library(data.table)
-library(matrixStats)
+
 
 
 #currently uses total first and second doses per day with stable age distribution - could extend in future to day x age x dose_num

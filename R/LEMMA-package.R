@@ -9,6 +9,7 @@
 #' @useDynLib LEMMA, .registration = TRUE
 #' @import methods
 #' @import Rcpp
+#' @import shiny
 #' @importFrom rstan sampling
 #'
 #' @references
