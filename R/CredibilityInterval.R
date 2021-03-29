@@ -310,7 +310,7 @@ CompareInputs <- function(orig.inputs, new.inputs) {
     } else {
       stop("not expected")
     }
-    eq <- all.equal(orig.inputs[[i]], new.inputs[[i]], tolerance = 1e-4, check.attributes = F)
+    eq <- all.equal(orig, new, tolerance = 1e-4, check.attributes = F)
     if (!isTRUE(eq)) {
       cat("last.obs.date = ", as.character(last.obs.date), "\n")
       cat(i, " does not match up to last.obs.date\n")
