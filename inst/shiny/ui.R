@@ -1,20 +1,24 @@
-ui <- shiny::fluidPage(
-  shiny::fluidRow(
-    shiny::column(3, 
-           shiny::numericInput("lambda1", label = "lambda1", value = 3),
-           shiny::numericInput("lambda2", label = "lambda2", value = 5),
-           shiny::numericInput("n", label = "n", value = 1e4, min = 0),
-           shiny::actionButton("simulate", "Simulate!")
-    ),
-    shiny::column(9, plotOutput("hist"))
+ui <- shiny::navbarPage(
+  "LEMMA (Local Epidemic Modeling for Management and Action)",   
+  tabPanel("Model Structure", 
+           includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/SEIRModel.md")))
+  ),
+  tabPanel("Excel Interface",
+           fluidRow(
+             column(4,
+                    fileInput("upload", "Upload a file"),
+                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download example file</label><br>)"),
+                    downloadButton("download_template", "Download")
+              ),
+             column(8,
+                    includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/excel_input.md")))
+              )
+           )
+  ),
+  tabPanel("panel 3", "three"),
+  navbarMenu("subpanels", 
+             tabPanel("panel 4a", "four-a"),
+             tabPanel("panel 4b", "four-b"),
+             tabPanel("panel 4c", "four-c")
   )
 )
-
-# ui <- shiny::fluidPage(
-#   # shiny::fileInput("upload", NULL) # this is how we'll input files
-#   shiny::fluidRow(
-#     shiny::selectInput("dataset", label = "Dataset", choices = ls("package:datasets")),
-#     shiny::verbatimTextOutput("summary"),
-#     shiny::tableOutput("table")
-#   )
-# )
