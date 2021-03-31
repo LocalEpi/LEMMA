@@ -6,8 +6,8 @@ ui <- shiny::navbarPage(
   tabPanel("Excel Interface",
            fluidRow(
              column(4,
-                    fileInput("upload", "Upload a file"),
-                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download example file</label><br>)"),
+                    fileInput("upload", "Upload a spreadsheet"),
+                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label><br>)"),
                     downloadButton("download_template", "Download")
               ),
              column(8,
@@ -15,7 +15,11 @@ ui <- shiny::navbarPage(
               )
            )
   ),
-  tabPanel("panel 3", "three"),
+  tabPanel("debugging", 
+           fluidRow(
+             tableOutput("files")
+           )
+  ),
   navbarMenu("subpanels", 
              tabPanel("panel 4a", "four-a"),
              tabPanel("panel 4b", "four-b"),
