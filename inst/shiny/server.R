@@ -6,20 +6,24 @@ expected_sheets <- c(
 
 server <- function(input, output, session) {
   
-  # input
-  # xlsx_input <- reactive({
-  #   req(input$upload)
-  #   browser()
-  #   ext <- tools::file_ext(input$upload$name)
-  #   if(ext != "xlsx"){
-  #     validate("Invalid file; Please upload a .xlsx file")
-  #   }
-  #   sheets <- readxl::excel_sheets(path = )
-  # })
-  
   output$files <- renderTable({
+    # req(input$upload)
+    # 
+    # ext <- tools::file_ext(input$upload$name)
+    # if(ext != "xlsx"){
+    #   validate("Invalid file; Please upload a .xlsx file")
+    # }
+    # sheets <- readxl::excel_sheets(path = normalizePath(input$upload$datapath))
+    # if(!identical(expected_sheets,sheets)){
+    #   validate(cat("Invalid file; File needs 10 named sheets: ",paste0(expected_sheets,collapse = ", ")))
+    # }
+    # output$files <- renderTable(input$upload)
     req(input$upload)
-    browser()
+    input$upload
+  })
+  
+  output$xlsx_check_txt <- renderText({
+    req(input$upload)
     ext <- tools::file_ext(input$upload$name)
     if(ext != "xlsx"){
       validate("Invalid file; Please upload a .xlsx file")
@@ -28,7 +32,21 @@ server <- function(input, output, session) {
     if(!identical(expected_sheets,sheets)){
       validate(cat("Invalid file; File needs 10 named sheets: ",paste0(expected_sheets,collapse = ", ")))
     }
-    output$files <- renderTable(input$upload)
+    paste0("File successfully uploaded, size ",signif(input$upload$size/1e3,digits = 6),"Kb")
+  })
+  
+  xlsx_input <- reactive({
+    req(input$upload)
+    # browser()
+    ext <- tools::file_ext(input$upload$name)
+    if(ext != "xlsx"){
+      validate("Invalid file; Please upload a .xlsx file")
+    }
+    sheets <- readxl::excel_sheets(path = normalizePath(input$upload$datapath))
+    if(!identical(expected_sheets,sheets)){
+      validate(cat("Invalid file; File needs 10 named sheets: ",paste0(expected_sheets,collapse = ", ")))
+    }
+    LEMMA:::ReadInputs(path = input$upload$datapath)
   })
   
   # output
@@ -42,12 +60,3 @@ server <- function(input, output, session) {
     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
 }
-  
-
-# upload_xlsx <- function(name, path){
-#   ext <- tools::file_ext(name)
-#   if(ext != "xlsx"){
-#     validate("Invalid file; Please upload a .xlsx file")
-#   }
-#   browser()
-# }

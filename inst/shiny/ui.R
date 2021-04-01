@@ -7,7 +7,10 @@ ui <- shiny::navbarPage(
            fluidRow(
              column(4,
                     fileInput("upload", "Upload a spreadsheet"),
-                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label><br>)"),
+                    textOutput("xlsx_check_txt"),
+                    br(),
+                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label>)"),
+                    br(),
                     downloadButton("download_template", "Download")
               ),
              column(8,
