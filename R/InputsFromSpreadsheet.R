@@ -70,7 +70,7 @@ AddInterventions <- function(interventions, min.date, max.date) {
       interventions <- rbind(interventions, new.int)
     }
   }
-  setkey(interventions, "mu_t_inter")
+  setkey(interventions, mu_t_inter)
   return(interventions)
 }
 
@@ -98,7 +98,12 @@ ProcessSheets <- function(sheets) {
     } else {
       min.date <- min(interventions$mu_t_inter)
     }
-    interventions <- AddInterventions(interventions, min.date = min.date, max.date = obs.data[, max(date)])
+    max.obs.date <- max(obs.data$date)
+    future.interventions <- interventions[mu_t_inter > max.obs.date]
+    past.interventions <- interventions[mu_t_inter <= max.obs.date]
+    past.interventions <- AddInterventions(past.interventions, min.date = min.date, max.date = max.obs.date)
+    interventions <- rbind(past.interventions, future.interventions)
+    setkey(interventions, mu_t_inter)
   }
 
   if (is.na(internal.args$output.filestr)) {
