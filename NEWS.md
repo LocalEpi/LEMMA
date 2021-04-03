@@ -1,3 +1,7 @@
+## LEMMA 2.0.4
+### Minor improvements and fixes 
+* When adding automatic interventions, do not consider dates of future interventions
+
 ## LEMMA 2.0.3
 ### Minor improvements and fixes 
 * Update documentation
