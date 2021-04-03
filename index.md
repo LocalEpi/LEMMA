@@ -53,10 +53,12 @@ LEMMA::CredibilityIntervalFromExcel("MyCity.xlsx")
 ```
 
 ## Input
-The provided spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in 10 sheets.
+While all inputs can be given in R, the easiest way to get started with LEMMA is to use an Excel file input. The provided Excel spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in 10 sheets. 
 
 ### Sheet 1: Parameters with Distributions
 Briefly, LEMMA requires parameters related to the epidemic modeling (e.g., basic reproductive number, duration of infectiousness, percent of infected persons who are hospitalized). LEMMA also allows the user to specify the timing and impact of public health interventions, such as school closures and shelter-in-place orders. Interventions may occur before the current date to reflect such public health interventions. Interventions may also occur after the current date and can be used to simulate epidemic if measures are implemented or lifted at a future date. Explanations for specific parameters are provided below. Users can input a mean and standard deviation for each parameter. Each parameter will be drawn from a normal distribution. 
+
+![](man/figures/params.png)
 
 - Basic reproductive number R0 before Intervention1: initial epidemic growth before any public health interventions were implemented.
 - Number of Days from Infection to Becoming Infectious (Latent Period)
@@ -88,6 +90,7 @@ You can have any number of interventions. If you want more, just add rows using 
 - Days to reach new Re: LEMMA assumes the effects of interventions do not happen instantaneously. Therefore, specify the number of days to reach the new effective reproductive number. 
 
 ### Sheet 4: Data
+![](man/figures/obs_data.png)
 Provide hospital, ICU, death, cases, hospital admissions and/or seroprevalence time series data. PUI (Persons Under Investigation, or "Probable" cases) can be entered if available. Any entries (either an entire column or specific rows) can be left blank if the data is not available.  
 
 - Hospitalizations: Number of patients with COVID19 hospitalized on a given day, *including* those in ICU.    
@@ -105,6 +108,7 @@ Provide hospital, ICU, death, cases, hospital admissions and/or seroprevalence t
 - Maximum Uptake: Maximum percentage of age bracket that will be vaccinated  
 
 ### Sheet 6: Vaccine Doses - Observed
+![](man/figures/doses_obs.png)
 - Date	  
 - Number of First Doses Pfizer/Moderna: number of new first Pfizer/Moderna doses given
 - Number of Second Doses Pfizer/Moderna: number of new second Pfizer/Moderna doses given  
@@ -118,6 +122,7 @@ Future doses for (combined Pfizer and Moderna) and Johnson&Johnson
 - Maximum Doses per Day: maximum number that will be given on any day  
 
 ### Sheet 8: Variants
+![](man/figures/variants.png)
 Note: All vaccine/variant values are modelled as fixed quantities, not parameters with distributions to be estimated  
 
 - Variant Name: name given does not affect projections  
@@ -160,6 +165,9 @@ Previous versions of LEMMA calculated crediblity intervals and reported quantile
 
 ### PDF output
 The main output is provided in pdf format. Plots include short term and long term projections for number hospitalized, in the ICU, cumulative deaths, new hospital admissions, detected cases and seroprevalence (these are only shown for categories in which data was entered on the Data sheet). A plot of Re over time is shown up to 14 days before the last observed data. It is difficult to estimate Re beyond that date because it takes at least two weeks for changes in Re to be reflected in hospitalizations.
+
+![](man/figures/sf_output.png)
+![](man/figures/sf_output_lt.png)
 
 Detailed outputs are provided in Excel format.  
 

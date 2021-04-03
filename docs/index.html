@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.4</span>
       </span>
     </div>
 
@@ -54,6 +54,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="articles/Michigan.html">Vaccine Surge and/or Reopening Pause in Michigan</a>
+    </li>
+    <li>
       <a href="articles/faq.html">FAQ</a>
     </li>
   </ul>
@@ -140,11 +143,12 @@ file.copy(system.file("extdata", "template.xlsx", package = "LEMMA", mustWork = 
 <div id="input" class="section level2">
 <h2 class="hasAnchor">
 <a href="#input" class="anchor"></a>Input</h2>
-<p>The provided spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in 10 sheets.</p>
+<p>While all inputs can be given in R, the easiest way to get started with LEMMA is to use an Excel file input. The provided Excel spreadsheet provides a template and example of the inputs needed to run LEMMA. These are inputted in 10 sheets.</p>
 <div id="sheet-1-parameters-with-distributions" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-1-parameters-with-distributions" class="anchor"></a>Sheet 1: Parameters with Distributions</h3>
 <p>Briefly, LEMMA requires parameters related to the epidemic modeling (e.g., basic reproductive number, duration of infectiousness, percent of infected persons who are hospitalized). LEMMA also allows the user to specify the timing and impact of public health interventions, such as school closures and shelter-in-place orders. Interventions may occur before the current date to reflect such public health interventions. Interventions may also occur after the current date and can be used to simulate epidemic if measures are implemented or lifted at a future date. Explanations for specific parameters are provided below. Users can input a mean and standard deviation for each parameter. Each parameter will be drawn from a normal distribution.</p>
+<p><img src="reference/figures/params.png"></p>
 <ul>
 <li>Basic reproductive number R0 before Intervention1: initial epidemic growth before any public health interventions were implemented.</li>
 <li>Number of Days from Infection to Becoming Infectious (Latent Period)</li>
@@ -181,7 +185,7 @@ Note: total population was specified here in previous versions. Total population
 <div id="sheet-4-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-4-data" class="anchor"></a>Sheet 4: Data</h3>
-<p>Provide hospital, ICU, death, cases, hospital admissions and/or seroprevalence time series data. PUI (Persons Under Investigation, or “Probable” cases) can be entered if available. Any entries (either an entire column or specific rows) can be left blank if the data is not available.</p>
+<p><img src="reference/figures/obs_data.png"> Provide hospital, ICU, death, cases, hospital admissions and/or seroprevalence time series data. PUI (Persons Under Investigation, or “Probable” cases) can be entered if available. Any entries (either an entire column or specific rows) can be left blank if the data is not available.</p>
 <ul>
 <li>Hospitalizations: Number of patients with COVID19 hospitalized on a given day, <em>including</em> those in ICU.<br>
 </li>
@@ -214,6 +218,7 @@ Note: total population was specified here in previous versions. Total population
 <div id="sheet-6-vaccine-doses---observed" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-6-vaccine-doses---observed" class="anchor"></a>Sheet 6: Vaccine Doses - Observed</h3>
+<p><img src="reference/figures/doses_obs.png"></p>
 <ul>
 <li>Date<br>
 </li>
@@ -240,7 +245,7 @@ Note: total population was specified here in previous versions. Total population
 <div id="sheet-8-variants" class="section level3">
 <h3 class="hasAnchor">
 <a href="#sheet-8-variants" class="anchor"></a>Sheet 8: Variants</h3>
-<p>Note: All vaccine/variant values are modelled as fixed quantities, not parameters with distributions to be estimated</p>
+<p><img src="reference/figures/variants.png"> Note: All vaccine/variant values are modelled as fixed quantities, not parameters with distributions to be estimated</p>
 <ul>
 <li>Variant Name: name given does not affect projections<br>
 </li>
@@ -301,6 +306,7 @@ If <em>Vaccine Efficacy for Susceptibility</em> = 85% and <em>Vaccine Efficacy f
 <h3 class="hasAnchor">
 <a href="#pdf-output" class="anchor"></a>PDF output</h3>
 <p>The main output is provided in pdf format. Plots include short term and long term projections for number hospitalized, in the ICU, cumulative deaths, new hospital admissions, detected cases and seroprevalence (these are only shown for categories in which data was entered on the Data sheet). A plot of Re over time is shown up to 14 days before the last observed data. It is difficult to estimate Re beyond that date because it takes at least two weeks for changes in Re to be reflected in hospitalizations.</p>
+<p><img src="reference/figures/sf_output.png"><img src="reference/figures/sf_output_lt.png"></p>
 <p>Detailed outputs are provided in Excel format.</p>
 </div>
 <div id="sheet-1-projection" class="section level3">

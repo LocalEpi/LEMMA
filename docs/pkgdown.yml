@@ -2,6 +2,7 @@ pandoc: 2.11.2
 pkgdown: 1.5.1
 pkgdown_sha: ~
 articles:
+  Michigan: Michigan.html
   faq: faq.html
-last_built: 2021-03-29T23:27Z
+last_built: 2021-04-03T16:48Z
 
