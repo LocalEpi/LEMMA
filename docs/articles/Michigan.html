@@ -125,7 +125,7 @@ The CDC estimates imply a case detection rate of around 40%, which seems high, b
 <h2 class="hasAnchor">
 <a href="#sensitivity-analysis" class="anchor"></a>Sensitivity Analysis</h2>
 <p>We examined the effect of high or low seroprevalence (prior on case detection rate = 25% or 35%), increased transmisability for the UK variant of 50% and 70%, current UK variant proportion 30%, 50%, 70%, and daily growth_UK 2%, 3%, 4%.<br>
-Code to reproduce this sensitivity analysis is in MIscenarios.R.</p>
+Code to reproduce this sensitivity analysis is below.</p>
 <pre><code>##     double_vaccines pause low_seroprev trans_mult_UK cur_UK growth_UK admits_averted deaths_averted
 ## 1              TRUE  TRUE         TRUE           1.5    0.3      1.02      16270.265      1664.7633
 ## 2              TRUE FALSE         TRUE           1.5    0.3      1.02       6506.436       742.6581
@@ -271,6 +271,45 @@ Code to reproduce this sensitivity analysis is in MIscenarios.R.</p>
 ## 142            TRUE FALSE        FALSE           1.7    0.7      1.04       2334.124       333.7354
 ## 143           FALSE  TRUE        FALSE           1.7    0.7      1.04       6550.384       738.8318
 ## 144           FALSE FALSE        FALSE           1.7    0.7      1.04          0.000         0.0000</code></pre>
+<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">Scenario</span> <span class="kw">&lt;-</span> <span class="kw">function</span>(<span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>) {
+  <span class="no">sheets</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">ReadInputs</span>(<span class="st">"MI.xlsx"</span>)
+  <span class="no">pause_date</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span>(<span class="st">"2021/4/3"</span>)
+  <span class="kw">if</span> (<span class="no">pause</span>) {
+    <span class="no">sheets</span>$<span class="no">Interventions</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span>(<span class="no">sheets</span>$<span class="no">Interventions</span>,
+                                  <span class="fu">data.table</span>(<span class="kw">mu_t_inter</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">pause_date</span>, <span class="no">pause_date</span> + <span class="fl">14</span>),
+                                             <span class="kw">sigma_t_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>,
+                                             <span class="kw">mu_beta_inter</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.7</span>, <span class="fl">1</span>/<span class="fl">0.7</span>),
+                                             <span class="kw">sigma_beta_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>,
+                                             <span class="kw">mu_len_inter</span> <span class="kw">=</span> <span class="fl">7</span>,
+                                             <span class="kw">sigma_len_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>))
+  }
+  <span class="kw">if</span> (<span class="no">double_vaccines</span>) {
+    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">dose1</span> <span class="kw">:=</span> <span class="no">dose1</span> * <span class="fl">2</span>]
+    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">dose2</span> <span class="kw">:=</span> <span class="no">dose2</span> * <span class="fl">2</span>]
+    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">doseJ</span> <span class="kw">:=</span> <span class="no">doseJ</span> * <span class="fl">2</span>]
+  }
+  <span class="kw">if</span> (<span class="no">low_seroprev</span>) {
+    <span class="no">sheets</span>$<span class="no">`Parameters with Distributions`</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"frac_tested"</span>, <span class="no">Mean</span> <span class="kw">:=</span> <span class="fl">0.35</span>]
+  } <span class="kw">else</span> {
+    <span class="no">sheets</span>$<span class="no">`Parameters with Distributions`</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"frac_tested"</span>, <span class="no">Mean</span> <span class="kw">:=</span> <span class="fl">0.25</span>]
+  }
+  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">transmisson_mult</span> <span class="kw">:=</span> <span class="no">trans_mult_UK</span>]
+  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">frac_on_day0</span> <span class="kw">:=</span> <span class="no">cur_UK</span>]
+  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"Wild"</span>, <span class="no">frac_on_day0</span> <span class="kw">:=</span> <span class="fl">1</span> - <span class="no">cur_UK</span>]
+  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">daily_growth_prior</span> <span class="kw">:=</span> <span class="no">growth_UK</span>]
+  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">daily_growth_future</span> <span class="kw">:=</span> <span class="no">growth_UK</span>]
+  <span class="no">sheets</span>$<span class="no">Internal</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"output.filestr"</span>, <span class="no">value</span> <span class="kw">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="st">"MI_"</span>, <span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>)]
+  <span class="no">inputs</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">ProcessSheets</span>(<span class="no">sheets</span>)
+  <span class="no">lemma</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">CredibilityInterval</span>(<span class="no">inputs</span>)
+  <span class="fu"><a href="https://rdrr.io/r/base/function.html">return</a></span>(<span class="no">lemma</span>)
+}
+
+<span class="no">RunScenario</span> <span class="kw">&lt;-</span> <span class="kw">function</span>(<span class="no">index</span>) {
+  <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span>(<span class="no">scen</span>[<span class="no">index</span>, ], <span class="fu">Scenario</span>(<span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>))
+}
+
+<span class="no">scen</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span>(<span class="kw">pause</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">double_vaccines</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">low_seroprev</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">trans_mult_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1.5</span>, <span class="fl">1.7</span>), <span class="kw">cur_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>), <span class="kw">growth_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1.02</span>, <span class="fl">1.03</span>, <span class="fl">1.04</span>))
+<span class="no">lemma_list</span> <span class="kw">&lt;-</span> <span class="fu">mclapply</span>(<span class="fl">1</span>:<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span>(<span class="no">scen</span>), <span class="no">RunScenario</span>, <span class="kw">mc.cores</span> <span class="kw">=</span> <span class="fl">12</span>)</pre></body></html></div>
 </div>
   </div>
 

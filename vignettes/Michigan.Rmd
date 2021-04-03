@@ -43,10 +43,51 @@ As our base case, we assume the UK variant currently makes up 50% of the circula
 
 ## Sensitivity Analysis
 We examined the effect of high or low seroprevalence (prior on case detection rate = 25% or 35%), increased transmisability for the UK variant of 50% and 70%, current UK variant proportion 30%, 50%, 70%, and daily growth_UK 2%, 3%, 4%.  
-Code to reproduce this sensitivity analysis is in MIscenarios.R.
+Code to reproduce this sensitivity analysis is below.
 
 ```{r, echo = F}
 options(width=120)
 print(read.csv("MI_sensitivity.csv"))
 ```
 
+```{r, eval = F}
+Scenario <- function(pause, double_vaccines, low_seroprev, trans_mult_UK, cur_UK, growth_UK) {
+  sheets <- LEMMA:::ReadInputs("MI.xlsx")
+  pause_date <- as.Date("2021/4/3")
+  if (pause) {
+    sheets$Interventions <- rbind(sheets$Interventions,
+                                  data.table(mu_t_inter = c(pause_date, pause_date + 14),
+                                             sigma_t_inter = 0.1,
+                                             mu_beta_inter = c(0.7, 1/0.7),
+                                             sigma_beta_inter = 0.1,
+                                             mu_len_inter = 7,
+                                             sigma_len_inter = 0.1))
+  }
+  if (double_vaccines) {
+    sheets$`Vaccine Doses - Observed`[date >= pause_date & date <= (pause_date + 14), dose1 := dose1 * 2]
+    sheets$`Vaccine Doses - Observed`[date >= pause_date & date <= (pause_date + 14), dose2 := dose2 * 2]
+    sheets$`Vaccine Doses - Observed`[date >= pause_date & date <= (pause_date + 14), doseJ := doseJ * 2]
+  }
+  if (low_seroprev) {
+    sheets$`Parameters with Distributions`[internal.name == "frac_tested", Mean := 0.35]
+  } else {
+    sheets$`Parameters with Distributions`[internal.name == "frac_tested", Mean := 0.25]
+  }
+  sheets$Variants[name == "UK", transmisson_mult := trans_mult_UK]
+  sheets$Variants[name == "UK", frac_on_day0 := cur_UK]
+  sheets$Variants[name == "Wild", frac_on_day0 := 1 - cur_UK]
+  sheets$Variants[name == "UK", daily_growth_prior := growth_UK]
+  sheets$Variants[name == "UK", daily_growth_future := growth_UK]
+  sheets$Internal[internal.name == "output.filestr", value := paste0("MI_", pause, double_vaccines, low_seroprev, trans_mult_UK, cur_UK, growth_UK)]
+  inputs <- LEMMA:::ProcessSheets(sheets)
+  lemma <- LEMMA:::CredibilityInterval(inputs)
+  return(lemma)
+}
+
+RunScenario <- function(index) {
+  with(scen[index, ], Scenario(pause, double_vaccines, low_seroprev, trans_mult_UK, cur_UK, growth_UK))
+}
+
+scen <- expand.grid(pause = c(T, F), double_vaccines = c(T, F), low_seroprev = c(T, F), trans_mult_UK = c(1.5, 1.7), cur_UK = c(0.3, 0.5, 0.7), growth_UK = c(1.02, 1.03, 1.04))
+lemma_list <- mclapply(1:nrow(scen), RunScenario, mc.cores = 12)
+```
