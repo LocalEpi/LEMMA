@@ -13,6 +13,7 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 - Joshua Schwab - UC Berkeley
 - Laura B. Balzer - UMass Amherst
 - Elvin Geng - Washington University
+- Diane Havlir - UC San Francisco
 - James Peng - UC San Francisco
 - Sophia Tan - UC Berkeley
 - Maya L. Petersen - UC Berkeley
