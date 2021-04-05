@@ -17,13 +17,17 @@ server <- function(input, output, session) {
     if(!identical(expected_sheets,sheets)){
       validate(cat("Invalid file; File needs 10 named sheets: ",paste0(expected_sheets,collapse = ", ")))
     }
+    id <- showNotification("Reading data", duration = NULL, closeButton = FALSE,type = "message")
+    on.exit(removeNotification(id), add = TRUE)
     LEMMA:::ReadInputs(path = input$upload$datapath)
   })
   
   # reactive: LEMMA run from excel upload
-  LEMMA_excel_run <- reactive({
-    
-    
+  LEMMA_excel_run <- eventReactive(input$LEMMA_xlsx, {
+    req(xlsx_input())
+    id <- showNotification("Running LEMMA", duration = NULL, closeButton = FALSE,type = "message")
+    on.exit(removeNotification(id), add = TRUE)
+    LEMMA:::CredibilityIntervalData(inputs = LEMMA:::ProcessSheets(xlsx_input()),fit.to.data = NULL)
   })
   
   # output: checker to let users know excel uploaded
@@ -42,4 +46,9 @@ server <- function(input, output, session) {
     },
     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
+  
+  # DEBUGGING
+  output$table <- renderTable({
+    LEMMA_excel_run()$projection
+  })
 }

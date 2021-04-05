@@ -39,7 +39,7 @@ ui <- shiny::navbarPage(
                           downloadButton("download_pdf_out", "Download Excel output")
                    ),
                    column(8,
-                          includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/excel_input.md")))
+                          tableOutput("table")
                    )
                  )
               )
