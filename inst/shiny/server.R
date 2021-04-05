@@ -6,6 +6,10 @@ expected_sheets <- c(
 
 server <- function(input, output, session) {
   
+  # --------------------------------------------------------------------------------
+  # reactive elements
+  # --------------------------------------------------------------------------------
+  
   # reactive: excel upload
   xlsx_input <- reactive({
     req(input$upload)
@@ -46,6 +50,10 @@ server <- function(input, output, session) {
     LEMMA:::GetExcelOutputData(LEMMA_excel_run()$projection, LEMMA_excel_run()$fit.to.data, LEMMA_excel_run()$inputs)
   })
   
+  # --------------------------------------------------------------------------------
+  # output elements
+  # --------------------------------------------------------------------------------
+  
   # output: checker to let users know excel uploaded
   output$xlsx_check_txt <- renderText({
     req(xlsx_input())
@@ -64,9 +72,8 @@ server <- function(input, output, session) {
   )
   
   # output: downloald excel output
-  output$download_pdf_out <- downloadHandler(
+  output$download_xlsx_out <- downloadHandler(
     filename = function() {
-      # req(LEMMA_inputs())
       return("output.xlsx")
     },
     content = function(file) {
@@ -76,7 +83,29 @@ server <- function(input, output, session) {
     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
   
-  
+  # output: downloald pdf output
+  output$download_pdf_out <- downloadHandler(
+    filename = function() {
+      return("output.pdf")
+    },
+    content = function(file) {
+      req(LEMMA_excel_run())
+      id <- showNotification("Creating .pdf output file", duration = NULL, closeButton = FALSE,type = "message")
+      on.exit(removeNotification(id), add = TRUE)
+      
+      devlist <- grDevices::dev.list()
+      sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) 
+      
+      grDevices::pdf(file = file, width = 9.350, height = 7.225)
+      
+      plots <- LEMMA:::GetPdfOutputPlots(fit = LEMMA_excel_run()$fit.extended, projection = LEMMA_excel_run()$projection, inputs = LEMMA_excel_run()$inputs)
+      
+      grDevices::dev.off()
+      
+      # LEMMA:::GetPdfOutput(fit = LEMMA_excel_run()$fit.extended, projection = LEMMA_excel_run()$projection, inputs = LEMMA_excel_run()$inputs, file = file)
+    },
+    contentType = "application/pdf"
+  )
   
   # DEBUGGING
   output$table <- renderTable({

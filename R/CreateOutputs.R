@@ -136,13 +136,7 @@ GetRtPlot <- function(projection, inputs) {
 
 expansion <- function() c(0, 0, 0, 0) #fixes a problem if old ggplot version
 
-GetPdfOutput <- function(fit, projection, inputs) {
-  devlist <- grDevices::dev.list()
-  sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
-
-  filestr.out <- paste0(inputs$internal.args$output.filestr, ".pdf")
-  grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
-
+GetPdfOutputPlots <- function(fit, projection, inputs) {
   short.term <- long.term <- list()
   for (i in DataTypes()) {
     if (i == "seroprev" & inputs$internal.args$hide.nonpublic.data) {
@@ -154,12 +148,49 @@ GetPdfOutput <- function(fit, projection, inputs) {
     long.term[[i]] <- GetProjectionPlot(short.term = F, projection = projection, data.type = i, inputs = inputs)
     if (!is.null(long.term[[i]])) print(long.term[[i]])
   }
-
+  
   rt.plot <- GetRtPlot(projection, inputs)
-  grDevices::dev.off()
-  cat("\nPDF output: ", filestr.out, "\n")
   return(list(short.term = short.term, long.term = long.term, rt = rt.plot))
 }
+
+GetPdfOutput <- function(fit, projection, inputs) {
+  devlist <- grDevices::dev.list()
+  sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
+  
+  filestr.out <- paste0(inputs$internal.args$output.filestr, ".pdf")
+  grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
+  
+  plots <- GetPdfOutputPlots(fit,projection,inputs)
+  
+  grDevices::dev.off()
+  cat("\nPDF output: ", filestr.out, "\n")
+  return(plots)
+}
+
+# GetPdfOutput <- function(fit, projection, inputs) {
+#   devlist <- grDevices::dev.list()
+#   sapply(devlist[names(devlist) == "pdf"], grDevices::dev.off) #shuts down any old pdf (if there was a crash part way)
+#   
+#   filestr.out <- paste0(inputs$internal.args$output.filestr, ".pdf")
+#   grDevices::pdf(file = filestr.out, width = 9.350, height = 7.225)
+#   
+#   short.term <- long.term <- list()
+#   for (i in DataTypes()) {
+#     if (i == "seroprev" & inputs$internal.args$hide.nonpublic.data) {
+#       #do not show seroprev (nonpublic)
+#     } else {
+#       short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
+#       if (!is.null(short.term[[i]])) print(short.term[[i]])
+#     }
+#     long.term[[i]] <- GetProjectionPlot(short.term = F, projection = projection, data.type = i, inputs = inputs)
+#     if (!is.null(long.term[[i]])) print(long.term[[i]])
+#   }
+#   
+#   rt.plot <- GetRtPlot(projection, inputs)
+#   grDevices::dev.off()
+#   cat("\nPDF output: ", filestr.out, "\n")
+#   return(list(short.term = short.term, long.term = long.term, rt = rt.plot))
+# }
 
 TestOutputFile <- function(filestr) {
   success <- file.create(filestr) #filestr has no extension, it's not the actual .pdf or .xlsx output

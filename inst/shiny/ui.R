@@ -35,8 +35,8 @@ ui <- shiny::navbarPage(
                    column(4,
                           actionButton("LEMMA_xlsx", "Run LEMMA", class = "btn btn-primary btn-lg btn-block"),
                           hr(),
-                          downloadButton("download_xlsx_out", "Download PDF output"),
-                          downloadButton("download_pdf_out", "Download Excel output")
+                          downloadButton("download_pdf_out", "Download PDF output"),
+                          downloadButton("download_xlsx_out", "Download Excel output")
                    ),
                    column(8,
                           tableOutput("table")
