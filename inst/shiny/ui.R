@@ -3,21 +3,40 @@ ui <- shiny::navbarPage(
   tabPanel("Model Structure", 
            includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/SEIRModel.md")))
   ),
-  tabPanel("Excel Interface",
-           fluidRow(
-             column(4,
-                    fileInput("upload", "Upload a spreadsheet"),
-                    textOutput("xlsx_check_txt"),
-                    br(),
-                    HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label>)"),
-                    br(),
-                    downloadButton("download_template", "Download")
+  navbarMenu("Excel Interface", 
+             tabPanel(
+               title = "Data input", value = "xlsx-a",
+                    fluidRow(
+                      column(4,
+                             fileInput("upload", "Upload a spreadsheet"),
+                             textOutput("xlsx_check_txt"),
+                             br(),
+                             HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label>)"),
+                             br(),
+                             downloadButton("download_template", "Download")
+                       ),
+                      column(8,
+                             includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/excel_input.md")))
+                       )
+                    )
               ),
-             column(8,
-                    includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/excel_input.md")))
-              )
-           )
+             tabPanel("Run LEMMA", "xlsx-b")
   ),
+  # tabPanel("Excel Interface",
+  #          fluidRow(
+  #            column(4,
+  #                   fileInput("upload", "Upload a spreadsheet"),
+  #                   textOutput("xlsx_check_txt"),
+  #                   br(),
+  #                   HTML(r"(<label class="control-label" id="upload-label" for="upload">Download template spreadsheet</label>)"),
+  #                   br(),
+  #                   downloadButton("download_template", "Download")
+  #             ),
+  #            column(8,
+  #                   includeMarkdown(path = normalizePath(path = paste0(path.package("LEMMA"),"/shiny/src/excel_input.md")))
+  #             )
+  #          )
+  # ),
   tabPanel("debugging", 
            fluidRow(
              tableOutput("files")
