@@ -22,12 +22,28 @@ server <- function(input, output, session) {
     LEMMA:::ReadInputs(path = input$upload$datapath)
   })
   
+  # reactive: inputs
+  LEMMA_inputs <- reactive({
+    req(xlsx_input())
+    id <- showNotification("Generating LEMMA parameters", duration = NULL, closeButton = FALSE,type = "message")
+    on.exit(removeNotification(id), add = TRUE)
+    LEMMA:::ProcessSheets(xlsx_input())
+  })
+  
   # reactive: LEMMA run from excel upload
   LEMMA_excel_run <- eventReactive(input$LEMMA_xlsx, {
-    req(xlsx_input())
+    req(LEMMA_inputs())
     id <- showNotification("Running LEMMA", duration = NULL, closeButton = FALSE,type = "message")
     on.exit(removeNotification(id), add = TRUE)
-    LEMMA:::CredibilityIntervalData(inputs = LEMMA:::ProcessSheets(xlsx_input()),fit.to.data = NULL)
+    LEMMA:::CredibilityIntervalData(inputs = LEMMA_inputs(),fit.to.data = NULL)
+  })
+  
+  # reactive: LEMMA excel output
+  LEMMA_excel_out <- reactive({
+    req(LEMMA_excel_run())
+    id <- showNotification("Creating .xlsx output file", duration = NULL, closeButton = FALSE,type = "message")
+    on.exit(removeNotification(id), add = TRUE)
+    LEMMA:::GetExcelOutputData(LEMMA_excel_run()$projection, LEMMA_excel_run()$fit.to.data, LEMMA_excel_run()$inputs)
   })
   
   # output: checker to let users know excel uploaded
@@ -46,6 +62,21 @@ server <- function(input, output, session) {
     },
     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
+  
+  # output: downloald excel output
+  output$download_pdf_out <- downloadHandler(
+    filename = function() {
+      # req(LEMMA_inputs())
+      return("output.xlsx")
+    },
+    content = function(file) {
+      req(LEMMA_excel_out())
+      openxlsx::write.xlsx(LEMMA_excel_out(), file = file)
+    },
+    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  )
+  
+  
   
   # DEBUGGING
   output$table <- renderTable({
