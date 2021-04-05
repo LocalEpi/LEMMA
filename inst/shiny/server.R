@@ -101,8 +101,6 @@ server <- function(input, output, session) {
       plots <- LEMMA:::GetPdfOutputPlots(fit = LEMMA_excel_run()$fit.extended, projection = LEMMA_excel_run()$projection, inputs = LEMMA_excel_run()$inputs)
       
       grDevices::dev.off()
-      
-      # LEMMA:::GetPdfOutput(fit = LEMMA_excel_run()$fit.extended, projection = LEMMA_excel_run()$projection, inputs = LEMMA_excel_run()$inputs, file = file)
     },
     contentType = "application/pdf"
   )
