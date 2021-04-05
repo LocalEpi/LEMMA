@@ -1,18 +1,23 @@
 #' @import ggplot2
 
-GetExcelOutput <- function(projection, fit, inputs) {
+GetExcelOutputData <- function(projection, fit, inputs) {
   options("openxlsx.numFmt" = "0.00")
   display.date.range <- seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day")
   output.list <- list(projection = projection[date %in% display.date.range])
-
+  
   pars <- c("r0", "duration_latent", "duration_rec_mild", "duration_pre_hosp", "duration_hosp_mod",
             "duration_hosp_icu", "duration_mort_nonhosp",  "frac_hosp", "frac_icu", "frac_mort", "frac_mort_nonhosp" , "frac_tested",
             "ini_exposed")
   output.list$posteriorParams <- data.table(param = pars, posterior = unlist(fit$par[pars]))
   output.list$posteriorInterventions <- data.table(beta_multiplier = as.vector(fit$par$beta_multiplier), t_inter = as.character(fit$par$t_inter + inputs$internal.args$simulation.start.date), len_inter = as.vector(fit$par$len_inter))
-
+  
   output.list$all.inputs = inputs$all.inputs.str
   output.list$all.inputs.asrun <- inputs$all.inputs.str.asrun
+  return(output.list)
+}
+
+GetExcelOutput <- function(projection, fit, inputs) {
+  output.list <- GetExcelOutputData(projection, fit, inputs)
   filestr.out <- paste0(inputs$internal.args$output.filestr, ".xlsx")
   openxlsx::write.xlsx(output.list, file = filestr.out)
   cat("\nExcel output: ", filestr.out, "\n")

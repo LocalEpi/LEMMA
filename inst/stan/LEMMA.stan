@@ -80,8 +80,8 @@ transformed data {
   int Sv = 2;
   int Eu = 3;
   int Ev = 4;
-  int Imildu = 5;
-  int Imildv = 6;
+  int Imildu = 5; //note: on compartment diagram this is labelled "Inonhospu"
+  int Imildv = 6; //note: on compartment diagram this is labelled "Inonhospv"
   int Iprehu = 7;
   int Iprehv = 8;
   int Hmodu  = 9;

@@ -6,6 +6,7 @@ expected_sheets <- c(
 
 server <- function(input, output, session) {
   
+  # reactive: excel upload
   xlsx_input <- reactive({
     req(input$upload)
     ext <- tools::file_ext(input$upload$name)
@@ -19,12 +20,19 @@ server <- function(input, output, session) {
     LEMMA:::ReadInputs(path = input$upload$datapath)
   })
   
+  # reactive: LEMMA run from excel upload
+  LEMMA_excel_run <- reactive({
+    
+    
+  })
+  
+  # output: checker to let users know excel uploaded
   output$xlsx_check_txt <- renderText({
     req(xlsx_input())
     paste0("File successfully uploaded, size ",signif(input$upload$size/1e3,digits = 6),"Kb")
   })
   
-  # output
+  # output: download the sample template
   output$download_template <- downloadHandler(
     filename = function() {
       return("example.xlsx")
