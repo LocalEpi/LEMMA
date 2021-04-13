@@ -40,12 +40,9 @@ CredibilityInterval <- function(inputs, fit.to.data = NULL) {
       projection = ci_data$projection, 
       gplot = gplot, 
       excel.output = excel.output, 
-      inputs = ci_data$inputs.copy
+      inputs = ci_data$inputs
     )
   )
-  # invisible(c(
-  #   ci_data, gplot = gplot, excel.output = excel.output
-  # ))
 }
 
 ProjectScenario <- function(lemma.object, new.inputs) {
