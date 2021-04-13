@@ -1,25 +1,48 @@
 #' @import data.table
 #' @import matrixStats
 
-
-#` Main function to calculate credibility interval
-CredibilityInterval <- function(inputs, fit.to.data = NULL) {
-  TestOutputFile(inputs$internal.args$output.filestr)
+#` Compute credibility interval without writing output
+CredibilityIntervalData <- function(inputs, fit.to.data = NULL) {
   inputs$all.inputs.str <- ToString(inputs)
   inputs.copy <- copy(inputs)
-
+  
   new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
-
+  
   if (is.null(fit.to.data)) {
     fit.to.data <- RunSim(inputs)
   }
   fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
   projection <- GetProjection(fit.extended, inputs)
+  
+  return(
+    list(
+      fit.to.data = fit.to.data, 
+      fit.extended = fit.extended, 
+      projection = projection,
+      inputs = inputs.copy
+    )
+  ) 
+}
 
-  excel.output <- GetExcelOutput(projection, fit.to.data, inputs)
-  gplot <- GetPdfOutput(fit.extended, projection, inputs)
-  invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, projection = projection, gplot = gplot, excel.output = excel.output, inputs = inputs.copy))
+#` Main function to calculate credibility interval
+CredibilityInterval <- function(inputs, fit.to.data = NULL) {
+  TestOutputFile(inputs$internal.args$output.filestr)
+  
+  ci_data <- CredibilityIntervalData(inputs, fit.to.data)
+  
+  excel.output <- GetExcelOutput(ci_data$projection, ci_data$fit.to.data, ci_data$inputs)
+  gplot <- GetPdfOutput(ci_data$fit.extended, ci_data$projection, ci_data$inputs)
+  invisible(
+    list(
+      fit.to.data = ci_data$fit.to.data, 
+      fit.extended = ci_data$fit.extended, 
+      projection = ci_data$projection, 
+      gplot = gplot, 
+      excel.output = excel.output, 
+      inputs = ci_data$inputs
+    )
+  )
 }
 
 ProjectScenario <- function(lemma.object, new.inputs) {
