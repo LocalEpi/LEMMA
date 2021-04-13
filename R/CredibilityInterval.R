@@ -33,10 +33,19 @@ CredibilityInterval <- function(inputs, fit.to.data = NULL) {
   
   excel.output <- GetExcelOutput(ci_data$projection, ci_data$fit.to.data, ci_data$inputs)
   gplot <- GetPdfOutput(ci_data$fit.extended, ci_data$projection, ci_data$inputs)
-  # invisible(list(fit.to.data = fit.to.data, fit.extended = fit.extended, projection = projection, gplot = gplot, excel.output = excel.output, inputs = inputs.copy))
-  invisible(c(
-    ci_data, gplot = gplot, excel.output = excel.output
-  ))
+  invisible(
+    list(
+      fit.to.data = ci_data$fit.to.data, 
+      fit.extended = ci_data$fit.extended, 
+      projection = ci_data$projection, 
+      gplot = gplot, 
+      excel.output = excel.output, 
+      inputs = ci_data$inputs.copy
+    )
+  )
+  # invisible(c(
+  #   ci_data, gplot = gplot, excel.output = excel.output
+  # ))
 }
 
 ProjectScenario <- function(lemma.object, new.inputs) {
