@@ -1,3 +1,18 @@
+# --------------------------------------------------------------------------------
+#   Functions:
+#   1. CredibilityIntervalData
+#   2. CredibilityInterval
+#   3. ProjectScenario
+#   4. DataTypes
+#   5. GetStanInputs
+#   6. RunSim
+#   7. ExtendSim
+#   8. GetProjection
+#   9. ToString
+#   10. CompareInputs
+# --------------------------------------------------------------------------------
+
+
 #' @import data.table
 #' @import matrixStats
 
