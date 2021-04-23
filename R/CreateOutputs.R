@@ -1,3 +1,17 @@
+# --------------------------------------------------------------------------------
+#   Functions:
+#   1. GetExcelOutputData
+#   2. GetExcelOutput
+#   3. GetYLabel
+#   4. GetTitleLabel
+#   5. GetProjectionPlot
+#   6. GetRtPlot
+#   7. expansion
+#   8. GetPdfOutputPlots
+#   9. GetPdfOutput
+#   10. TestOutputFile
+# --------------------------------------------------------------------------------
+
 #' @import ggplot2
 
 GetExcelOutputData <- function(projection, fit, inputs) {
