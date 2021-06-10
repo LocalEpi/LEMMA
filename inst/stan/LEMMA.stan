@@ -92,13 +92,18 @@ transformed data {
   int Rlivev = 14;
   int Rmort = 15;
   int Rpremort_nonhosp = 16;
+  int Rpremort_nonhospu = 15;
+  int Rpremort_nonhospv = 16;
+  int Rmortu = 17;
+  int Rmortv = 18;
 
-  int ncompartments = 16;
+  int ncompartments = 18;
 
   int obs_hosp_census = 1;
   int obs_icu_census = 2;
   int obs_cum_deaths = 3;
   int obs_cum_admits = 4;
+  int obs_admits = 4;
   int obs_cases = 5;
   int obs_seroprev = 6;
 }
@@ -129,8 +134,12 @@ transformed parameters {
   matrix<lower=0.0>[nobs_types,nt] sim_data;
   real<lower=0.0> beta[nt];
   row_vector<lower=0.0>[nt] new_admits;
+  row_vector<lower=0.0>[nt] new_admitsu;
+  row_vector<lower=0.0>[nt] new_admitsv;
   row_vector<lower=0.0>[nt] new_cases;
   real<lower=0.0> total_cases[nt];
+  real<lower=0.0> total_casesu[nt];
+  real<lower=0.0> total_casesv[nt];
 
   {
     // variables in curly brackets will not have output, they are local variables
@@ -151,6 +160,8 @@ transformed parameters {
     real leave_icuu;
     real leave_icuv;
     real leave_premort_nonhosp;
+    real leave_premort_nonhospu;
+    real leave_premort_nonhospv;
     real beta_0;
     real vaccinated;
     real frac_vac_S;
@@ -176,10 +187,15 @@ transformed parameters {
     // initial cond
     x[:,1] = rep_vector(0.0, ncompartments);
     total_cases[1] = 0.0;
+    total_casesu[1] = 0.0;
+    total_casesv[1] = 0.0;
     x[Eu,1] = ini_exposed;
     x[Su,1] = npop - ini_exposed;
     new_admits[1] = 0.0;
+    new_admitsu[1] = 0.0;
+    new_admitsv[1] = 0.0;
     new_cases[1] = 0.0;
+
 
     //////////////////////////////////////////
     // the SEIR model
@@ -195,6 +211,8 @@ transformed parameters {
       (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
 
       total_cases[it + 1] = newEu + newEv + total_cases[it];
+      total_casesu[it + 1] = newEu + total_casesu[it];
+      total_casesv[it + 1] = newEv + total_casesv[it];
 
       vaccinated = fmin(vaccinated_per_day[it], x[Su, it] + x[Eu, it] + x[Rliveu, it]);
 
@@ -210,6 +228,8 @@ transformed parameters {
       leave_icuu = 1.0/duration_hosp_icu * x[Hicuu, it];
       leave_icuv = 1.0/duration_hosp_icu * x[Hicuv, it];
       leave_premort_nonhosp = 1.0/duration_mort_nonhosp * x[Rpremort_nonhosp, it];
+      leave_premort_nonhospu = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospu, it];
+      leave_premort_nonhospv = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospv, it];
       frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
       newSv = vaccinated * frac_vac_S;
       newRlivev = vaccinated * (1 - frac_vac_S);
@@ -244,9 +264,17 @@ transformed parameters {
       x[Rlivev, it+1] = x[Rlivev, it] + newrecv_mild * (1 - frac_mort_nonhospv) + newrecv_mod + newRlivev - R_lostv - R_lostnatv;
       x[Rpremort_nonhosp, it+1] = x[Rpremort_nonhosp, it] + newrecu_mild * frac_mort_nonhospu + newrecv_mild * frac_mort_nonhospv - leave_premort_nonhosp;
       x[Rmort, it+1] = x[Rmort, it] + leave_icuu * frac_mort * frac_mort_multiplier[it] + leave_icuv * frac_mort * frac_mort_multiplier[it] + leave_premort_nonhosp;
+      x[Rpremort_nonhospu, it+1] = x[Rpremort_nonhospu, it] + newrecu_mild * frac_mort_nonhospu - leave_premort_nonhospu;
+      x[Rpremort_nonhospv, it+1] = x[Rpremort_nonhospv, it] + newrecv_mild * frac_mort_nonhospv - leave_premort_nonhospv;
+      x[Rmortu, it+1] = x[Rmortu, it] + leave_icuu * frac_mort * frac_mort_multiplier[it]  + leave_premort_nonhospu;
+      x[Rmortv, it+1] = x[Rmortv, it] + leave_icuv * frac_mort * frac_mort_multiplier[it]  + leave_premort_nonhospv;
 
       // cumulative hospital admissions
+      //hospital admissions
       new_admits[it+1] = newhospu + newhospv;
+      new_admitsu[it+1] = newhospu;
+      new_admitsv[it+1] = newhospv;
+
       // new cases that are tested (assumes everyone tests positive on day transitions from E to I - not quite right but minor issue)
       new_cases[it+1] = (newIu + newIv) * frac_tested;
 
@@ -268,6 +296,8 @@ transformed parameters {
     } else if (itype == obs_cum_deaths) {
       sim_data[itype] = x[Rmort];
     } else if (itype == obs_cum_admits) {
+      sim_data[itype] = x[Rmortu] + x[Rmortv];
+    } else if (itype == obs_admits) {
       sim_data[itype] = new_admits;
     } else if (itype == obs_cases) {
       sim_data[itype] = new_cases;

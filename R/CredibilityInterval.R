@@ -36,7 +36,7 @@ ProjectScenario <- function(lemma.object, new.inputs) {
 # int obs_hosp_census = 1;
 # int obs_icu_census = 2;
 # int obs_cum_deaths = 3;
-# int obs_cum_admits = 4;
+# int obs_admits = 4;
 # int obs_cases = 5;
 # int obs_seroprev = 6;
 DataTypes <- function() c("hosp", "icu", "deaths", "admits", "cases", "seroprev")
@@ -236,8 +236,8 @@ GetProjection <- function(fit, inputs) {
   # int Sv = 2;
   # int Eu = 3;
   # int Ev = 4;
-  # int Imildu = 5;
-  # int Imildv = 6;
+  # int Imildu = 5; //note: on compartment diagram this is labelled "Inonhospu"
+  # int Imildv = 6; //note: on compartment diagram this is labelled "Inonhospv"
   # int Iprehu = 7;
   # int Iprehv = 8;
   # int Hmodu  = 9;
@@ -246,8 +246,10 @@ GetProjection <- function(fit, inputs) {
   # int Hicuv  = 12;
   # int Rliveu = 13;
   # int Rlivev = 14;
-  # int Rmort = 15;
-
+  # int Rpremort_nonhospu = 15;
+  # int Rpremort_nonhospv = 16;
+  # int Rmortu = 17;
+  # int Rmortv = 18;
   x <- fit$par$x
 
   projection$exposed <- colSums(x[3:4, ])
@@ -255,7 +257,14 @@ GetProjection <- function(fit, inputs) {
   projection$activeCases <- colSums(x[3:12, ])
   projection$totalCases <- fit$par$total_cases
   projection$susceptibleUnvax <- x[1, ]
-  projection$vaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14), ])
+  projection$vaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14, 16), ])
+
+  projection$deathsU <- x[17, ]
+  projection$deathsV <- x[18, ]
+  projection$admitsU <- fit$par$new_admitsu
+  projection$admitsV <- fit$par$new_admitsv
+  projection$totalCasesU <- fit$par$total_casesu
+  projection$totalCasesV <- fit$par$total_casesv
 
   return(data.table(date, as.data.table(projection)))
 }
