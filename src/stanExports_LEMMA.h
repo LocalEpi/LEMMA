@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(331, 329, "end", "model_LEMMA");
+    reader.add_event(380, 378, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -79,18 +79,20 @@ private:
         std::vector<double> sigma_beta_inter;
         std::vector<double> vaccinated_per_day;
         std::vector<double> vaccine_efficacy_for_susceptibility;
-        std::vector<double> vaccine_efficacy_against_progression;
         std::vector<double> duration_vaccinated;
         std::vector<double> duration_natural;
-        std::vector<double> frac_hosp_multiplier;
-        std::vector<double> frac_icu_multiplier;
-        std::vector<double> frac_mort_multiplier;
+        std::vector<double> frac_hosp_multiplier_unvaccinated;
+        std::vector<double> frac_hosp_multiplier_vaccinated;
+        std::vector<double> frac_icu_multiplier_unvaccinated;
+        std::vector<double> frac_icu_multiplier_vaccinated;
+        std::vector<double> frac_mort_multiplier_unvaccinated;
+        std::vector<double> frac_mort_multiplier_vaccinated;
         std::vector<double> transmission_variant_multiplier;
         std::vector<double> sigma_obs_est_inv;
         double mu_frac_tested;
         double sigma_frac_tested;
         int Su;
-        int Sv;
+        int Sv_succ;
         int Eu;
         int Ev;
         int Imildu;
@@ -103,13 +105,16 @@ private:
         int Hicuv;
         int Rliveu;
         int Rlivev;
-        int Rmort;
-        int Rpremort_nonhosp;
+        int Rpremort_nonhospu;
+        int Rpremort_nonhospv;
+        int Rmortu;
+        int Rmortv;
+        int Sv_fail;
         int ncompartments;
         int obs_hosp_census;
         int obs_icu_census;
         int obs_cum_deaths;
-        int obs_cum_admits;
+        int obs_admits;
         int obs_cases;
         int obs_seroprev;
 public:
@@ -304,91 +309,91 @@ public:
             pos__ = 0;
             sigma_duration_mort_nonhosp = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_duration_mort_nonhosp", sigma_duration_mort_nonhosp, 0.0);
-            current_statement_begin__ = 34;
+            current_statement_begin__ = 33;
             context__.validate_dims("data initialization", "mu_r0", "double", context__.to_vec());
             mu_r0 = double(0);
             vals_r__ = context__.vals_r("mu_r0");
             pos__ = 0;
             mu_r0 = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_r0", mu_r0, 0.0);
-            current_statement_begin__ = 35;
+            current_statement_begin__ = 34;
             context__.validate_dims("data initialization", "sigma_r0", "double", context__.to_vec());
             sigma_r0 = double(0);
             vals_r__ = context__.vals_r("sigma_r0");
             pos__ = 0;
             sigma_r0 = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_r0", sigma_r0, 0.0);
-            current_statement_begin__ = 37;
+            current_statement_begin__ = 36;
             context__.validate_dims("data initialization", "mu_frac_hosp", "double", context__.to_vec());
             mu_frac_hosp = double(0);
             vals_r__ = context__.vals_r("mu_frac_hosp");
             pos__ = 0;
             mu_frac_hosp = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_frac_hosp", mu_frac_hosp, 0.0);
-            current_statement_begin__ = 38;
+            current_statement_begin__ = 37;
             context__.validate_dims("data initialization", "sigma_frac_hosp", "double", context__.to_vec());
             sigma_frac_hosp = double(0);
             vals_r__ = context__.vals_r("sigma_frac_hosp");
             pos__ = 0;
             sigma_frac_hosp = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_frac_hosp", sigma_frac_hosp, 0.0);
-            current_statement_begin__ = 39;
+            current_statement_begin__ = 38;
             context__.validate_dims("data initialization", "mu_frac_icu", "double", context__.to_vec());
             mu_frac_icu = double(0);
             vals_r__ = context__.vals_r("mu_frac_icu");
             pos__ = 0;
             mu_frac_icu = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_frac_icu", mu_frac_icu, 0.0);
-            current_statement_begin__ = 40;
+            current_statement_begin__ = 39;
             context__.validate_dims("data initialization", "sigma_frac_icu", "double", context__.to_vec());
             sigma_frac_icu = double(0);
             vals_r__ = context__.vals_r("sigma_frac_icu");
             pos__ = 0;
             sigma_frac_icu = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_frac_icu", sigma_frac_icu, 0.0);
-            current_statement_begin__ = 41;
+            current_statement_begin__ = 40;
             context__.validate_dims("data initialization", "mu_frac_mort", "double", context__.to_vec());
             mu_frac_mort = double(0);
             vals_r__ = context__.vals_r("mu_frac_mort");
             pos__ = 0;
             mu_frac_mort = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_frac_mort", mu_frac_mort, 0.0);
-            current_statement_begin__ = 42;
+            current_statement_begin__ = 41;
             context__.validate_dims("data initialization", "sigma_frac_mort", "double", context__.to_vec());
             sigma_frac_mort = double(0);
             vals_r__ = context__.vals_r("sigma_frac_mort");
             pos__ = 0;
             sigma_frac_mort = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_frac_mort", sigma_frac_mort, 0.0);
-            current_statement_begin__ = 43;
+            current_statement_begin__ = 42;
             context__.validate_dims("data initialization", "mu_frac_mort_nonhosp", "double", context__.to_vec());
             mu_frac_mort_nonhosp = double(0);
             vals_r__ = context__.vals_r("mu_frac_mort_nonhosp");
             pos__ = 0;
             mu_frac_mort_nonhosp = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_frac_mort_nonhosp", mu_frac_mort_nonhosp, 0.0);
-            current_statement_begin__ = 44;
+            current_statement_begin__ = 43;
             context__.validate_dims("data initialization", "sigma_frac_mort_nonhosp", "double", context__.to_vec());
             sigma_frac_mort_nonhosp = double(0);
             vals_r__ = context__.vals_r("sigma_frac_mort_nonhosp");
             pos__ = 0;
             sigma_frac_mort_nonhosp = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_frac_mort_nonhosp", sigma_frac_mort_nonhosp, 0.0);
-            current_statement_begin__ = 47;
+            current_statement_begin__ = 46;
             context__.validate_dims("data initialization", "lambda_ini_exposed", "double", context__.to_vec());
             lambda_ini_exposed = double(0);
             vals_r__ = context__.vals_r("lambda_ini_exposed");
             pos__ = 0;
             lambda_ini_exposed = vals_r__[pos__++];
             check_greater_or_equal(function__, "lambda_ini_exposed", lambda_ini_exposed, 0.0);
-            current_statement_begin__ = 52;
+            current_statement_begin__ = 51;
             context__.validate_dims("data initialization", "ninter", "int", context__.to_vec());
             ninter = int(0);
             vals_i__ = context__.vals_i("ninter");
             pos__ = 0;
             ninter = vals_i__[pos__++];
             check_greater_or_equal(function__, "ninter", ninter, 0);
-            current_statement_begin__ = 53;
+            current_statement_begin__ = 52;
             validate_non_negative_index("mu_t_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "mu_t_inter", "double", context__.to_vec(ninter));
             mu_t_inter = std::vector<double>(ninter, double(0));
@@ -402,7 +407,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < mu_t_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "mu_t_inter[i_0__]", mu_t_inter[i_0__], 1.0);
             }
-            current_statement_begin__ = 54;
+            current_statement_begin__ = 53;
             validate_non_negative_index("sigma_t_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "sigma_t_inter", "double", context__.to_vec(ninter));
             sigma_t_inter = std::vector<double>(ninter, double(0));
@@ -416,7 +421,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_t_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_t_inter[i_0__]", sigma_t_inter[i_0__], 0.0);
             }
-            current_statement_begin__ = 55;
+            current_statement_begin__ = 54;
             validate_non_negative_index("mu_len_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "mu_len_inter", "double", context__.to_vec(ninter));
             mu_len_inter = std::vector<double>(ninter, double(0));
@@ -430,7 +435,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < mu_len_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "mu_len_inter[i_0__]", mu_len_inter[i_0__], 1.0);
             }
-            current_statement_begin__ = 56;
+            current_statement_begin__ = 55;
             validate_non_negative_index("sigma_len_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "sigma_len_inter", "double", context__.to_vec(ninter));
             sigma_len_inter = std::vector<double>(ninter, double(0));
@@ -444,7 +449,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_len_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_len_inter[i_0__]", sigma_len_inter[i_0__], 0.0);
             }
-            current_statement_begin__ = 57;
+            current_statement_begin__ = 56;
             validate_non_negative_index("mu_beta_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "mu_beta_inter", "double", context__.to_vec(ninter));
             mu_beta_inter = std::vector<double>(ninter, double(0));
@@ -458,7 +463,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < mu_beta_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "mu_beta_inter[i_0__]", mu_beta_inter[i_0__], 0.0);
             }
-            current_statement_begin__ = 58;
+            current_statement_begin__ = 57;
             validate_non_negative_index("sigma_beta_inter", "ninter", ninter);
             context__.validate_dims("data initialization", "sigma_beta_inter", "double", context__.to_vec(ninter));
             sigma_beta_inter = std::vector<double>(ninter, double(0));
@@ -472,7 +477,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_beta_inter_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_beta_inter[i_0__]", sigma_beta_inter[i_0__], 0.0);
             }
-            current_statement_begin__ = 60;
+            current_statement_begin__ = 59;
             validate_non_negative_index("vaccinated_per_day", "nt", nt);
             context__.validate_dims("data initialization", "vaccinated_per_day", "double", context__.to_vec(nt));
             vaccinated_per_day = std::vector<double>(nt, double(0));
@@ -486,7 +491,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < vaccinated_per_day_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "vaccinated_per_day[i_0__]", vaccinated_per_day[i_0__], 0.0);
             }
-            current_statement_begin__ = 61;
+            current_statement_begin__ = 60;
             validate_non_negative_index("vaccine_efficacy_for_susceptibility", "nt", nt);
             context__.validate_dims("data initialization", "vaccine_efficacy_for_susceptibility", "double", context__.to_vec(nt));
             vaccine_efficacy_for_susceptibility = std::vector<double>(nt, double(0));
@@ -502,21 +507,6 @@ public:
                 check_less_or_equal(function__, "vaccine_efficacy_for_susceptibility[i_0__]", vaccine_efficacy_for_susceptibility[i_0__], 1.0);
             }
             current_statement_begin__ = 62;
-            validate_non_negative_index("vaccine_efficacy_against_progression", "nt", nt);
-            context__.validate_dims("data initialization", "vaccine_efficacy_against_progression", "double", context__.to_vec(nt));
-            vaccine_efficacy_against_progression = std::vector<double>(nt, double(0));
-            vals_r__ = context__.vals_r("vaccine_efficacy_against_progression");
-            pos__ = 0;
-            size_t vaccine_efficacy_against_progression_k_0_max__ = nt;
-            for (size_t k_0__ = 0; k_0__ < vaccine_efficacy_against_progression_k_0_max__; ++k_0__) {
-                vaccine_efficacy_against_progression[k_0__] = vals_r__[pos__++];
-            }
-            size_t vaccine_efficacy_against_progression_i_0_max__ = nt;
-            for (size_t i_0__ = 0; i_0__ < vaccine_efficacy_against_progression_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "vaccine_efficacy_against_progression[i_0__]", vaccine_efficacy_against_progression[i_0__], 0.0);
-                check_less_or_equal(function__, "vaccine_efficacy_against_progression[i_0__]", vaccine_efficacy_against_progression[i_0__], 1.0);
-            }
-            current_statement_begin__ = 64;
             validate_non_negative_index("duration_vaccinated", "nt", nt);
             context__.validate_dims("data initialization", "duration_vaccinated", "double", context__.to_vec(nt));
             duration_vaccinated = std::vector<double>(nt, double(0));
@@ -530,7 +520,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < duration_vaccinated_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "duration_vaccinated[i_0__]", duration_vaccinated[i_0__], 1.0);
             }
-            current_statement_begin__ = 65;
+            current_statement_begin__ = 63;
             validate_non_negative_index("duration_natural", "nt", nt);
             context__.validate_dims("data initialization", "duration_natural", "double", context__.to_vec(nt));
             duration_natural = std::vector<double>(nt, double(0));
@@ -544,49 +534,91 @@ public:
             for (size_t i_0__ = 0; i_0__ < duration_natural_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "duration_natural[i_0__]", duration_natural[i_0__], 1.0);
             }
-            current_statement_begin__ = 66;
-            validate_non_negative_index("frac_hosp_multiplier", "nt", nt);
-            context__.validate_dims("data initialization", "frac_hosp_multiplier", "double", context__.to_vec(nt));
-            frac_hosp_multiplier = std::vector<double>(nt, double(0));
-            vals_r__ = context__.vals_r("frac_hosp_multiplier");
+            current_statement_begin__ = 64;
+            validate_non_negative_index("frac_hosp_multiplier_unvaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_hosp_multiplier_unvaccinated", "double", context__.to_vec(nt));
+            frac_hosp_multiplier_unvaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_hosp_multiplier_unvaccinated");
             pos__ = 0;
-            size_t frac_hosp_multiplier_k_0_max__ = nt;
-            for (size_t k_0__ = 0; k_0__ < frac_hosp_multiplier_k_0_max__; ++k_0__) {
-                frac_hosp_multiplier[k_0__] = vals_r__[pos__++];
+            size_t frac_hosp_multiplier_unvaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_hosp_multiplier_unvaccinated_k_0_max__; ++k_0__) {
+                frac_hosp_multiplier_unvaccinated[k_0__] = vals_r__[pos__++];
             }
-            size_t frac_hosp_multiplier_i_0_max__ = nt;
-            for (size_t i_0__ = 0; i_0__ < frac_hosp_multiplier_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "frac_hosp_multiplier[i_0__]", frac_hosp_multiplier[i_0__], 0.0);
+            size_t frac_hosp_multiplier_unvaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_hosp_multiplier_unvaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_hosp_multiplier_unvaccinated[i_0__]", frac_hosp_multiplier_unvaccinated[i_0__], 0.0);
+            }
+            current_statement_begin__ = 65;
+            validate_non_negative_index("frac_hosp_multiplier_vaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_hosp_multiplier_vaccinated", "double", context__.to_vec(nt));
+            frac_hosp_multiplier_vaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_hosp_multiplier_vaccinated");
+            pos__ = 0;
+            size_t frac_hosp_multiplier_vaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_hosp_multiplier_vaccinated_k_0_max__; ++k_0__) {
+                frac_hosp_multiplier_vaccinated[k_0__] = vals_r__[pos__++];
+            }
+            size_t frac_hosp_multiplier_vaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_hosp_multiplier_vaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_hosp_multiplier_vaccinated[i_0__]", frac_hosp_multiplier_vaccinated[i_0__], 0.0);
+            }
+            current_statement_begin__ = 66;
+            validate_non_negative_index("frac_icu_multiplier_unvaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_icu_multiplier_unvaccinated", "double", context__.to_vec(nt));
+            frac_icu_multiplier_unvaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_icu_multiplier_unvaccinated");
+            pos__ = 0;
+            size_t frac_icu_multiplier_unvaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_icu_multiplier_unvaccinated_k_0_max__; ++k_0__) {
+                frac_icu_multiplier_unvaccinated[k_0__] = vals_r__[pos__++];
+            }
+            size_t frac_icu_multiplier_unvaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_icu_multiplier_unvaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_icu_multiplier_unvaccinated[i_0__]", frac_icu_multiplier_unvaccinated[i_0__], 0.0);
             }
             current_statement_begin__ = 67;
-            validate_non_negative_index("frac_icu_multiplier", "nt", nt);
-            context__.validate_dims("data initialization", "frac_icu_multiplier", "double", context__.to_vec(nt));
-            frac_icu_multiplier = std::vector<double>(nt, double(0));
-            vals_r__ = context__.vals_r("frac_icu_multiplier");
+            validate_non_negative_index("frac_icu_multiplier_vaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_icu_multiplier_vaccinated", "double", context__.to_vec(nt));
+            frac_icu_multiplier_vaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_icu_multiplier_vaccinated");
             pos__ = 0;
-            size_t frac_icu_multiplier_k_0_max__ = nt;
-            for (size_t k_0__ = 0; k_0__ < frac_icu_multiplier_k_0_max__; ++k_0__) {
-                frac_icu_multiplier[k_0__] = vals_r__[pos__++];
+            size_t frac_icu_multiplier_vaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_icu_multiplier_vaccinated_k_0_max__; ++k_0__) {
+                frac_icu_multiplier_vaccinated[k_0__] = vals_r__[pos__++];
             }
-            size_t frac_icu_multiplier_i_0_max__ = nt;
-            for (size_t i_0__ = 0; i_0__ < frac_icu_multiplier_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "frac_icu_multiplier[i_0__]", frac_icu_multiplier[i_0__], 0.0);
+            size_t frac_icu_multiplier_vaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_icu_multiplier_vaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_icu_multiplier_vaccinated[i_0__]", frac_icu_multiplier_vaccinated[i_0__], 0.0);
             }
             current_statement_begin__ = 68;
-            validate_non_negative_index("frac_mort_multiplier", "nt", nt);
-            context__.validate_dims("data initialization", "frac_mort_multiplier", "double", context__.to_vec(nt));
-            frac_mort_multiplier = std::vector<double>(nt, double(0));
-            vals_r__ = context__.vals_r("frac_mort_multiplier");
+            validate_non_negative_index("frac_mort_multiplier_unvaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_mort_multiplier_unvaccinated", "double", context__.to_vec(nt));
+            frac_mort_multiplier_unvaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_mort_multiplier_unvaccinated");
             pos__ = 0;
-            size_t frac_mort_multiplier_k_0_max__ = nt;
-            for (size_t k_0__ = 0; k_0__ < frac_mort_multiplier_k_0_max__; ++k_0__) {
-                frac_mort_multiplier[k_0__] = vals_r__[pos__++];
+            size_t frac_mort_multiplier_unvaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_mort_multiplier_unvaccinated_k_0_max__; ++k_0__) {
+                frac_mort_multiplier_unvaccinated[k_0__] = vals_r__[pos__++];
             }
-            size_t frac_mort_multiplier_i_0_max__ = nt;
-            for (size_t i_0__ = 0; i_0__ < frac_mort_multiplier_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "frac_mort_multiplier[i_0__]", frac_mort_multiplier[i_0__], 0.0);
+            size_t frac_mort_multiplier_unvaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_mort_multiplier_unvaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_mort_multiplier_unvaccinated[i_0__]", frac_mort_multiplier_unvaccinated[i_0__], 0.0);
             }
             current_statement_begin__ = 69;
+            validate_non_negative_index("frac_mort_multiplier_vaccinated", "nt", nt);
+            context__.validate_dims("data initialization", "frac_mort_multiplier_vaccinated", "double", context__.to_vec(nt));
+            frac_mort_multiplier_vaccinated = std::vector<double>(nt, double(0));
+            vals_r__ = context__.vals_r("frac_mort_multiplier_vaccinated");
+            pos__ = 0;
+            size_t frac_mort_multiplier_vaccinated_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < frac_mort_multiplier_vaccinated_k_0_max__; ++k_0__) {
+                frac_mort_multiplier_vaccinated[k_0__] = vals_r__[pos__++];
+            }
+            size_t frac_mort_multiplier_vaccinated_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < frac_mort_multiplier_vaccinated_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "frac_mort_multiplier_vaccinated[i_0__]", frac_mort_multiplier_vaccinated[i_0__], 0.0);
+            }
+            current_statement_begin__ = 70;
             validate_non_negative_index("transmission_variant_multiplier", "nt", nt);
             context__.validate_dims("data initialization", "transmission_variant_multiplier", "double", context__.to_vec(nt));
             transmission_variant_multiplier = std::vector<double>(nt, double(0));
@@ -600,7 +632,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < transmission_variant_multiplier_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "transmission_variant_multiplier[i_0__]", transmission_variant_multiplier[i_0__], 0.0);
             }
-            current_statement_begin__ = 70;
+            current_statement_begin__ = 71;
             validate_non_negative_index("sigma_obs_est_inv", "nobs_types", nobs_types);
             context__.validate_dims("data initialization", "sigma_obs_est_inv", "double", context__.to_vec(nobs_types));
             sigma_obs_est_inv = std::vector<double>(nobs_types, double(0));
@@ -614,14 +646,14 @@ public:
             for (size_t i_0__ = 0; i_0__ < sigma_obs_est_inv_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "sigma_obs_est_inv[i_0__]", sigma_obs_est_inv[i_0__], 0.0);
             }
-            current_statement_begin__ = 72;
+            current_statement_begin__ = 73;
             context__.validate_dims("data initialization", "mu_frac_tested", "double", context__.to_vec());
             mu_frac_tested = double(0);
             vals_r__ = context__.vals_r("mu_frac_tested");
             pos__ = 0;
             mu_frac_tested = vals_r__[pos__++];
             check_greater_or_equal(function__, "mu_frac_tested", mu_frac_tested, 0.0);
-            current_statement_begin__ = 73;
+            current_statement_begin__ = 74;
             context__.validate_dims("data initialization", "sigma_frac_tested", "double", context__.to_vec());
             sigma_frac_tested = double(0);
             vals_r__ = context__.vals_r("sigma_frac_tested");
@@ -629,95 +661,107 @@ public:
             sigma_frac_tested = vals_r__[pos__++];
             check_greater_or_equal(function__, "sigma_frac_tested", sigma_frac_tested, 0.0);
             // initialize transformed data variables
-            current_statement_begin__ = 79;
+            current_statement_begin__ = 80;
             Su = int(0);
             stan::math::fill(Su, std::numeric_limits<int>::min());
             stan::math::assign(Su,1);
-            current_statement_begin__ = 80;
-            Sv = int(0);
-            stan::math::fill(Sv, std::numeric_limits<int>::min());
-            stan::math::assign(Sv,2);
             current_statement_begin__ = 81;
+            Sv_succ = int(0);
+            stan::math::fill(Sv_succ, std::numeric_limits<int>::min());
+            stan::math::assign(Sv_succ,2);
+            current_statement_begin__ = 82;
             Eu = int(0);
             stan::math::fill(Eu, std::numeric_limits<int>::min());
             stan::math::assign(Eu,3);
-            current_statement_begin__ = 82;
+            current_statement_begin__ = 83;
             Ev = int(0);
             stan::math::fill(Ev, std::numeric_limits<int>::min());
             stan::math::assign(Ev,4);
-            current_statement_begin__ = 83;
+            current_statement_begin__ = 84;
             Imildu = int(0);
             stan::math::fill(Imildu, std::numeric_limits<int>::min());
             stan::math::assign(Imildu,5);
-            current_statement_begin__ = 84;
+            current_statement_begin__ = 85;
             Imildv = int(0);
             stan::math::fill(Imildv, std::numeric_limits<int>::min());
             stan::math::assign(Imildv,6);
-            current_statement_begin__ = 85;
+            current_statement_begin__ = 86;
             Iprehu = int(0);
             stan::math::fill(Iprehu, std::numeric_limits<int>::min());
             stan::math::assign(Iprehu,7);
-            current_statement_begin__ = 86;
+            current_statement_begin__ = 87;
             Iprehv = int(0);
             stan::math::fill(Iprehv, std::numeric_limits<int>::min());
             stan::math::assign(Iprehv,8);
-            current_statement_begin__ = 87;
+            current_statement_begin__ = 88;
             Hmodu = int(0);
             stan::math::fill(Hmodu, std::numeric_limits<int>::min());
             stan::math::assign(Hmodu,9);
-            current_statement_begin__ = 88;
+            current_statement_begin__ = 89;
             Hmodv = int(0);
             stan::math::fill(Hmodv, std::numeric_limits<int>::min());
             stan::math::assign(Hmodv,10);
-            current_statement_begin__ = 89;
+            current_statement_begin__ = 90;
             Hicuu = int(0);
             stan::math::fill(Hicuu, std::numeric_limits<int>::min());
             stan::math::assign(Hicuu,11);
-            current_statement_begin__ = 90;
+            current_statement_begin__ = 91;
             Hicuv = int(0);
             stan::math::fill(Hicuv, std::numeric_limits<int>::min());
             stan::math::assign(Hicuv,12);
-            current_statement_begin__ = 91;
+            current_statement_begin__ = 92;
             Rliveu = int(0);
             stan::math::fill(Rliveu, std::numeric_limits<int>::min());
             stan::math::assign(Rliveu,13);
-            current_statement_begin__ = 92;
+            current_statement_begin__ = 93;
             Rlivev = int(0);
             stan::math::fill(Rlivev, std::numeric_limits<int>::min());
             stan::math::assign(Rlivev,14);
-            current_statement_begin__ = 93;
-            Rmort = int(0);
-            stan::math::fill(Rmort, std::numeric_limits<int>::min());
-            stan::math::assign(Rmort,15);
             current_statement_begin__ = 94;
-            Rpremort_nonhosp = int(0);
-            stan::math::fill(Rpremort_nonhosp, std::numeric_limits<int>::min());
-            stan::math::assign(Rpremort_nonhosp,16);
+            Rpremort_nonhospu = int(0);
+            stan::math::fill(Rpremort_nonhospu, std::numeric_limits<int>::min());
+            stan::math::assign(Rpremort_nonhospu,15);
+            current_statement_begin__ = 95;
+            Rpremort_nonhospv = int(0);
+            stan::math::fill(Rpremort_nonhospv, std::numeric_limits<int>::min());
+            stan::math::assign(Rpremort_nonhospv,16);
             current_statement_begin__ = 96;
+            Rmortu = int(0);
+            stan::math::fill(Rmortu, std::numeric_limits<int>::min());
+            stan::math::assign(Rmortu,17);
+            current_statement_begin__ = 97;
+            Rmortv = int(0);
+            stan::math::fill(Rmortv, std::numeric_limits<int>::min());
+            stan::math::assign(Rmortv,18);
+            current_statement_begin__ = 98;
+            Sv_fail = int(0);
+            stan::math::fill(Sv_fail, std::numeric_limits<int>::min());
+            stan::math::assign(Sv_fail,19);
+            current_statement_begin__ = 100;
             ncompartments = int(0);
             stan::math::fill(ncompartments, std::numeric_limits<int>::min());
-            stan::math::assign(ncompartments,16);
-            current_statement_begin__ = 98;
+            stan::math::assign(ncompartments,19);
+            current_statement_begin__ = 102;
             obs_hosp_census = int(0);
             stan::math::fill(obs_hosp_census, std::numeric_limits<int>::min());
             stan::math::assign(obs_hosp_census,1);
-            current_statement_begin__ = 99;
+            current_statement_begin__ = 103;
             obs_icu_census = int(0);
             stan::math::fill(obs_icu_census, std::numeric_limits<int>::min());
             stan::math::assign(obs_icu_census,2);
-            current_statement_begin__ = 100;
+            current_statement_begin__ = 104;
             obs_cum_deaths = int(0);
             stan::math::fill(obs_cum_deaths, std::numeric_limits<int>::min());
             stan::math::assign(obs_cum_deaths,3);
-            current_statement_begin__ = 101;
-            obs_cum_admits = int(0);
-            stan::math::fill(obs_cum_admits, std::numeric_limits<int>::min());
-            stan::math::assign(obs_cum_admits,4);
-            current_statement_begin__ = 102;
+            current_statement_begin__ = 105;
+            obs_admits = int(0);
+            stan::math::fill(obs_admits, std::numeric_limits<int>::min());
+            stan::math::assign(obs_admits,4);
+            current_statement_begin__ = 106;
             obs_cases = int(0);
             stan::math::fill(obs_cases, std::numeric_limits<int>::min());
             stan::math::assign(obs_cases,5);
-            current_statement_begin__ = 103;
+            current_statement_begin__ = 107;
             obs_seroprev = int(0);
             stan::math::fill(obs_seroprev, std::numeric_limits<int>::min());
             stan::math::assign(obs_seroprev,6);
@@ -726,17 +770,11 @@ public:
             // validate, set parameter ranges
             num_params_r__ = 0U;
             param_ranges_i__.clear();
-            current_statement_begin__ = 106;
-            num_params_r__ += 1;
-            current_statement_begin__ = 107;
-            num_params_r__ += 1;
-            current_statement_begin__ = 108;
-            num_params_r__ += 1;
-            current_statement_begin__ = 109;
-            num_params_r__ += 1;
             current_statement_begin__ = 110;
             num_params_r__ += 1;
             current_statement_begin__ = 111;
+            num_params_r__ += 1;
+            current_statement_begin__ = 112;
             num_params_r__ += 1;
             current_statement_begin__ = 113;
             num_params_r__ += 1;
@@ -744,24 +782,30 @@ public:
             num_params_r__ += 1;
             current_statement_begin__ = 115;
             num_params_r__ += 1;
-            current_statement_begin__ = 116;
-            num_params_r__ += 1;
             current_statement_begin__ = 117;
+            num_params_r__ += 1;
+            current_statement_begin__ = 118;
             num_params_r__ += 1;
             current_statement_begin__ = 119;
             num_params_r__ += 1;
             current_statement_begin__ = 120;
-            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-            num_params_r__ += (1 * nobs_types);
+            num_params_r__ += 1;
             current_statement_begin__ = 121;
             num_params_r__ += 1;
-            current_statement_begin__ = 122;
+            current_statement_begin__ = 123;
+            num_params_r__ += 1;
+            current_statement_begin__ = 124;
+            validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
+            num_params_r__ += (1 * nobs_types);
+            current_statement_begin__ = 125;
+            num_params_r__ += 1;
+            current_statement_begin__ = 126;
             validate_non_negative_index("beta_multiplier", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 123;
+            current_statement_begin__ = 127;
             validate_non_negative_index("t_inter", "ninter", ninter);
             num_params_r__ += (1 * ninter);
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 128;
             validate_non_negative_index("len_inter", "ninter", ninter);
             num_params_r__ += (1 * ninter);
         } catch (const std::exception& e) {
@@ -781,7 +825,7 @@ public:
         (void) pos__; // dummy call to supress warning
         std::vector<double> vals_r__;
         std::vector<int> vals_i__;
-        current_statement_begin__ = 106;
+        current_statement_begin__ = 110;
         if (!(context__.contains_r("duration_latent")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_latent missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_latent");
@@ -794,7 +838,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_latent: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 107;
+        current_statement_begin__ = 111;
         if (!(context__.contains_r("duration_rec_mild")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_rec_mild missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_rec_mild");
@@ -807,7 +851,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_rec_mild: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 108;
+        current_statement_begin__ = 112;
         if (!(context__.contains_r("duration_pre_hosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_pre_hosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_pre_hosp");
@@ -820,7 +864,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_pre_hosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 109;
+        current_statement_begin__ = 113;
         if (!(context__.contains_r("duration_hosp_mod")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_hosp_mod missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_hosp_mod");
@@ -833,7 +877,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_hosp_mod: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 110;
+        current_statement_begin__ = 114;
         if (!(context__.contains_r("duration_hosp_icu")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_hosp_icu missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_hosp_icu");
@@ -846,7 +890,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_hosp_icu: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 111;
+        current_statement_begin__ = 115;
         if (!(context__.contains_r("duration_mort_nonhosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable duration_mort_nonhosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("duration_mort_nonhosp");
@@ -859,7 +903,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable duration_mort_nonhosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 113;
+        current_statement_begin__ = 117;
         if (!(context__.contains_r("frac_hosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_hosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_hosp");
@@ -872,7 +916,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_hosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 114;
+        current_statement_begin__ = 118;
         if (!(context__.contains_r("frac_icu")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_icu missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_icu");
@@ -885,7 +929,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_icu: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 115;
+        current_statement_begin__ = 119;
         if (!(context__.contains_r("frac_mort")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_mort missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_mort");
@@ -898,7 +942,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_mort: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 116;
+        current_statement_begin__ = 120;
         if (!(context__.contains_r("frac_tested")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_tested missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_tested");
@@ -911,7 +955,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_tested: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 117;
+        current_statement_begin__ = 121;
         if (!(context__.contains_r("frac_mort_nonhosp")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable frac_mort_nonhosp missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("frac_mort_nonhosp");
@@ -924,7 +968,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable frac_mort_nonhosp: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 119;
+        current_statement_begin__ = 123;
         if (!(context__.contains_r("ini_exposed")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable ini_exposed missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("ini_exposed");
@@ -937,7 +981,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable ini_exposed: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 120;
+        current_statement_begin__ = 124;
         if (!(context__.contains_r("sigma_obs")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable sigma_obs missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("sigma_obs");
@@ -957,7 +1001,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable sigma_obs: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 121;
+        current_statement_begin__ = 125;
         if (!(context__.contains_r("r0")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable r0 missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("r0");
@@ -970,7 +1014,7 @@ public:
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable r0: ") + e.what()), current_statement_begin__, prog_reader__());
         }
-        current_statement_begin__ = 122;
+        current_statement_begin__ = 126;
         if (!(context__.contains_r("beta_multiplier")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable beta_multiplier missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("beta_multiplier");
@@ -990,7 +1034,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable beta_multiplier: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 123;
+        current_statement_begin__ = 127;
         if (!(context__.contains_r("t_inter")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable t_inter missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("t_inter");
@@ -1010,7 +1054,7 @@ public:
                 stan::lang::rethrow_located(std::runtime_error(std::string("Error transforming variable t_inter: ") + e.what()), current_statement_begin__, prog_reader__());
             }
         }
-        current_statement_begin__ = 124;
+        current_statement_begin__ = 128;
         if (!(context__.contains_r("len_inter")))
             stan::lang::rethrow_located(std::runtime_error(std::string("Variable len_inter missing")), current_statement_begin__, prog_reader__());
         vals_r__ = context__.vals_r("len_inter");
@@ -1055,91 +1099,91 @@ public:
         try {
             stan::io::reader<local_scalar_t__> in__(params_r__, params_i__);
             // model parameters
-            current_statement_begin__ = 106;
+            current_statement_begin__ = 110;
             local_scalar_t__ duration_latent;
             (void) duration_latent;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_latent = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_latent = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 107;
+            current_statement_begin__ = 111;
             local_scalar_t__ duration_rec_mild;
             (void) duration_rec_mild;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_rec_mild = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_rec_mild = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 108;
+            current_statement_begin__ = 112;
             local_scalar_t__ duration_pre_hosp;
             (void) duration_pre_hosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_pre_hosp = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_pre_hosp = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 109;
+            current_statement_begin__ = 113;
             local_scalar_t__ duration_hosp_mod;
             (void) duration_hosp_mod;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_hosp_mod = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_hosp_mod = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 110;
+            current_statement_begin__ = 114;
             local_scalar_t__ duration_hosp_icu;
             (void) duration_hosp_icu;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_hosp_icu = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_hosp_icu = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 111;
+            current_statement_begin__ = 115;
             local_scalar_t__ duration_mort_nonhosp;
             (void) duration_mort_nonhosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 duration_mort_nonhosp = in__.scalar_lb_constrain(1.0, lp__);
             else
                 duration_mort_nonhosp = in__.scalar_lb_constrain(1.0);
-            current_statement_begin__ = 113;
+            current_statement_begin__ = 117;
             local_scalar_t__ frac_hosp;
             (void) frac_hosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_hosp = in__.scalar_lub_constrain(0.005, 1.0, lp__);
             else
                 frac_hosp = in__.scalar_lub_constrain(0.005, 1.0);
-            current_statement_begin__ = 114;
+            current_statement_begin__ = 118;
             local_scalar_t__ frac_icu;
             (void) frac_icu;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_icu = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
                 frac_icu = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 115;
+            current_statement_begin__ = 119;
             local_scalar_t__ frac_mort;
             (void) frac_mort;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_mort = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
                 frac_mort = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 116;
+            current_statement_begin__ = 120;
             local_scalar_t__ frac_tested;
             (void) frac_tested;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_tested = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
                 frac_tested = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 117;
+            current_statement_begin__ = 121;
             local_scalar_t__ frac_mort_nonhosp;
             (void) frac_mort_nonhosp;  // dummy to suppress unused var warning
             if (jacobian__)
                 frac_mort_nonhosp = in__.scalar_lub_constrain(0.0, 1.0, lp__);
             else
                 frac_mort_nonhosp = in__.scalar_lub_constrain(0.0, 1.0);
-            current_statement_begin__ = 119;
+            current_statement_begin__ = 123;
             local_scalar_t__ ini_exposed;
             (void) ini_exposed;  // dummy to suppress unused var warning
             if (jacobian__)
                 ini_exposed = in__.scalar_lb_constrain(0.0, lp__);
             else
                 ini_exposed = in__.scalar_lb_constrain(0.0);
-            current_statement_begin__ = 120;
+            current_statement_begin__ = 124;
             std::vector<local_scalar_t__> sigma_obs;
             size_t sigma_obs_d_0_max__ = nobs_types;
             sigma_obs.reserve(sigma_obs_d_0_max__);
@@ -1149,14 +1193,14 @@ public:
                 else
                     sigma_obs.push_back(in__.scalar_lb_constrain(0.0));
             }
-            current_statement_begin__ = 121;
+            current_statement_begin__ = 125;
             local_scalar_t__ r0;
             (void) r0;  // dummy to suppress unused var warning
             if (jacobian__)
                 r0 = in__.scalar_lb_constrain(0.0, lp__);
             else
                 r0 = in__.scalar_lb_constrain(0.0);
-            current_statement_begin__ = 122;
+            current_statement_begin__ = 126;
             std::vector<local_scalar_t__> beta_multiplier;
             size_t beta_multiplier_d_0_max__ = ninter;
             beta_multiplier.reserve(beta_multiplier_d_0_max__);
@@ -1166,7 +1210,7 @@ public:
                 else
                     beta_multiplier.push_back(in__.scalar_lb_constrain(0.0));
             }
-            current_statement_begin__ = 123;
+            current_statement_begin__ = 127;
             std::vector<local_scalar_t__> t_inter;
             size_t t_inter_d_0_max__ = ninter;
             t_inter.reserve(t_inter_d_0_max__);
@@ -1176,7 +1220,7 @@ public:
                 else
                     t_inter.push_back(in__.scalar_lb_constrain(1.0));
             }
-            current_statement_begin__ = 124;
+            current_statement_begin__ = 128;
             std::vector<local_scalar_t__> len_inter;
             size_t len_inter_d_0_max__ = ninter;
             len_inter.reserve(len_inter_d_0_max__);
@@ -1187,368 +1231,503 @@ public:
                     len_inter.push_back(in__.scalar_lb_constrain(1.0));
             }
             // transformed parameters
-            current_statement_begin__ = 128;
+            current_statement_begin__ = 132;
             validate_non_negative_index("x", "ncompartments", ncompartments);
             validate_non_negative_index("x", "nt", nt);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, Eigen::Dynamic> x(ncompartments, nt);
             stan::math::initialize(x, DUMMY_VAR__);
             stan::math::fill(x, DUMMY_VAR__);
-            current_statement_begin__ = 129;
+            current_statement_begin__ = 133;
             validate_non_negative_index("sim_data", "nobs_types", nobs_types);
             validate_non_negative_index("sim_data", "nt", nt);
             Eigen::Matrix<local_scalar_t__, Eigen::Dynamic, Eigen::Dynamic> sim_data(nobs_types, nt);
             stan::math::initialize(sim_data, DUMMY_VAR__);
             stan::math::fill(sim_data, DUMMY_VAR__);
-            current_statement_begin__ = 130;
+            current_statement_begin__ = 134;
             validate_non_negative_index("beta", "nt", nt);
             std::vector<local_scalar_t__> beta(nt, local_scalar_t__(0));
             stan::math::initialize(beta, DUMMY_VAR__);
             stan::math::fill(beta, DUMMY_VAR__);
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 135;
             validate_non_negative_index("new_admits", "nt", nt);
             Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> new_admits(nt);
             stan::math::initialize(new_admits, DUMMY_VAR__);
             stan::math::fill(new_admits, DUMMY_VAR__);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 136;
+            validate_non_negative_index("new_admitsu", "nt", nt);
+            Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> new_admitsu(nt);
+            stan::math::initialize(new_admitsu, DUMMY_VAR__);
+            stan::math::fill(new_admitsu, DUMMY_VAR__);
+            current_statement_begin__ = 137;
+            validate_non_negative_index("new_admitsv", "nt", nt);
+            Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> new_admitsv(nt);
+            stan::math::initialize(new_admitsv, DUMMY_VAR__);
+            stan::math::fill(new_admitsv, DUMMY_VAR__);
+            current_statement_begin__ = 138;
             validate_non_negative_index("new_cases", "nt", nt);
             Eigen::Matrix<local_scalar_t__, 1, Eigen::Dynamic> new_cases(nt);
             stan::math::initialize(new_cases, DUMMY_VAR__);
             stan::math::fill(new_cases, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 139;
             validate_non_negative_index("total_cases", "nt", nt);
             std::vector<local_scalar_t__> total_cases(nt, local_scalar_t__(0));
             stan::math::initialize(total_cases, DUMMY_VAR__);
             stan::math::fill(total_cases, DUMMY_VAR__);
+            current_statement_begin__ = 140;
+            validate_non_negative_index("total_casesu", "nt", nt);
+            std::vector<local_scalar_t__> total_casesu(nt, local_scalar_t__(0));
+            stan::math::initialize(total_casesu, DUMMY_VAR__);
+            stan::math::fill(total_casesu, DUMMY_VAR__);
+            current_statement_begin__ = 141;
+            validate_non_negative_index("total_casesv", "nt", nt);
+            std::vector<local_scalar_t__> total_casesv(nt, local_scalar_t__(0));
+            stan::math::initialize(total_casesv, DUMMY_VAR__);
+            stan::math::fill(total_casesv, DUMMY_VAR__);
             // transformed parameters block statements
             {
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 145;
             local_scalar_t__ newEu(DUMMY_VAR__);
             (void) newEu;  // dummy to suppress unused var warning
             stan::math::initialize(newEu, DUMMY_VAR__);
             stan::math::fill(newEu, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 146;
             local_scalar_t__ newEv(DUMMY_VAR__);
             (void) newEv;  // dummy to suppress unused var warning
             stan::math::initialize(newEv, DUMMY_VAR__);
             stan::math::fill(newEv, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 147;
             local_scalar_t__ newIu(DUMMY_VAR__);
             (void) newIu;  // dummy to suppress unused var warning
             stan::math::initialize(newIu, DUMMY_VAR__);
             stan::math::fill(newIu, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 148;
             local_scalar_t__ newIv(DUMMY_VAR__);
             (void) newIv;  // dummy to suppress unused var warning
             stan::math::initialize(newIv, DUMMY_VAR__);
             stan::math::fill(newIv, DUMMY_VAR__);
-            current_statement_begin__ = 141;
+            current_statement_begin__ = 149;
             local_scalar_t__ newrecu_mild(DUMMY_VAR__);
             (void) newrecu_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrecu_mild, DUMMY_VAR__);
             stan::math::fill(newrecu_mild, DUMMY_VAR__);
-            current_statement_begin__ = 142;
+            current_statement_begin__ = 150;
             local_scalar_t__ newrecv_mild(DUMMY_VAR__);
             (void) newrecv_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrecv_mild, DUMMY_VAR__);
             stan::math::fill(newrecv_mild, DUMMY_VAR__);
-            current_statement_begin__ = 143;
+            current_statement_begin__ = 151;
             local_scalar_t__ newrecu_mod(DUMMY_VAR__);
             (void) newrecu_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrecu_mod, DUMMY_VAR__);
             stan::math::fill(newrecu_mod, DUMMY_VAR__);
-            current_statement_begin__ = 144;
+            current_statement_begin__ = 152;
             local_scalar_t__ newrecv_mod(DUMMY_VAR__);
             (void) newrecv_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrecv_mod, DUMMY_VAR__);
             stan::math::fill(newrecv_mod, DUMMY_VAR__);
-            current_statement_begin__ = 145;
+            current_statement_begin__ = 153;
             local_scalar_t__ newhospu(DUMMY_VAR__);
             (void) newhospu;  // dummy to suppress unused var warning
             stan::math::initialize(newhospu, DUMMY_VAR__);
             stan::math::fill(newhospu, DUMMY_VAR__);
-            current_statement_begin__ = 146;
+            current_statement_begin__ = 154;
             local_scalar_t__ newhospv(DUMMY_VAR__);
             (void) newhospv;  // dummy to suppress unused var warning
             stan::math::initialize(newhospv, DUMMY_VAR__);
             stan::math::fill(newhospv, DUMMY_VAR__);
-            current_statement_begin__ = 147;
+            current_statement_begin__ = 155;
             local_scalar_t__ frac_hospu(DUMMY_VAR__);
             (void) frac_hospu;  // dummy to suppress unused var warning
             stan::math::initialize(frac_hospu, DUMMY_VAR__);
             stan::math::fill(frac_hospu, DUMMY_VAR__);
-            current_statement_begin__ = 148;
+            current_statement_begin__ = 156;
             local_scalar_t__ frac_hospv(DUMMY_VAR__);
             (void) frac_hospv;  // dummy to suppress unused var warning
             stan::math::initialize(frac_hospv, DUMMY_VAR__);
             stan::math::fill(frac_hospv, DUMMY_VAR__);
-            current_statement_begin__ = 149;
+            current_statement_begin__ = 157;
+            local_scalar_t__ frac_icuu(DUMMY_VAR__);
+            (void) frac_icuu;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_icuu, DUMMY_VAR__);
+            stan::math::fill(frac_icuu, DUMMY_VAR__);
+            current_statement_begin__ = 158;
+            local_scalar_t__ frac_icuv(DUMMY_VAR__);
+            (void) frac_icuv;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_icuv, DUMMY_VAR__);
+            stan::math::fill(frac_icuv, DUMMY_VAR__);
+            current_statement_begin__ = 159;
+            local_scalar_t__ frac_mortu(DUMMY_VAR__);
+            (void) frac_mortu;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_mortu, DUMMY_VAR__);
+            stan::math::fill(frac_mortu, DUMMY_VAR__);
+            current_statement_begin__ = 160;
+            local_scalar_t__ frac_mortv(DUMMY_VAR__);
+            (void) frac_mortv;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_mortv, DUMMY_VAR__);
+            stan::math::fill(frac_mortv, DUMMY_VAR__);
+            current_statement_begin__ = 161;
             local_scalar_t__ frac_mort_nonhospu(DUMMY_VAR__);
             (void) frac_mort_nonhospu;  // dummy to suppress unused var warning
             stan::math::initialize(frac_mort_nonhospu, DUMMY_VAR__);
             stan::math::fill(frac_mort_nonhospu, DUMMY_VAR__);
-            current_statement_begin__ = 150;
+            current_statement_begin__ = 162;
             local_scalar_t__ frac_mort_nonhospv(DUMMY_VAR__);
             (void) frac_mort_nonhospv;  // dummy to suppress unused var warning
             stan::math::initialize(frac_mort_nonhospv, DUMMY_VAR__);
             stan::math::fill(frac_mort_nonhospv, DUMMY_VAR__);
-            current_statement_begin__ = 151;
+            current_statement_begin__ = 163;
             local_scalar_t__ leave_icuu(DUMMY_VAR__);
             (void) leave_icuu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icuu, DUMMY_VAR__);
             stan::math::fill(leave_icuu, DUMMY_VAR__);
-            current_statement_begin__ = 152;
+            current_statement_begin__ = 164;
             local_scalar_t__ leave_icuv(DUMMY_VAR__);
             (void) leave_icuv;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icuv, DUMMY_VAR__);
             stan::math::fill(leave_icuv, DUMMY_VAR__);
-            current_statement_begin__ = 153;
+            current_statement_begin__ = 165;
             local_scalar_t__ leave_premort_nonhosp(DUMMY_VAR__);
             (void) leave_premort_nonhosp;  // dummy to suppress unused var warning
             stan::math::initialize(leave_premort_nonhosp, DUMMY_VAR__);
             stan::math::fill(leave_premort_nonhosp, DUMMY_VAR__);
-            current_statement_begin__ = 154;
+            current_statement_begin__ = 166;
+            local_scalar_t__ leave_premort_nonhospu(DUMMY_VAR__);
+            (void) leave_premort_nonhospu;  // dummy to suppress unused var warning
+            stan::math::initialize(leave_premort_nonhospu, DUMMY_VAR__);
+            stan::math::fill(leave_premort_nonhospu, DUMMY_VAR__);
+            current_statement_begin__ = 167;
+            local_scalar_t__ leave_premort_nonhospv(DUMMY_VAR__);
+            (void) leave_premort_nonhospv;  // dummy to suppress unused var warning
+            stan::math::initialize(leave_premort_nonhospv, DUMMY_VAR__);
+            stan::math::fill(leave_premort_nonhospv, DUMMY_VAR__);
+            current_statement_begin__ = 168;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 155;
+            current_statement_begin__ = 169;
             local_scalar_t__ vaccinated(DUMMY_VAR__);
             (void) vaccinated;  // dummy to suppress unused var warning
             stan::math::initialize(vaccinated, DUMMY_VAR__);
             stan::math::fill(vaccinated, DUMMY_VAR__);
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 170;
             local_scalar_t__ frac_vac_S(DUMMY_VAR__);
             (void) frac_vac_S;  // dummy to suppress unused var warning
             stan::math::initialize(frac_vac_S, DUMMY_VAR__);
             stan::math::fill(frac_vac_S, DUMMY_VAR__);
-            current_statement_begin__ = 157;
-            local_scalar_t__ newSv(DUMMY_VAR__);
-            (void) newSv;  // dummy to suppress unused var warning
-            stan::math::initialize(newSv, DUMMY_VAR__);
-            stan::math::fill(newSv, DUMMY_VAR__);
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 171;
+            local_scalar_t__ newSv_succ(DUMMY_VAR__);
+            (void) newSv_succ;  // dummy to suppress unused var warning
+            stan::math::initialize(newSv_succ, DUMMY_VAR__);
+            stan::math::fill(newSv_succ, DUMMY_VAR__);
+            current_statement_begin__ = 172;
+            local_scalar_t__ newSv_fail(DUMMY_VAR__);
+            (void) newSv_fail;  // dummy to suppress unused var warning
+            stan::math::initialize(newSv_fail, DUMMY_VAR__);
+            stan::math::fill(newSv_fail, DUMMY_VAR__);
+            current_statement_begin__ = 173;
             local_scalar_t__ newRlivev(DUMMY_VAR__);
             (void) newRlivev;  // dummy to suppress unused var warning
             stan::math::initialize(newRlivev, DUMMY_VAR__);
             stan::math::fill(newRlivev, DUMMY_VAR__);
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 174;
             local_scalar_t__ S_lostv(DUMMY_VAR__);
             (void) S_lostv;  // dummy to suppress unused var warning
             stan::math::initialize(S_lostv, DUMMY_VAR__);
             stan::math::fill(S_lostv, DUMMY_VAR__);
-            current_statement_begin__ = 160;
+            current_statement_begin__ = 175;
             local_scalar_t__ R_lostv(DUMMY_VAR__);
             (void) R_lostv;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostv, DUMMY_VAR__);
             stan::math::fill(R_lostv, DUMMY_VAR__);
-            current_statement_begin__ = 161;
+            current_statement_begin__ = 176;
             local_scalar_t__ R_lostnatu(DUMMY_VAR__);
             (void) R_lostnatu;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostnatu, DUMMY_VAR__);
             stan::math::fill(R_lostnatu, DUMMY_VAR__);
-            current_statement_begin__ = 162;
+            current_statement_begin__ = 177;
             local_scalar_t__ R_lostnatv(DUMMY_VAR__);
             (void) R_lostnatv;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostnatv, DUMMY_VAR__);
             stan::math::fill(R_lostnatv, DUMMY_VAR__);
-            current_statement_begin__ = 166;
+            current_statement_begin__ = 178;
+            local_scalar_t__ gained_protection(DUMMY_VAR__);
+            (void) gained_protection;  // dummy to suppress unused var warning
+            stan::math::initialize(gained_protection, DUMMY_VAR__);
+            stan::math::fill(gained_protection, DUMMY_VAR__);
+            current_statement_begin__ = 182;
             stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
-            current_statement_begin__ = 167;
+            current_statement_begin__ = 183;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 168;
+                current_statement_begin__ = 184;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (beta_0 * get_base1(transmission_variant_multiplier, it, "transmission_variant_multiplier", 1)), 
                             "assigning variable beta");
-                current_statement_begin__ = 169;
+                current_statement_begin__ = 185;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 172;
+                    current_statement_begin__ = 188;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 177;
+            current_statement_begin__ = 193;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(0.0, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 178;
+            current_statement_begin__ = 194;
             stan::model::assign(total_cases, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable total_cases");
-            current_statement_begin__ = 179;
+            current_statement_begin__ = 195;
+            stan::model::assign(total_casesu, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable total_casesu");
+            current_statement_begin__ = 196;
+            stan::model::assign(total_casesv, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable total_casesv");
+            current_statement_begin__ = 197;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(Eu), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 180;
+            current_statement_begin__ = 198;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(Su), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 181;
+            current_statement_begin__ = 199;
             stan::model::assign(new_admits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable new_admits");
-            current_statement_begin__ = 182;
+            current_statement_begin__ = 200;
+            stan::model::assign(new_admitsu, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable new_admitsu");
+            current_statement_begin__ = 201;
+            stan::model::assign(new_admitsv, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable new_admitsv");
+            current_statement_begin__ = 202;
             stan::model::assign(new_cases, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable new_cases");
-            current_statement_begin__ = 186;
+            current_statement_begin__ = 207;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 210;
                 stan::math::assign(newEu, stan::math::fmin(get_base1(x, Su, it, "x", 1), (((get_base1(x, Su, it, "x", 1) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
-                current_statement_begin__ = 193;
-                stan::math::assign(newEv, stan::math::fmin(get_base1(x, Sv, it, "x", 1), (((((1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * get_base1(x, Sv, it, "x", 1)) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
-                current_statement_begin__ = 197;
+                current_statement_begin__ = 214;
+                stan::math::assign(newEv, stan::math::fmin(get_base1(x, Sv_fail, it, "x", 1), (((get_base1(x, Sv_fail, it, "x", 1) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
+                current_statement_begin__ = 218;
                 stan::model::assign(total_cases, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             ((newEu + newEv) + get_base1(total_cases, it, "total_cases", 1)), 
                             "assigning variable total_cases");
-                current_statement_begin__ = 199;
-                stan::math::assign(vaccinated, stan::math::fmin(get_base1(vaccinated_per_day, it, "vaccinated_per_day", 1), ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
-                current_statement_begin__ = 202;
-                stan::math::assign(newIu, ((1.0 / duration_latent) * get_base1(x, Eu, it, "x", 1)));
-                current_statement_begin__ = 203;
-                stan::math::assign(newIv, ((1.0 / duration_latent) * get_base1(x, Ev, it, "x", 1)));
-                current_statement_begin__ = 204;
-                stan::math::assign(newhospu, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehu, it, "x", 1)));
-                current_statement_begin__ = 205;
-                stan::math::assign(newhospv, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehv, it, "x", 1)));
-                current_statement_begin__ = 206;
-                stan::math::assign(newrecu_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildu, it, "x", 1)));
-                current_statement_begin__ = 207;
-                stan::math::assign(newrecv_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildv, it, "x", 1)));
-                current_statement_begin__ = 208;
-                stan::math::assign(newrecu_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodu, it, "x", 1)));
-                current_statement_begin__ = 209;
-                stan::math::assign(newrecv_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodv, it, "x", 1)));
-                current_statement_begin__ = 210;
-                stan::math::assign(leave_icuu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuu, it, "x", 1)));
-                current_statement_begin__ = 211;
-                stan::math::assign(leave_icuv, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuv, it, "x", 1)));
-                current_statement_begin__ = 212;
-                stan::math::assign(leave_premort_nonhosp, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhosp, it, "x", 1)));
-                current_statement_begin__ = 213;
-                stan::math::assign(frac_vac_S, (get_base1(x, Su, it, "x", 1) / ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
-                current_statement_begin__ = 214;
-                stan::math::assign(newSv, (vaccinated * frac_vac_S));
-                current_statement_begin__ = 215;
-                stan::math::assign(newRlivev, (vaccinated * (1 - frac_vac_S)));
-                current_statement_begin__ = 217;
-                stan::math::assign(S_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Sv, it, "x", 1)));
-                current_statement_begin__ = 218;
-                stan::math::assign(R_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Rlivev, it, "x", 1)));
                 current_statement_begin__ = 219;
-                stan::math::assign(R_lostnatu, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rliveu, it, "x", 1)));
+                stan::model::assign(total_casesu, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            (newEu + get_base1(total_casesu, it, "total_casesu", 1)), 
+                            "assigning variable total_casesu");
                 current_statement_begin__ = 220;
-                stan::math::assign(R_lostnatv, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                stan::model::assign(total_casesv, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            (newEv + get_base1(total_casesv, it, "total_casesv", 1)), 
+                            "assigning variable total_casesv");
                 current_statement_begin__ = 222;
-                stan::math::assign(frac_hospu, (frac_hosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1)));
-                current_statement_begin__ = 223;
-                stan::math::assign(frac_hospv, ((frac_hospu * (1 - get_base1(vaccine_efficacy_against_progression, it, "vaccine_efficacy_against_progression", 1))) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))));
+                stan::math::assign(vaccinated, stan::math::fmin(get_base1(vaccinated_per_day, it, "vaccinated_per_day", 1), ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
+                current_statement_begin__ = 225;
+                stan::math::assign(newIu, ((1.0 / duration_latent) * get_base1(x, Eu, it, "x", 1)));
                 current_statement_begin__ = 226;
-                stan::math::assign(frac_mort_nonhospu, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1)) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1)) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1)));
+                stan::math::assign(newIv, ((1.0 / duration_latent) * get_base1(x, Ev, it, "x", 1)));
                 current_statement_begin__ = 227;
-                stan::math::assign(frac_mort_nonhospv, ((frac_mort_nonhospu * (1 - get_base1(vaccine_efficacy_against_progression, it, "vaccine_efficacy_against_progression", 1))) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))));
+                stan::math::assign(newhospu, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehu, it, "x", 1)));
+                current_statement_begin__ = 228;
+                stan::math::assign(newhospv, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehv, it, "x", 1)));
+                current_statement_begin__ = 229;
+                stan::math::assign(newrecu_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildu, it, "x", 1)));
+                current_statement_begin__ = 230;
+                stan::math::assign(newrecv_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildv, it, "x", 1)));
                 current_statement_begin__ = 231;
+                stan::math::assign(newrecu_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodu, it, "x", 1)));
+                current_statement_begin__ = 232;
+                stan::math::assign(newrecv_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodv, it, "x", 1)));
+                current_statement_begin__ = 233;
+                stan::math::assign(leave_icuu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuu, it, "x", 1)));
+                current_statement_begin__ = 234;
+                stan::math::assign(leave_icuv, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuv, it, "x", 1)));
+                current_statement_begin__ = 235;
+                stan::math::assign(leave_premort_nonhospu, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhospu, it, "x", 1)));
+                current_statement_begin__ = 236;
+                stan::math::assign(leave_premort_nonhospv, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhospv, it, "x", 1)));
+                current_statement_begin__ = 237;
+                stan::math::assign(frac_vac_S, (get_base1(x, Su, it, "x", 1) / ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
+                current_statement_begin__ = 238;
+                stan::math::assign(newSv_succ, ((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) * vaccinated) * frac_vac_S));
+                current_statement_begin__ = 239;
+                stan::math::assign(newSv_fail, (((1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * vaccinated) * frac_vac_S));
+                current_statement_begin__ = 240;
+                stan::math::assign(newRlivev, ((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) * vaccinated) * (1 - frac_vac_S)));
+                current_statement_begin__ = 243;
+                if (as_bool(logical_gt(get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1), get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)))) {
+                    current_statement_begin__ = 244;
+                    stan::math::assign(gained_protection, (((get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1) - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))) * get_base1(x, Sv_fail, it, "x", 1)));
+                } else {
+                    current_statement_begin__ = 246;
+                    stan::math::assign(gained_protection, ((-((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) - get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1))) / get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * get_base1(x, Sv_succ, it, "x", 1)));
+                }
+                current_statement_begin__ = 250;
+                stan::math::assign(S_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Sv_succ, it, "x", 1)));
+                current_statement_begin__ = 251;
+                stan::math::assign(R_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                current_statement_begin__ = 252;
+                stan::math::assign(R_lostnatu, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rliveu, it, "x", 1)));
+                current_statement_begin__ = 253;
+                stan::math::assign(R_lostnatv, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                current_statement_begin__ = 255;
+                stan::math::assign(frac_hospu, (frac_hosp * get_base1(frac_hosp_multiplier_unvaccinated, it, "frac_hosp_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 256;
+                stan::math::assign(frac_hospv, (frac_hosp * get_base1(frac_hosp_multiplier_vaccinated, it, "frac_hosp_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 258;
+                stan::math::assign(frac_icuu, (frac_icu * get_base1(frac_icu_multiplier_unvaccinated, it, "frac_icu_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 259;
+                stan::math::assign(frac_icuv, (frac_icu * get_base1(frac_icu_multiplier_vaccinated, it, "frac_icu_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 261;
+                stan::math::assign(frac_mortu, (frac_mort * get_base1(frac_mort_multiplier_unvaccinated, it, "frac_mort_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 262;
+                stan::math::assign(frac_mortv, (frac_mort * get_base1(frac_mort_multiplier_vaccinated, it, "frac_mort_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 267;
+                stan::math::assign(frac_mort_nonhospu, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier_unvaccinated, it, "frac_hosp_multiplier_unvaccinated", 1)) * get_base1(frac_icu_multiplier_unvaccinated, it, "frac_icu_multiplier_unvaccinated", 1)) * get_base1(frac_mort_multiplier_unvaccinated, it, "frac_mort_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 268;
+                stan::math::assign(frac_mort_nonhospv, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier_vaccinated, it, "frac_hosp_multiplier_vaccinated", 1)) * get_base1(frac_icu_multiplier_vaccinated, it, "frac_icu_multiplier_vaccinated", 1)) * get_base1(frac_mort_multiplier_vaccinated, it, "frac_mort_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 273;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Su), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((get_base1(x, Su, it, "x", 1) - newEu) - newSv) + S_lostv) + R_lostnatu), 
+                            ((((get_base1(x, Su, it, "x", 1) - newEu) - newSv_succ) - newSv_fail) + R_lostnatu), 
                             "assigning variable x");
-                current_statement_begin__ = 232;
+                current_statement_begin__ = 274;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Sv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((get_base1(x, Sv, it, "x", 1) - newEv) + newSv) - S_lostv) + R_lostnatv), 
+                            stan::model::cons_list(stan::model::index_uni(Sv_succ), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((((get_base1(x, Sv_succ, it, "x", 1) + newSv_succ) - S_lostv) + R_lostnatv) + gained_protection), 
                             "assigning variable x");
-                current_statement_begin__ = 233;
+                current_statement_begin__ = 275;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Sv_fail), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((((get_base1(x, Sv_fail, it, "x", 1) - newEv) + newSv_fail) + S_lostv) - gained_protection), 
+                            "assigning variable x");
+                current_statement_begin__ = 276;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Eu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Eu, it, "x", 1) + newEu) - newIu), 
                             "assigning variable x");
-                current_statement_begin__ = 234;
+                current_statement_begin__ = 277;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ev, it, "x", 1) + newEv) - newIv), 
                             "assigning variable x");
-                current_statement_begin__ = 235;
+                current_statement_begin__ = 278;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imildu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imildu, it, "x", 1) + (newIu * (1 - frac_hospu))) - newrecu_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 236;
+                current_statement_begin__ = 279;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imildv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imildv, it, "x", 1) + (newIv * (1 - frac_hospv))) - newrecv_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 237;
+                current_statement_begin__ = 280;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Iprehu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Iprehu, it, "x", 1) + (newIu * frac_hospu)) - newhospu), 
                             "assigning variable x");
-                current_statement_begin__ = 238;
+                current_statement_begin__ = 281;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Iprehv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Iprehv, it, "x", 1) + (newIv * frac_hospv)) - newhospv), 
                             "assigning variable x");
-                current_statement_begin__ = 239;
+                current_statement_begin__ = 282;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
+                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - frac_icuu))) - newrecu_mod) + (leave_icuu * (1 - frac_mortu))), 
                             "assigning variable x");
-                current_statement_begin__ = 240;
+                current_statement_begin__ = 283;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
+                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - frac_icuv))) - newrecv_mod) + (leave_icuv * (1 - frac_mortv))), 
                             "assigning variable x");
-                current_statement_begin__ = 241;
+                current_statement_begin__ = 284;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicuu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicuu, it, "x", 1) + ((newhospu * frac_icu) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))) - leave_icuu), 
+                            ((get_base1(x, Hicuu, it, "x", 1) + (newhospu * frac_icuu)) - leave_icuu), 
                             "assigning variable x");
-                current_statement_begin__ = 242;
+                current_statement_begin__ = 285;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicuv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicuv, it, "x", 1) + ((newhospv * frac_icu) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))) - leave_icuv), 
+                            ((get_base1(x, Hicuv, it, "x", 1) + (newhospv * frac_icuv)) - leave_icuv), 
                             "assigning variable x");
-                current_statement_begin__ = 243;
+                current_statement_begin__ = 286;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rliveu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((((get_base1(x, Rliveu, it, "x", 1) + (newrecu_mild * (1 - frac_mort_nonhospu))) + newrecu_mod) - newRlivev) + R_lostv) - R_lostnatu), 
                             "assigning variable x");
-                current_statement_begin__ = 244;
+                current_statement_begin__ = 287;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlivev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((((get_base1(x, Rlivev, it, "x", 1) + (newrecv_mild * (1 - frac_mort_nonhospv))) + newrecv_mod) + newRlivev) - R_lostv) - R_lostnatv), 
                             "assigning variable x");
-                current_statement_begin__ = 245;
+                current_statement_begin__ = 288;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhosp), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rpremort_nonhosp, it, "x", 1) + (newrecu_mild * frac_mort_nonhospu)) + (newrecv_mild * frac_mort_nonhospv)) - leave_premort_nonhosp), 
+                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhospu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rpremort_nonhospu, it, "x", 1) + (newrecu_mild * frac_mort_nonhospu)) - leave_premort_nonhospu), 
                             "assigning variable x");
-                current_statement_begin__ = 246;
+                current_statement_begin__ = 289;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rmort, it, "x", 1) + ((leave_icuu * frac_mort) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))) + ((leave_icuv * frac_mort) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))) + leave_premort_nonhosp), 
+                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhospv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rpremort_nonhospv, it, "x", 1) + (newrecv_mild * frac_mort_nonhospv)) - leave_premort_nonhospv), 
                             "assigning variable x");
-                current_statement_begin__ = 249;
+                current_statement_begin__ = 290;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Rmortu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rmortu, it, "x", 1) + (leave_icuu * frac_mortu)) + leave_premort_nonhospu), 
+                            "assigning variable x");
+                current_statement_begin__ = 291;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Rmortv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rmortv, it, "x", 1) + (leave_icuv * frac_mortv)) + leave_premort_nonhospv), 
+                            "assigning variable x");
+                current_statement_begin__ = 294;
                 stan::model::assign(new_admits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (newhospu + newhospv), 
                             "assigning variable new_admits");
-                current_statement_begin__ = 251;
+                current_statement_begin__ = 295;
+                stan::model::assign(new_admitsu, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            newhospu, 
+                            "assigning variable new_admitsu");
+                current_statement_begin__ = 296;
+                stan::model::assign(new_admitsv, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            newhospv, 
+                            "assigning variable new_admitsv");
+                current_statement_begin__ = 299;
                 stan::model::assign(new_cases, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             ((newIu + newIv) * frac_tested), 
                             "assigning variable new_cases");
-                current_statement_begin__ = 255;
+                current_statement_begin__ = 303;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 256;
+                    current_statement_begin__ = 304;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -1556,47 +1735,47 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 263;
+            current_statement_begin__ = 311;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 264;
+                current_statement_begin__ = 312;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 265;
+                    current_statement_begin__ = 313;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(add(add(get_base1(x, Hmodu, "x", 1), get_base1(x, Hicuu, "x", 1)), get_base1(x, Hmodv, "x", 1)), get_base1(x, Hicuv, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 267;
+                    current_statement_begin__ = 315;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hicuu, "x", 1), get_base1(x, Hicuv, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 269;
+                    current_statement_begin__ = 317;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
-                                get_base1(x, Rmort, "x", 1), 
+                                add(get_base1(x, Rmortu, "x", 1), get_base1(x, Rmortv, "x", 1)), 
                                 "assigning variable sim_data");
-                } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 271;
+                } else if (as_bool(logical_eq(itype, obs_admits))) {
+                    current_statement_begin__ = 319;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 new_admits, 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cases))) {
-                    current_statement_begin__ = 273;
+                    current_statement_begin__ = 321;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 new_cases, 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_seroprev))) {
-                    current_statement_begin__ = 275;
+                    current_statement_begin__ = 323;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
-                                divide(add(add(add(add(add(add(add(get_base1(x, Sv, "x", 1), get_base1(x, Ev, "x", 1)), get_base1(x, Imildv, "x", 1)), get_base1(x, Iprehv, "x", 1)), get_base1(x, Hmodv, "x", 1)), get_base1(x, Hicuv, "x", 1)), get_base1(x, Rliveu, "x", 1)), get_base1(x, Rlivev, "x", 1)), npop), 
+                                divide(add(add(get_base1(x, Sv_succ, "x", 1), get_base1(x, Rliveu, "x", 1)), get_base1(x, Rlivev, "x", 1)), npop), 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 277;
+                    current_statement_begin__ = 325;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
@@ -1605,7 +1784,7 @@ public:
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 128;
+            current_statement_begin__ = 132;
             size_t x_j_1_max__ = ncompartments;
             size_t x_j_2_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < x_j_1_max__; ++j_1__) {
@@ -1618,7 +1797,7 @@ public:
                 }
             }
             check_greater_or_equal(function__, "x", x, 0.0);
-            current_statement_begin__ = 129;
+            current_statement_begin__ = 133;
             size_t sim_data_j_1_max__ = nobs_types;
             size_t sim_data_j_2_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < sim_data_j_1_max__; ++j_1__) {
@@ -1631,7 +1810,7 @@ public:
                 }
             }
             check_greater_or_equal(function__, "sim_data", sim_data, 0.0);
-            current_statement_begin__ = 130;
+            current_statement_begin__ = 134;
             size_t beta_k_0_max__ = nt;
             for (size_t k_0__ = 0; k_0__ < beta_k_0_max__; ++k_0__) {
                 if (stan::math::is_uninitialized(beta[k_0__])) {
@@ -1644,7 +1823,7 @@ public:
             for (size_t i_0__ = 0; i_0__ < beta_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
             }
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 135;
             size_t new_admits_j_1_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < new_admits_j_1_max__; ++j_1__) {
                 if (stan::math::is_uninitialized(new_admits(j_1__))) {
@@ -1654,7 +1833,27 @@ public:
                 }
             }
             check_greater_or_equal(function__, "new_admits", new_admits, 0.0);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 136;
+            size_t new_admitsu_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsu_j_1_max__; ++j_1__) {
+                if (stan::math::is_uninitialized(new_admitsu(j_1__))) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: new_admitsu" << "(" << j_1__ << ")";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable new_admitsu: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            check_greater_or_equal(function__, "new_admitsu", new_admitsu, 0.0);
+            current_statement_begin__ = 137;
+            size_t new_admitsv_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsv_j_1_max__; ++j_1__) {
+                if (stan::math::is_uninitialized(new_admitsv(j_1__))) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: new_admitsv" << "(" << j_1__ << ")";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable new_admitsv: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            check_greater_or_equal(function__, "new_admitsv", new_admitsv, 0.0);
+            current_statement_begin__ = 138;
             size_t new_cases_j_1_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < new_cases_j_1_max__; ++j_1__) {
                 if (stan::math::is_uninitialized(new_cases(j_1__))) {
@@ -1664,7 +1863,7 @@ public:
                 }
             }
             check_greater_or_equal(function__, "new_cases", new_cases, 0.0);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 139;
             size_t total_cases_k_0_max__ = nt;
             for (size_t k_0__ = 0; k_0__ < total_cases_k_0_max__; ++k_0__) {
                 if (stan::math::is_uninitialized(total_cases[k_0__])) {
@@ -1677,49 +1876,75 @@ public:
             for (size_t i_0__ = 0; i_0__ < total_cases_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "total_cases[i_0__]", total_cases[i_0__], 0.0);
             }
+            current_statement_begin__ = 140;
+            size_t total_casesu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesu_k_0_max__; ++k_0__) {
+                if (stan::math::is_uninitialized(total_casesu[k_0__])) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: total_casesu" << "[" << k_0__ << "]";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable total_casesu: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            size_t total_casesu_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < total_casesu_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "total_casesu[i_0__]", total_casesu[i_0__], 0.0);
+            }
+            current_statement_begin__ = 141;
+            size_t total_casesv_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesv_k_0_max__; ++k_0__) {
+                if (stan::math::is_uninitialized(total_casesv[k_0__])) {
+                    std::stringstream msg__;
+                    msg__ << "Undefined transformed parameter: total_casesv" << "[" << k_0__ << "]";
+                    stan::lang::rethrow_located(std::runtime_error(std::string("Error initializing variable total_casesv: ") + msg__.str()), current_statement_begin__, prog_reader__());
+                }
+            }
+            size_t total_casesv_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < total_casesv_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "total_casesv[i_0__]", total_casesv[i_0__], 0.0);
+            }
             // model body
-            current_statement_begin__ = 284;
+            current_statement_begin__ = 332;
             lp_accum__.add(normal_log<propto__>(r0, mu_r0, sigma_r0));
-            current_statement_begin__ = 286;
+            current_statement_begin__ = 334;
             for (int iinter = 1; iinter <= ninter; ++iinter) {
-                current_statement_begin__ = 287;
+                current_statement_begin__ = 335;
                 lp_accum__.add(normal_log<propto__>(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), get_base1(mu_beta_inter, iinter, "mu_beta_inter", 1), get_base1(sigma_beta_inter, iinter, "sigma_beta_inter", 1)));
-                current_statement_begin__ = 288;
+                current_statement_begin__ = 336;
                 lp_accum__.add(normal_log<propto__>(get_base1(t_inter, iinter, "t_inter", 1), get_base1(mu_t_inter, iinter, "mu_t_inter", 1), get_base1(sigma_t_inter, iinter, "sigma_t_inter", 1)));
-                current_statement_begin__ = 289;
+                current_statement_begin__ = 337;
                 lp_accum__.add(normal_log<propto__>(get_base1(len_inter, iinter, "len_inter", 1), get_base1(mu_len_inter, iinter, "mu_len_inter", 1), get_base1(sigma_len_inter, iinter, "sigma_len_inter", 1)));
             }
-            current_statement_begin__ = 292;
+            current_statement_begin__ = 340;
             lp_accum__.add(normal_log<propto__>(duration_latent, mu_duration_latent, sigma_duration_latent));
-            current_statement_begin__ = 293;
+            current_statement_begin__ = 341;
             lp_accum__.add(normal_log<propto__>(duration_rec_mild, mu_duration_rec_mild, sigma_duration_rec_mild));
-            current_statement_begin__ = 294;
+            current_statement_begin__ = 342;
             lp_accum__.add(normal_log<propto__>(duration_pre_hosp, mu_duration_pre_hosp, sigma_duration_pre_hosp));
-            current_statement_begin__ = 295;
+            current_statement_begin__ = 343;
             lp_accum__.add(normal_log<propto__>(duration_hosp_mod, mu_duration_hosp_mod, sigma_duration_hosp_mod));
-            current_statement_begin__ = 296;
+            current_statement_begin__ = 344;
             lp_accum__.add(normal_log<propto__>(duration_hosp_icu, mu_duration_hosp_icu, sigma_duration_hosp_icu));
-            current_statement_begin__ = 297;
+            current_statement_begin__ = 345;
             lp_accum__.add(normal_log<propto__>(duration_mort_nonhosp, mu_duration_mort_nonhosp, sigma_duration_mort_nonhosp));
-            current_statement_begin__ = 299;
+            current_statement_begin__ = 347;
             lp_accum__.add(normal_log<propto__>(frac_hosp, mu_frac_hosp, sigma_frac_hosp));
-            current_statement_begin__ = 300;
+            current_statement_begin__ = 348;
             lp_accum__.add(normal_log<propto__>(frac_icu, mu_frac_icu, sigma_frac_icu));
-            current_statement_begin__ = 301;
+            current_statement_begin__ = 349;
             lp_accum__.add(normal_log<propto__>(frac_mort, mu_frac_mort, sigma_frac_mort));
-            current_statement_begin__ = 302;
+            current_statement_begin__ = 350;
             lp_accum__.add(normal_log<propto__>(frac_tested, mu_frac_tested, sigma_frac_tested));
-            current_statement_begin__ = 303;
+            current_statement_begin__ = 351;
             lp_accum__.add(normal_log<propto__>(frac_mort_nonhosp, mu_frac_mort_nonhosp, sigma_frac_mort_nonhosp));
-            current_statement_begin__ = 305;
+            current_statement_begin__ = 353;
             lp_accum__.add(exponential_log<propto__>(ini_exposed, lambda_ini_exposed));
-            current_statement_begin__ = 309;
+            current_statement_begin__ = 357;
             lp_accum__.add(exponential_log<propto__>(sigma_obs, sigma_obs_est_inv));
-            current_statement_begin__ = 312;
+            current_statement_begin__ = 360;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 313;
+                current_statement_begin__ = 361;
                 if (as_bool(logical_gt(get_base1(nobs, itype, "nobs", 1), 0))) {
-                    current_statement_begin__ = 314;
+                    current_statement_begin__ = 362;
                     lp_accum__.add(normal_log<propto__>(stan::model::rvalue(obs_data, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_min_max(1, get_base1(nobs, itype, "nobs", 1)), stan::model::nil_index_list())), "obs_data"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_multi(stan::model::rvalue(tobs, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_min_max(1, get_base1(nobs, itype, "nobs", 1)), stan::model::nil_index_list())), "tobs")), stan::model::nil_index_list())), "sim_data"), get_base1(sigma_obs, itype, "sigma_obs", 1)));
                 }
             }
@@ -1764,11 +1989,13 @@ public:
         names__.push_back("sim_data");
         names__.push_back("beta");
         names__.push_back("new_admits");
+        names__.push_back("new_admitsu");
+        names__.push_back("new_admitsv");
         names__.push_back("new_cases");
         names__.push_back("total_cases");
+        names__.push_back("total_casesu");
+        names__.push_back("total_casesv");
         names__.push_back("Rt");
-        names__.push_back("Rt_unvac");
-        names__.push_back("frac_vac");
     }
     void get_dims(std::vector<std::vector<size_t> >& dimss__) const {
         dimss__.resize(0);
@@ -1838,6 +2065,13 @@ public:
         dims__.push_back(nt);
         dimss__.push_back(dims__);
         dims__.resize(0);
+        dims__.push_back(nt);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nt);
+        dimss__.push_back(dims__);
+        dims__.resize(0);
+        dims__.push_back(nt);
         dimss__.push_back(dims__);
     }
     template <typename RNG>
@@ -1928,368 +2162,503 @@ public:
         if (!include_tparams__ && !include_gqs__) return;
         try {
             // declare and define transformed parameters
-            current_statement_begin__ = 128;
+            current_statement_begin__ = 132;
             validate_non_negative_index("x", "ncompartments", ncompartments);
             validate_non_negative_index("x", "nt", nt);
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> x(ncompartments, nt);
             stan::math::initialize(x, DUMMY_VAR__);
             stan::math::fill(x, DUMMY_VAR__);
-            current_statement_begin__ = 129;
+            current_statement_begin__ = 133;
             validate_non_negative_index("sim_data", "nobs_types", nobs_types);
             validate_non_negative_index("sim_data", "nt", nt);
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> sim_data(nobs_types, nt);
             stan::math::initialize(sim_data, DUMMY_VAR__);
             stan::math::fill(sim_data, DUMMY_VAR__);
-            current_statement_begin__ = 130;
+            current_statement_begin__ = 134;
             validate_non_negative_index("beta", "nt", nt);
             std::vector<double> beta(nt, double(0));
             stan::math::initialize(beta, DUMMY_VAR__);
             stan::math::fill(beta, DUMMY_VAR__);
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 135;
             validate_non_negative_index("new_admits", "nt", nt);
             Eigen::Matrix<double, 1, Eigen::Dynamic> new_admits(nt);
             stan::math::initialize(new_admits, DUMMY_VAR__);
             stan::math::fill(new_admits, DUMMY_VAR__);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 136;
+            validate_non_negative_index("new_admitsu", "nt", nt);
+            Eigen::Matrix<double, 1, Eigen::Dynamic> new_admitsu(nt);
+            stan::math::initialize(new_admitsu, DUMMY_VAR__);
+            stan::math::fill(new_admitsu, DUMMY_VAR__);
+            current_statement_begin__ = 137;
+            validate_non_negative_index("new_admitsv", "nt", nt);
+            Eigen::Matrix<double, 1, Eigen::Dynamic> new_admitsv(nt);
+            stan::math::initialize(new_admitsv, DUMMY_VAR__);
+            stan::math::fill(new_admitsv, DUMMY_VAR__);
+            current_statement_begin__ = 138;
             validate_non_negative_index("new_cases", "nt", nt);
             Eigen::Matrix<double, 1, Eigen::Dynamic> new_cases(nt);
             stan::math::initialize(new_cases, DUMMY_VAR__);
             stan::math::fill(new_cases, DUMMY_VAR__);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 139;
             validate_non_negative_index("total_cases", "nt", nt);
             std::vector<double> total_cases(nt, double(0));
             stan::math::initialize(total_cases, DUMMY_VAR__);
             stan::math::fill(total_cases, DUMMY_VAR__);
+            current_statement_begin__ = 140;
+            validate_non_negative_index("total_casesu", "nt", nt);
+            std::vector<double> total_casesu(nt, double(0));
+            stan::math::initialize(total_casesu, DUMMY_VAR__);
+            stan::math::fill(total_casesu, DUMMY_VAR__);
+            current_statement_begin__ = 141;
+            validate_non_negative_index("total_casesv", "nt", nt);
+            std::vector<double> total_casesv(nt, double(0));
+            stan::math::initialize(total_casesv, DUMMY_VAR__);
+            stan::math::fill(total_casesv, DUMMY_VAR__);
             // do transformed parameters statements
             {
-            current_statement_begin__ = 137;
+            current_statement_begin__ = 145;
             local_scalar_t__ newEu(DUMMY_VAR__);
             (void) newEu;  // dummy to suppress unused var warning
             stan::math::initialize(newEu, DUMMY_VAR__);
             stan::math::fill(newEu, DUMMY_VAR__);
-            current_statement_begin__ = 138;
+            current_statement_begin__ = 146;
             local_scalar_t__ newEv(DUMMY_VAR__);
             (void) newEv;  // dummy to suppress unused var warning
             stan::math::initialize(newEv, DUMMY_VAR__);
             stan::math::fill(newEv, DUMMY_VAR__);
-            current_statement_begin__ = 139;
+            current_statement_begin__ = 147;
             local_scalar_t__ newIu(DUMMY_VAR__);
             (void) newIu;  // dummy to suppress unused var warning
             stan::math::initialize(newIu, DUMMY_VAR__);
             stan::math::fill(newIu, DUMMY_VAR__);
-            current_statement_begin__ = 140;
+            current_statement_begin__ = 148;
             local_scalar_t__ newIv(DUMMY_VAR__);
             (void) newIv;  // dummy to suppress unused var warning
             stan::math::initialize(newIv, DUMMY_VAR__);
             stan::math::fill(newIv, DUMMY_VAR__);
-            current_statement_begin__ = 141;
+            current_statement_begin__ = 149;
             local_scalar_t__ newrecu_mild(DUMMY_VAR__);
             (void) newrecu_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrecu_mild, DUMMY_VAR__);
             stan::math::fill(newrecu_mild, DUMMY_VAR__);
-            current_statement_begin__ = 142;
+            current_statement_begin__ = 150;
             local_scalar_t__ newrecv_mild(DUMMY_VAR__);
             (void) newrecv_mild;  // dummy to suppress unused var warning
             stan::math::initialize(newrecv_mild, DUMMY_VAR__);
             stan::math::fill(newrecv_mild, DUMMY_VAR__);
-            current_statement_begin__ = 143;
+            current_statement_begin__ = 151;
             local_scalar_t__ newrecu_mod(DUMMY_VAR__);
             (void) newrecu_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrecu_mod, DUMMY_VAR__);
             stan::math::fill(newrecu_mod, DUMMY_VAR__);
-            current_statement_begin__ = 144;
+            current_statement_begin__ = 152;
             local_scalar_t__ newrecv_mod(DUMMY_VAR__);
             (void) newrecv_mod;  // dummy to suppress unused var warning
             stan::math::initialize(newrecv_mod, DUMMY_VAR__);
             stan::math::fill(newrecv_mod, DUMMY_VAR__);
-            current_statement_begin__ = 145;
+            current_statement_begin__ = 153;
             local_scalar_t__ newhospu(DUMMY_VAR__);
             (void) newhospu;  // dummy to suppress unused var warning
             stan::math::initialize(newhospu, DUMMY_VAR__);
             stan::math::fill(newhospu, DUMMY_VAR__);
-            current_statement_begin__ = 146;
+            current_statement_begin__ = 154;
             local_scalar_t__ newhospv(DUMMY_VAR__);
             (void) newhospv;  // dummy to suppress unused var warning
             stan::math::initialize(newhospv, DUMMY_VAR__);
             stan::math::fill(newhospv, DUMMY_VAR__);
-            current_statement_begin__ = 147;
+            current_statement_begin__ = 155;
             local_scalar_t__ frac_hospu(DUMMY_VAR__);
             (void) frac_hospu;  // dummy to suppress unused var warning
             stan::math::initialize(frac_hospu, DUMMY_VAR__);
             stan::math::fill(frac_hospu, DUMMY_VAR__);
-            current_statement_begin__ = 148;
+            current_statement_begin__ = 156;
             local_scalar_t__ frac_hospv(DUMMY_VAR__);
             (void) frac_hospv;  // dummy to suppress unused var warning
             stan::math::initialize(frac_hospv, DUMMY_VAR__);
             stan::math::fill(frac_hospv, DUMMY_VAR__);
-            current_statement_begin__ = 149;
+            current_statement_begin__ = 157;
+            local_scalar_t__ frac_icuu(DUMMY_VAR__);
+            (void) frac_icuu;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_icuu, DUMMY_VAR__);
+            stan::math::fill(frac_icuu, DUMMY_VAR__);
+            current_statement_begin__ = 158;
+            local_scalar_t__ frac_icuv(DUMMY_VAR__);
+            (void) frac_icuv;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_icuv, DUMMY_VAR__);
+            stan::math::fill(frac_icuv, DUMMY_VAR__);
+            current_statement_begin__ = 159;
+            local_scalar_t__ frac_mortu(DUMMY_VAR__);
+            (void) frac_mortu;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_mortu, DUMMY_VAR__);
+            stan::math::fill(frac_mortu, DUMMY_VAR__);
+            current_statement_begin__ = 160;
+            local_scalar_t__ frac_mortv(DUMMY_VAR__);
+            (void) frac_mortv;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_mortv, DUMMY_VAR__);
+            stan::math::fill(frac_mortv, DUMMY_VAR__);
+            current_statement_begin__ = 161;
             local_scalar_t__ frac_mort_nonhospu(DUMMY_VAR__);
             (void) frac_mort_nonhospu;  // dummy to suppress unused var warning
             stan::math::initialize(frac_mort_nonhospu, DUMMY_VAR__);
             stan::math::fill(frac_mort_nonhospu, DUMMY_VAR__);
-            current_statement_begin__ = 150;
+            current_statement_begin__ = 162;
             local_scalar_t__ frac_mort_nonhospv(DUMMY_VAR__);
             (void) frac_mort_nonhospv;  // dummy to suppress unused var warning
             stan::math::initialize(frac_mort_nonhospv, DUMMY_VAR__);
             stan::math::fill(frac_mort_nonhospv, DUMMY_VAR__);
-            current_statement_begin__ = 151;
+            current_statement_begin__ = 163;
             local_scalar_t__ leave_icuu(DUMMY_VAR__);
             (void) leave_icuu;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icuu, DUMMY_VAR__);
             stan::math::fill(leave_icuu, DUMMY_VAR__);
-            current_statement_begin__ = 152;
+            current_statement_begin__ = 164;
             local_scalar_t__ leave_icuv(DUMMY_VAR__);
             (void) leave_icuv;  // dummy to suppress unused var warning
             stan::math::initialize(leave_icuv, DUMMY_VAR__);
             stan::math::fill(leave_icuv, DUMMY_VAR__);
-            current_statement_begin__ = 153;
+            current_statement_begin__ = 165;
             local_scalar_t__ leave_premort_nonhosp(DUMMY_VAR__);
             (void) leave_premort_nonhosp;  // dummy to suppress unused var warning
             stan::math::initialize(leave_premort_nonhosp, DUMMY_VAR__);
             stan::math::fill(leave_premort_nonhosp, DUMMY_VAR__);
-            current_statement_begin__ = 154;
+            current_statement_begin__ = 166;
+            local_scalar_t__ leave_premort_nonhospu(DUMMY_VAR__);
+            (void) leave_premort_nonhospu;  // dummy to suppress unused var warning
+            stan::math::initialize(leave_premort_nonhospu, DUMMY_VAR__);
+            stan::math::fill(leave_premort_nonhospu, DUMMY_VAR__);
+            current_statement_begin__ = 167;
+            local_scalar_t__ leave_premort_nonhospv(DUMMY_VAR__);
+            (void) leave_premort_nonhospv;  // dummy to suppress unused var warning
+            stan::math::initialize(leave_premort_nonhospv, DUMMY_VAR__);
+            stan::math::fill(leave_premort_nonhospv, DUMMY_VAR__);
+            current_statement_begin__ = 168;
             local_scalar_t__ beta_0(DUMMY_VAR__);
             (void) beta_0;  // dummy to suppress unused var warning
             stan::math::initialize(beta_0, DUMMY_VAR__);
             stan::math::fill(beta_0, DUMMY_VAR__);
-            current_statement_begin__ = 155;
+            current_statement_begin__ = 169;
             local_scalar_t__ vaccinated(DUMMY_VAR__);
             (void) vaccinated;  // dummy to suppress unused var warning
             stan::math::initialize(vaccinated, DUMMY_VAR__);
             stan::math::fill(vaccinated, DUMMY_VAR__);
-            current_statement_begin__ = 156;
+            current_statement_begin__ = 170;
             local_scalar_t__ frac_vac_S(DUMMY_VAR__);
             (void) frac_vac_S;  // dummy to suppress unused var warning
             stan::math::initialize(frac_vac_S, DUMMY_VAR__);
             stan::math::fill(frac_vac_S, DUMMY_VAR__);
-            current_statement_begin__ = 157;
-            local_scalar_t__ newSv(DUMMY_VAR__);
-            (void) newSv;  // dummy to suppress unused var warning
-            stan::math::initialize(newSv, DUMMY_VAR__);
-            stan::math::fill(newSv, DUMMY_VAR__);
-            current_statement_begin__ = 158;
+            current_statement_begin__ = 171;
+            local_scalar_t__ newSv_succ(DUMMY_VAR__);
+            (void) newSv_succ;  // dummy to suppress unused var warning
+            stan::math::initialize(newSv_succ, DUMMY_VAR__);
+            stan::math::fill(newSv_succ, DUMMY_VAR__);
+            current_statement_begin__ = 172;
+            local_scalar_t__ newSv_fail(DUMMY_VAR__);
+            (void) newSv_fail;  // dummy to suppress unused var warning
+            stan::math::initialize(newSv_fail, DUMMY_VAR__);
+            stan::math::fill(newSv_fail, DUMMY_VAR__);
+            current_statement_begin__ = 173;
             local_scalar_t__ newRlivev(DUMMY_VAR__);
             (void) newRlivev;  // dummy to suppress unused var warning
             stan::math::initialize(newRlivev, DUMMY_VAR__);
             stan::math::fill(newRlivev, DUMMY_VAR__);
-            current_statement_begin__ = 159;
+            current_statement_begin__ = 174;
             local_scalar_t__ S_lostv(DUMMY_VAR__);
             (void) S_lostv;  // dummy to suppress unused var warning
             stan::math::initialize(S_lostv, DUMMY_VAR__);
             stan::math::fill(S_lostv, DUMMY_VAR__);
-            current_statement_begin__ = 160;
+            current_statement_begin__ = 175;
             local_scalar_t__ R_lostv(DUMMY_VAR__);
             (void) R_lostv;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostv, DUMMY_VAR__);
             stan::math::fill(R_lostv, DUMMY_VAR__);
-            current_statement_begin__ = 161;
+            current_statement_begin__ = 176;
             local_scalar_t__ R_lostnatu(DUMMY_VAR__);
             (void) R_lostnatu;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostnatu, DUMMY_VAR__);
             stan::math::fill(R_lostnatu, DUMMY_VAR__);
-            current_statement_begin__ = 162;
+            current_statement_begin__ = 177;
             local_scalar_t__ R_lostnatv(DUMMY_VAR__);
             (void) R_lostnatv;  // dummy to suppress unused var warning
             stan::math::initialize(R_lostnatv, DUMMY_VAR__);
             stan::math::fill(R_lostnatv, DUMMY_VAR__);
-            current_statement_begin__ = 166;
+            current_statement_begin__ = 178;
+            local_scalar_t__ gained_protection(DUMMY_VAR__);
+            (void) gained_protection;  // dummy to suppress unused var warning
+            stan::math::initialize(gained_protection, DUMMY_VAR__);
+            stan::math::fill(gained_protection, DUMMY_VAR__);
+            current_statement_begin__ = 182;
             stan::math::assign(beta_0, (r0 / ((frac_hosp * duration_pre_hosp) + ((1 - frac_hosp) * duration_rec_mild))));
-            current_statement_begin__ = 167;
+            current_statement_begin__ = 183;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 168;
+                current_statement_begin__ = 184;
                 stan::model::assign(beta, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                             (beta_0 * get_base1(transmission_variant_multiplier, it, "transmission_variant_multiplier", 1)), 
                             "assigning variable beta");
-                current_statement_begin__ = 169;
+                current_statement_begin__ = 185;
                 for (int iinter = 1; iinter <= ninter; ++iinter) {
-                    current_statement_begin__ = 172;
+                    current_statement_begin__ = 188;
                     stan::model::assign(beta, 
                                 stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
                                 (get_base1(beta, it, "beta", 1) * pow(get_base1(beta_multiplier, iinter, "beta_multiplier", 1), inv_logit(((9.19024 / get_base1(len_inter, iinter, "len_inter", 1)) * (it - (get_base1(t_inter, iinter, "t_inter", 1) + (get_base1(len_inter, iinter, "len_inter", 1) / 2))))))), 
                                 "assigning variable beta");
                 }
             }
-            current_statement_begin__ = 177;
+            current_statement_begin__ = 193;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         rep_vector(0.0, ncompartments), 
                         "assigning variable x");
-            current_statement_begin__ = 178;
+            current_statement_begin__ = 194;
             stan::model::assign(total_cases, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable total_cases");
-            current_statement_begin__ = 179;
+            current_statement_begin__ = 195;
+            stan::model::assign(total_casesu, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable total_casesu");
+            current_statement_begin__ = 196;
+            stan::model::assign(total_casesv, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable total_casesv");
+            current_statement_begin__ = 197;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(Eu), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         ini_exposed, 
                         "assigning variable x");
-            current_statement_begin__ = 180;
+            current_statement_begin__ = 198;
             stan::model::assign(x, 
                         stan::model::cons_list(stan::model::index_uni(Su), stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list())), 
                         (npop - ini_exposed), 
                         "assigning variable x");
-            current_statement_begin__ = 181;
+            current_statement_begin__ = 199;
             stan::model::assign(new_admits, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable new_admits");
-            current_statement_begin__ = 182;
+            current_statement_begin__ = 200;
+            stan::model::assign(new_admitsu, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable new_admitsu");
+            current_statement_begin__ = 201;
+            stan::model::assign(new_admitsv, 
+                        stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
+                        0.0, 
+                        "assigning variable new_admitsv");
+            current_statement_begin__ = 202;
             stan::model::assign(new_cases, 
                         stan::model::cons_list(stan::model::index_uni(1), stan::model::nil_index_list()), 
                         0.0, 
                         "assigning variable new_cases");
-            current_statement_begin__ = 186;
+            current_statement_begin__ = 207;
             for (int it = 1; it <= (nt - 1); ++it) {
-                current_statement_begin__ = 189;
+                current_statement_begin__ = 210;
                 stan::math::assign(newEu, stan::math::fmin(get_base1(x, Su, it, "x", 1), (((get_base1(x, Su, it, "x", 1) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
-                current_statement_begin__ = 193;
-                stan::math::assign(newEv, stan::math::fmin(get_base1(x, Sv, it, "x", 1), (((((1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * get_base1(x, Sv, it, "x", 1)) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
-                current_statement_begin__ = 197;
+                current_statement_begin__ = 214;
+                stan::math::assign(newEv, stan::math::fmin(get_base1(x, Sv_fail, it, "x", 1), (((get_base1(x, Sv_fail, it, "x", 1) * get_base1(beta, it, "beta", 1)) / npop) * (((get_base1(x, Imildu, it, "x", 1) + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)))));
+                current_statement_begin__ = 218;
                 stan::model::assign(total_cases, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             ((newEu + newEv) + get_base1(total_cases, it, "total_cases", 1)), 
                             "assigning variable total_cases");
-                current_statement_begin__ = 199;
-                stan::math::assign(vaccinated, stan::math::fmin(get_base1(vaccinated_per_day, it, "vaccinated_per_day", 1), ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
-                current_statement_begin__ = 202;
-                stan::math::assign(newIu, ((1.0 / duration_latent) * get_base1(x, Eu, it, "x", 1)));
-                current_statement_begin__ = 203;
-                stan::math::assign(newIv, ((1.0 / duration_latent) * get_base1(x, Ev, it, "x", 1)));
-                current_statement_begin__ = 204;
-                stan::math::assign(newhospu, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehu, it, "x", 1)));
-                current_statement_begin__ = 205;
-                stan::math::assign(newhospv, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehv, it, "x", 1)));
-                current_statement_begin__ = 206;
-                stan::math::assign(newrecu_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildu, it, "x", 1)));
-                current_statement_begin__ = 207;
-                stan::math::assign(newrecv_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildv, it, "x", 1)));
-                current_statement_begin__ = 208;
-                stan::math::assign(newrecu_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodu, it, "x", 1)));
-                current_statement_begin__ = 209;
-                stan::math::assign(newrecv_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodv, it, "x", 1)));
-                current_statement_begin__ = 210;
-                stan::math::assign(leave_icuu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuu, it, "x", 1)));
-                current_statement_begin__ = 211;
-                stan::math::assign(leave_icuv, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuv, it, "x", 1)));
-                current_statement_begin__ = 212;
-                stan::math::assign(leave_premort_nonhosp, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhosp, it, "x", 1)));
-                current_statement_begin__ = 213;
-                stan::math::assign(frac_vac_S, (get_base1(x, Su, it, "x", 1) / ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
-                current_statement_begin__ = 214;
-                stan::math::assign(newSv, (vaccinated * frac_vac_S));
-                current_statement_begin__ = 215;
-                stan::math::assign(newRlivev, (vaccinated * (1 - frac_vac_S)));
-                current_statement_begin__ = 217;
-                stan::math::assign(S_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Sv, it, "x", 1)));
-                current_statement_begin__ = 218;
-                stan::math::assign(R_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Rlivev, it, "x", 1)));
                 current_statement_begin__ = 219;
-                stan::math::assign(R_lostnatu, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rliveu, it, "x", 1)));
+                stan::model::assign(total_casesu, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            (newEu + get_base1(total_casesu, it, "total_casesu", 1)), 
+                            "assigning variable total_casesu");
                 current_statement_begin__ = 220;
-                stan::math::assign(R_lostnatv, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                stan::model::assign(total_casesv, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            (newEv + get_base1(total_casesv, it, "total_casesv", 1)), 
+                            "assigning variable total_casesv");
                 current_statement_begin__ = 222;
-                stan::math::assign(frac_hospu, (frac_hosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1)));
-                current_statement_begin__ = 223;
-                stan::math::assign(frac_hospv, ((frac_hospu * (1 - get_base1(vaccine_efficacy_against_progression, it, "vaccine_efficacy_against_progression", 1))) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))));
+                stan::math::assign(vaccinated, stan::math::fmin(get_base1(vaccinated_per_day, it, "vaccinated_per_day", 1), ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
+                current_statement_begin__ = 225;
+                stan::math::assign(newIu, ((1.0 / duration_latent) * get_base1(x, Eu, it, "x", 1)));
                 current_statement_begin__ = 226;
-                stan::math::assign(frac_mort_nonhospu, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1)) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1)) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1)));
+                stan::math::assign(newIv, ((1.0 / duration_latent) * get_base1(x, Ev, it, "x", 1)));
                 current_statement_begin__ = 227;
-                stan::math::assign(frac_mort_nonhospv, ((frac_mort_nonhospu * (1 - get_base1(vaccine_efficacy_against_progression, it, "vaccine_efficacy_against_progression", 1))) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))));
+                stan::math::assign(newhospu, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehu, it, "x", 1)));
+                current_statement_begin__ = 228;
+                stan::math::assign(newhospv, ((1.0 / duration_pre_hosp) * get_base1(x, Iprehv, it, "x", 1)));
+                current_statement_begin__ = 229;
+                stan::math::assign(newrecu_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildu, it, "x", 1)));
+                current_statement_begin__ = 230;
+                stan::math::assign(newrecv_mild, ((1.0 / duration_rec_mild) * get_base1(x, Imildv, it, "x", 1)));
                 current_statement_begin__ = 231;
+                stan::math::assign(newrecu_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodu, it, "x", 1)));
+                current_statement_begin__ = 232;
+                stan::math::assign(newrecv_mod, ((1.0 / duration_hosp_mod) * get_base1(x, Hmodv, it, "x", 1)));
+                current_statement_begin__ = 233;
+                stan::math::assign(leave_icuu, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuu, it, "x", 1)));
+                current_statement_begin__ = 234;
+                stan::math::assign(leave_icuv, ((1.0 / duration_hosp_icu) * get_base1(x, Hicuv, it, "x", 1)));
+                current_statement_begin__ = 235;
+                stan::math::assign(leave_premort_nonhospu, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhospu, it, "x", 1)));
+                current_statement_begin__ = 236;
+                stan::math::assign(leave_premort_nonhospv, ((1.0 / duration_mort_nonhosp) * get_base1(x, Rpremort_nonhospv, it, "x", 1)));
+                current_statement_begin__ = 237;
+                stan::math::assign(frac_vac_S, (get_base1(x, Su, it, "x", 1) / ((get_base1(x, Su, it, "x", 1) + get_base1(x, Eu, it, "x", 1)) + get_base1(x, Rliveu, it, "x", 1))));
+                current_statement_begin__ = 238;
+                stan::math::assign(newSv_succ, ((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) * vaccinated) * frac_vac_S));
+                current_statement_begin__ = 239;
+                stan::math::assign(newSv_fail, (((1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * vaccinated) * frac_vac_S));
+                current_statement_begin__ = 240;
+                stan::math::assign(newRlivev, ((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) * vaccinated) * (1 - frac_vac_S)));
+                current_statement_begin__ = 243;
+                if (as_bool(logical_gt(get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1), get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)))) {
+                    current_statement_begin__ = 244;
+                    stan::math::assign(gained_protection, (((get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1) - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) / (1 - get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))) * get_base1(x, Sv_fail, it, "x", 1)));
+                } else {
+                    current_statement_begin__ = 246;
+                    stan::math::assign(gained_protection, ((-((get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1) - get_base1(vaccine_efficacy_for_susceptibility, (it + 1), "vaccine_efficacy_for_susceptibility", 1))) / get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1)) * get_base1(x, Sv_succ, it, "x", 1)));
+                }
+                current_statement_begin__ = 250;
+                stan::math::assign(S_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Sv_succ, it, "x", 1)));
+                current_statement_begin__ = 251;
+                stan::math::assign(R_lostv, ((1.0 / get_base1(duration_vaccinated, it, "duration_vaccinated", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                current_statement_begin__ = 252;
+                stan::math::assign(R_lostnatu, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rliveu, it, "x", 1)));
+                current_statement_begin__ = 253;
+                stan::math::assign(R_lostnatv, ((1.0 / get_base1(duration_natural, it, "duration_natural", 1)) * get_base1(x, Rlivev, it, "x", 1)));
+                current_statement_begin__ = 255;
+                stan::math::assign(frac_hospu, (frac_hosp * get_base1(frac_hosp_multiplier_unvaccinated, it, "frac_hosp_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 256;
+                stan::math::assign(frac_hospv, (frac_hosp * get_base1(frac_hosp_multiplier_vaccinated, it, "frac_hosp_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 258;
+                stan::math::assign(frac_icuu, (frac_icu * get_base1(frac_icu_multiplier_unvaccinated, it, "frac_icu_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 259;
+                stan::math::assign(frac_icuv, (frac_icu * get_base1(frac_icu_multiplier_vaccinated, it, "frac_icu_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 261;
+                stan::math::assign(frac_mortu, (frac_mort * get_base1(frac_mort_multiplier_unvaccinated, it, "frac_mort_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 262;
+                stan::math::assign(frac_mortv, (frac_mort * get_base1(frac_mort_multiplier_vaccinated, it, "frac_mort_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 267;
+                stan::math::assign(frac_mort_nonhospu, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier_unvaccinated, it, "frac_hosp_multiplier_unvaccinated", 1)) * get_base1(frac_icu_multiplier_unvaccinated, it, "frac_icu_multiplier_unvaccinated", 1)) * get_base1(frac_mort_multiplier_unvaccinated, it, "frac_mort_multiplier_unvaccinated", 1)));
+                current_statement_begin__ = 268;
+                stan::math::assign(frac_mort_nonhospv, (((frac_mort_nonhosp * get_base1(frac_hosp_multiplier_vaccinated, it, "frac_hosp_multiplier_vaccinated", 1)) * get_base1(frac_icu_multiplier_vaccinated, it, "frac_icu_multiplier_vaccinated", 1)) * get_base1(frac_mort_multiplier_vaccinated, it, "frac_mort_multiplier_vaccinated", 1)));
+                current_statement_begin__ = 273;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Su), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((get_base1(x, Su, it, "x", 1) - newEu) - newSv) + S_lostv) + R_lostnatu), 
+                            ((((get_base1(x, Su, it, "x", 1) - newEu) - newSv_succ) - newSv_fail) + R_lostnatu), 
                             "assigning variable x");
-                current_statement_begin__ = 232;
+                current_statement_begin__ = 274;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Sv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((((get_base1(x, Sv, it, "x", 1) - newEv) + newSv) - S_lostv) + R_lostnatv), 
+                            stan::model::cons_list(stan::model::index_uni(Sv_succ), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((((get_base1(x, Sv_succ, it, "x", 1) + newSv_succ) - S_lostv) + R_lostnatv) + gained_protection), 
                             "assigning variable x");
-                current_statement_begin__ = 233;
+                current_statement_begin__ = 275;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Sv_fail), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((((get_base1(x, Sv_fail, it, "x", 1) - newEv) + newSv_fail) + S_lostv) - gained_protection), 
+                            "assigning variable x");
+                current_statement_begin__ = 276;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Eu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Eu, it, "x", 1) + newEu) - newIu), 
                             "assigning variable x");
-                current_statement_begin__ = 234;
+                current_statement_begin__ = 277;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Ev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Ev, it, "x", 1) + newEv) - newIv), 
                             "assigning variable x");
-                current_statement_begin__ = 235;
+                current_statement_begin__ = 278;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imildu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imildu, it, "x", 1) + (newIu * (1 - frac_hospu))) - newrecu_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 236;
+                current_statement_begin__ = 279;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Imildv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Imildv, it, "x", 1) + (newIv * (1 - frac_hospv))) - newrecv_mild), 
                             "assigning variable x");
-                current_statement_begin__ = 237;
+                current_statement_begin__ = 280;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Iprehu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Iprehu, it, "x", 1) + (newIu * frac_hospu)) - newhospu), 
                             "assigning variable x");
-                current_statement_begin__ = 238;
+                current_statement_begin__ = 281;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Iprehv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             ((get_base1(x, Iprehv, it, "x", 1) + (newIv * frac_hospv)) - newhospv), 
                             "assigning variable x");
-                current_statement_begin__ = 239;
+                current_statement_begin__ = 282;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecu_mod) + (leave_icuu * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
+                            (((get_base1(x, Hmodu, it, "x", 1) + (newhospu * (1 - frac_icuu))) - newrecu_mod) + (leave_icuu * (1 - frac_mortu))), 
                             "assigning variable x");
-                current_statement_begin__ = 240;
+                current_statement_begin__ = 283;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hmodv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - (frac_icu * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))))) - newrecv_mod) + (leave_icuv * (1 - (frac_mort * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))))), 
+                            (((get_base1(x, Hmodv, it, "x", 1) + (newhospv * (1 - frac_icuv))) - newrecv_mod) + (leave_icuv * (1 - frac_mortv))), 
                             "assigning variable x");
-                current_statement_begin__ = 241;
+                current_statement_begin__ = 284;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicuu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicuu, it, "x", 1) + ((newhospu * frac_icu) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))) - leave_icuu), 
+                            ((get_base1(x, Hicuu, it, "x", 1) + (newhospu * frac_icuu)) - leave_icuu), 
                             "assigning variable x");
-                current_statement_begin__ = 242;
+                current_statement_begin__ = 285;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Hicuv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            ((get_base1(x, Hicuv, it, "x", 1) + ((newhospv * frac_icu) * get_base1(frac_icu_multiplier, it, "frac_icu_multiplier", 1))) - leave_icuv), 
+                            ((get_base1(x, Hicuv, it, "x", 1) + (newhospv * frac_icuv)) - leave_icuv), 
                             "assigning variable x");
-                current_statement_begin__ = 243;
+                current_statement_begin__ = 286;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rliveu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((((get_base1(x, Rliveu, it, "x", 1) + (newrecu_mild * (1 - frac_mort_nonhospu))) + newrecu_mod) - newRlivev) + R_lostv) - R_lostnatu), 
                             "assigning variable x");
-                current_statement_begin__ = 244;
+                current_statement_begin__ = 287;
                 stan::model::assign(x, 
                             stan::model::cons_list(stan::model::index_uni(Rlivev), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
                             (((((get_base1(x, Rlivev, it, "x", 1) + (newrecv_mild * (1 - frac_mort_nonhospv))) + newrecv_mod) + newRlivev) - R_lostv) - R_lostnatv), 
                             "assigning variable x");
-                current_statement_begin__ = 245;
+                current_statement_begin__ = 288;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhosp), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rpremort_nonhosp, it, "x", 1) + (newrecu_mild * frac_mort_nonhospu)) + (newrecv_mild * frac_mort_nonhospv)) - leave_premort_nonhosp), 
+                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhospu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rpremort_nonhospu, it, "x", 1) + (newrecu_mild * frac_mort_nonhospu)) - leave_premort_nonhospu), 
                             "assigning variable x");
-                current_statement_begin__ = 246;
+                current_statement_begin__ = 289;
                 stan::model::assign(x, 
-                            stan::model::cons_list(stan::model::index_uni(Rmort), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
-                            (((get_base1(x, Rmort, it, "x", 1) + ((leave_icuu * frac_mort) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))) + ((leave_icuv * frac_mort) * get_base1(frac_mort_multiplier, it, "frac_mort_multiplier", 1))) + leave_premort_nonhosp), 
+                            stan::model::cons_list(stan::model::index_uni(Rpremort_nonhospv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rpremort_nonhospv, it, "x", 1) + (newrecv_mild * frac_mort_nonhospv)) - leave_premort_nonhospv), 
                             "assigning variable x");
-                current_statement_begin__ = 249;
+                current_statement_begin__ = 290;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Rmortu), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rmortu, it, "x", 1) + (leave_icuu * frac_mortu)) + leave_premort_nonhospu), 
+                            "assigning variable x");
+                current_statement_begin__ = 291;
+                stan::model::assign(x, 
+                            stan::model::cons_list(stan::model::index_uni(Rmortv), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), 
+                            ((get_base1(x, Rmortv, it, "x", 1) + (leave_icuv * frac_mortv)) + leave_premort_nonhospv), 
+                            "assigning variable x");
+                current_statement_begin__ = 294;
                 stan::model::assign(new_admits, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             (newhospu + newhospv), 
                             "assigning variable new_admits");
-                current_statement_begin__ = 251;
+                current_statement_begin__ = 295;
+                stan::model::assign(new_admitsu, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            newhospu, 
+                            "assigning variable new_admitsu");
+                current_statement_begin__ = 296;
+                stan::model::assign(new_admitsv, 
+                            stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
+                            newhospv, 
+                            "assigning variable new_admitsv");
+                current_statement_begin__ = 299;
                 stan::model::assign(new_cases, 
                             stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list()), 
                             ((newIu + newIv) * frac_tested), 
                             "assigning variable new_cases");
-                current_statement_begin__ = 255;
+                current_statement_begin__ = 303;
                 if (as_bool(logical_gt(stan::math::fabs((sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop)), 1e-1))) {
-                    current_statement_begin__ = 256;
+                    current_statement_begin__ = 304;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "Model is leaking, net gain: ";
                     errmsg_stream__ << (sum(stan::model::rvalue(x, stan::model::cons_list(stan::model::index_omni(), stan::model::cons_list(stan::model::index_uni((it + 1)), stan::model::nil_index_list())), "x")) - npop);
@@ -2297,47 +2666,47 @@ public:
                 }
             }
             }
-            current_statement_begin__ = 263;
+            current_statement_begin__ = 311;
             for (int itype = 1; itype <= nobs_types; ++itype) {
-                current_statement_begin__ = 264;
+                current_statement_begin__ = 312;
                 if (as_bool(logical_eq(itype, obs_hosp_census))) {
-                    current_statement_begin__ = 265;
+                    current_statement_begin__ = 313;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(add(add(get_base1(x, Hmodu, "x", 1), get_base1(x, Hicuu, "x", 1)), get_base1(x, Hmodv, "x", 1)), get_base1(x, Hicuv, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_icu_census))) {
-                    current_statement_begin__ = 267;
+                    current_statement_begin__ = 315;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 add(get_base1(x, Hicuu, "x", 1), get_base1(x, Hicuv, "x", 1)), 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cum_deaths))) {
-                    current_statement_begin__ = 269;
+                    current_statement_begin__ = 317;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
-                                get_base1(x, Rmort, "x", 1), 
+                                add(get_base1(x, Rmortu, "x", 1), get_base1(x, Rmortv, "x", 1)), 
                                 "assigning variable sim_data");
-                } else if (as_bool(logical_eq(itype, obs_cum_admits))) {
-                    current_statement_begin__ = 271;
+                } else if (as_bool(logical_eq(itype, obs_admits))) {
+                    current_statement_begin__ = 319;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 new_admits, 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_cases))) {
-                    current_statement_begin__ = 273;
+                    current_statement_begin__ = 321;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                 new_cases, 
                                 "assigning variable sim_data");
                 } else if (as_bool(logical_eq(itype, obs_seroprev))) {
-                    current_statement_begin__ = 275;
+                    current_statement_begin__ = 323;
                     stan::model::assign(sim_data, 
                                 stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
-                                divide(add(add(add(add(add(add(add(get_base1(x, Sv, "x", 1), get_base1(x, Ev, "x", 1)), get_base1(x, Imildv, "x", 1)), get_base1(x, Iprehv, "x", 1)), get_base1(x, Hmodv, "x", 1)), get_base1(x, Hicuv, "x", 1)), get_base1(x, Rliveu, "x", 1)), get_base1(x, Rlivev, "x", 1)), npop), 
+                                divide(add(add(get_base1(x, Sv_succ, "x", 1), get_base1(x, Rliveu, "x", 1)), get_base1(x, Rlivev, "x", 1)), npop), 
                                 "assigning variable sim_data");
                 } else {
-                    current_statement_begin__ = 277;
+                    current_statement_begin__ = 325;
                     std::stringstream errmsg_stream__;
                     errmsg_stream__ << "unexpected itype";
                     throw std::domain_error(errmsg_stream__.str());
@@ -2347,23 +2716,37 @@ public:
             // validate transformed parameters
             const char* function__ = "validate transformed params";
             (void) function__;  // dummy to suppress unused var warning
-            current_statement_begin__ = 128;
+            current_statement_begin__ = 132;
             check_greater_or_equal(function__, "x", x, 0.0);
-            current_statement_begin__ = 129;
+            current_statement_begin__ = 133;
             check_greater_or_equal(function__, "sim_data", sim_data, 0.0);
-            current_statement_begin__ = 130;
+            current_statement_begin__ = 134;
             size_t beta_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < beta_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "beta[i_0__]", beta[i_0__], 0.0);
             }
-            current_statement_begin__ = 131;
+            current_statement_begin__ = 135;
             check_greater_or_equal(function__, "new_admits", new_admits, 0.0);
-            current_statement_begin__ = 132;
+            current_statement_begin__ = 136;
+            check_greater_or_equal(function__, "new_admitsu", new_admitsu, 0.0);
+            current_statement_begin__ = 137;
+            check_greater_or_equal(function__, "new_admitsv", new_admitsv, 0.0);
+            current_statement_begin__ = 138;
             check_greater_or_equal(function__, "new_cases", new_cases, 0.0);
-            current_statement_begin__ = 133;
+            current_statement_begin__ = 139;
             size_t total_cases_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < total_cases_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "total_cases[i_0__]", total_cases[i_0__], 0.0);
+            }
+            current_statement_begin__ = 140;
+            size_t total_casesu_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < total_casesu_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "total_casesu[i_0__]", total_casesu[i_0__], 0.0);
+            }
+            current_statement_begin__ = 141;
+            size_t total_casesv_i_0_max__ = nt;
+            for (size_t i_0__ = 0; i_0__ < total_casesv_i_0_max__; ++i_0__) {
+                check_greater_or_equal(function__, "total_casesv[i_0__]", total_casesv[i_0__], 0.0);
             }
             // write transformed parameters
             if (include_tparams__) {
@@ -2389,6 +2772,14 @@ public:
                 for (size_t j_1__ = 0; j_1__ < new_admits_j_1_max__; ++j_1__) {
                     vars__.push_back(new_admits(j_1__));
                 }
+                size_t new_admitsu_j_1_max__ = nt;
+                for (size_t j_1__ = 0; j_1__ < new_admitsu_j_1_max__; ++j_1__) {
+                    vars__.push_back(new_admitsu(j_1__));
+                }
+                size_t new_admitsv_j_1_max__ = nt;
+                for (size_t j_1__ = 0; j_1__ < new_admitsv_j_1_max__; ++j_1__) {
+                    vars__.push_back(new_admitsv(j_1__));
+                }
                 size_t new_cases_j_1_max__ = nt;
                 for (size_t j_1__ = 0; j_1__ < new_cases_j_1_max__; ++j_1__) {
                     vars__.push_back(new_cases(j_1__));
@@ -2397,42 +2788,49 @@ public:
                 for (size_t k_0__ = 0; k_0__ < total_cases_k_0_max__; ++k_0__) {
                     vars__.push_back(total_cases[k_0__]);
                 }
+                size_t total_casesu_k_0_max__ = nt;
+                for (size_t k_0__ = 0; k_0__ < total_casesu_k_0_max__; ++k_0__) {
+                    vars__.push_back(total_casesu[k_0__]);
+                }
+                size_t total_casesv_k_0_max__ = nt;
+                for (size_t k_0__ = 0; k_0__ < total_casesv_k_0_max__; ++k_0__) {
+                    vars__.push_back(total_casesv[k_0__]);
+                }
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 320;
+            current_statement_begin__ = 368;
             validate_non_negative_index("Rt", "nt", nt);
             std::vector<double> Rt(nt, double(0));
             stan::math::initialize(Rt, DUMMY_VAR__);
             stan::math::fill(Rt, DUMMY_VAR__);
-            current_statement_begin__ = 321;
-            validate_non_negative_index("Rt_unvac", "nt", nt);
-            std::vector<double> Rt_unvac(nt, double(0));
-            stan::math::initialize(Rt_unvac, DUMMY_VAR__);
-            stan::math::fill(Rt_unvac, DUMMY_VAR__);
-            current_statement_begin__ = 322;
-            double frac_vac;
-            (void) frac_vac;  // dummy to suppress unused var warning
-            stan::math::initialize(frac_vac, DUMMY_VAR__);
-            stan::math::fill(frac_vac, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 324;
+            {
+            current_statement_begin__ = 370;
+            local_scalar_t__ frac_prehosp(DUMMY_VAR__);
+            (void) frac_prehosp;  // dummy to suppress unused var warning
+            stan::math::initialize(frac_prehosp, DUMMY_VAR__);
+            stan::math::fill(frac_prehosp, DUMMY_VAR__);
+            current_statement_begin__ = 371;
+            local_scalar_t__ avg_duration(DUMMY_VAR__);
+            (void) avg_duration;  // dummy to suppress unused var warning
+            stan::math::initialize(avg_duration, DUMMY_VAR__);
+            stan::math::fill(avg_duration, DUMMY_VAR__);
+            current_statement_begin__ = 372;
             for (int it = 1; it <= nt; ++it) {
-                current_statement_begin__ = 325;
-                stan::math::assign(frac_vac, (get_base1(x, Sv, it, "x", 1) / (get_base1(x, Su, it, "x", 1) + get_base1(x, Sv, it, "x", 1))));
-                current_statement_begin__ = 326;
-                stan::model::assign(Rt_unvac, 
-                            stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                            (((get_base1(beta, it, "beta", 1) * (((frac_hosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1)) * duration_pre_hosp) + ((1 - (frac_hosp * get_base1(frac_hosp_multiplier, it, "frac_hosp_multiplier", 1))) * duration_rec_mild))) * (get_base1(x, Su, it, "x", 1) + get_base1(x, Sv, it, "x", 1))) / npop), 
-                            "assigning variable Rt_unvac");
-                current_statement_begin__ = 327;
+                current_statement_begin__ = 373;
+                stan::math::assign(frac_prehosp, (((1e-10 + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)) / ((((1e-10 + get_base1(x, Iprehu, it, "x", 1)) + get_base1(x, Iprehv, it, "x", 1)) + get_base1(x, Imildu, it, "x", 1)) + get_base1(x, Imildv, it, "x", 1))));
+                current_statement_begin__ = 374;
+                stan::math::assign(avg_duration, ((frac_prehosp * duration_pre_hosp) + ((1 - frac_prehosp) * duration_rec_mild)));
+                current_statement_begin__ = 375;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                            ((1 - (frac_vac * get_base1(vaccine_efficacy_for_susceptibility, it, "vaccine_efficacy_for_susceptibility", 1))) * get_base1(Rt_unvac, it, "Rt_unvac", 1)), 
+                            (((get_base1(beta, it, "beta", 1) * avg_duration) * (get_base1(x, Su, it, "x", 1) + get_base1(x, Sv_fail, it, "x", 1))) / npop), 
                             "assigning variable Rt");
             }
+            }
             // validate, write generated quantities
-            current_statement_begin__ = 320;
+            current_statement_begin__ = 368;
             size_t Rt_i_0_max__ = nt;
             for (size_t i_0__ = 0; i_0__ < Rt_i_0_max__; ++i_0__) {
                 check_greater_or_equal(function__, "Rt[i_0__]", Rt[i_0__], 0.0);
@@ -2441,18 +2839,6 @@ public:
             for (size_t k_0__ = 0; k_0__ < Rt_k_0_max__; ++k_0__) {
                 vars__.push_back(Rt[k_0__]);
             }
-            current_statement_begin__ = 321;
-            size_t Rt_unvac_i_0_max__ = nt;
-            for (size_t i_0__ = 0; i_0__ < Rt_unvac_i_0_max__; ++i_0__) {
-                check_greater_or_equal(function__, "Rt_unvac[i_0__]", Rt_unvac[i_0__], 0.0);
-            }
-            size_t Rt_unvac_k_0_max__ = nt;
-            for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
-                vars__.push_back(Rt_unvac[k_0__]);
-            }
-            current_statement_begin__ = 322;
-            check_greater_or_equal(function__, "frac_vac", frac_vac, 0.0);
-            vars__.push_back(frac_vac);
         } catch (const std::exception& e) {
             stan::lang::rethrow_located(e, current_statement_begin__, prog_reader__());
             // Next line prevents compiler griping about no return
@@ -2578,6 +2964,18 @@ public:
                 param_name_stream__ << "new_admits" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
+            size_t new_admitsu_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsu_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "new_admitsu" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t new_admitsv_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsv_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "new_admitsv" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
             size_t new_cases_j_1_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < new_cases_j_1_max__; ++j_1__) {
                 param_name_stream__.str(std::string());
@@ -2590,6 +2988,18 @@ public:
                 param_name_stream__ << "total_cases" << '.' << k_0__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
+            size_t total_casesu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesu_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "total_casesu" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t total_casesv_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesv_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "total_casesv" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
         }
         if (!include_gqs__) return;
         size_t Rt_k_0_max__ = nt;
@@ -2598,15 +3008,6 @@ public:
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
-        size_t Rt_unvac_k_0_max__ = nt;
-        for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "Rt_unvac" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_vac";
-        param_names__.push_back(param_name_stream__.str());
     }
     void unconstrained_param_names(std::vector<std::string>& param_names__,
                                    bool include_tparams__ = true,
@@ -2707,6 +3108,18 @@ public:
                 param_name_stream__ << "new_admits" << '.' << j_1__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
+            size_t new_admitsu_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsu_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "new_admitsu" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t new_admitsv_j_1_max__ = nt;
+            for (size_t j_1__ = 0; j_1__ < new_admitsv_j_1_max__; ++j_1__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "new_admitsv" << '.' << j_1__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
             size_t new_cases_j_1_max__ = nt;
             for (size_t j_1__ = 0; j_1__ < new_cases_j_1_max__; ++j_1__) {
                 param_name_stream__.str(std::string());
@@ -2719,6 +3132,18 @@ public:
                 param_name_stream__ << "total_cases" << '.' << k_0__ + 1;
                 param_names__.push_back(param_name_stream__.str());
             }
+            size_t total_casesu_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesu_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "total_casesu" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
+            size_t total_casesv_k_0_max__ = nt;
+            for (size_t k_0__ = 0; k_0__ < total_casesv_k_0_max__; ++k_0__) {
+                param_name_stream__.str(std::string());
+                param_name_stream__ << "total_casesv" << '.' << k_0__ + 1;
+                param_names__.push_back(param_name_stream__.str());
+            }
         }
         if (!include_gqs__) return;
         size_t Rt_k_0_max__ = nt;
@@ -2727,15 +3152,6 @@ public:
             param_name_stream__ << "Rt" << '.' << k_0__ + 1;
             param_names__.push_back(param_name_stream__.str());
         }
-        size_t Rt_unvac_k_0_max__ = nt;
-        for (size_t k_0__ = 0; k_0__ < Rt_unvac_k_0_max__; ++k_0__) {
-            param_name_stream__.str(std::string());
-            param_name_stream__ << "Rt_unvac" << '.' << k_0__ + 1;
-            param_names__.push_back(param_name_stream__.str());
-        }
-        param_name_stream__.str(std::string());
-        param_name_stream__ << "frac_vac";
-        param_names__.push_back(param_name_stream__.str());
     }
 }; // model
 }  // namespace

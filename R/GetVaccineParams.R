@@ -105,8 +105,11 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   var_hosp_mult <- variants$hosp_mult
   var_mort_mult <- var_icu_mult <- sqrt(variants$mort_mult / var_hosp_mult)
 
-  #multiplier = rate_unvax / rate_pop
-  frac_hosp_multiplier <- frac_icu_multiplier <- frac_mort_multiplier <- rep(NA_real_, nt)
+  #multiplier_unvaccinated  = rate_unvax / rate_pop   accounting for age distribution + variants
+  #multiplier_unvaccinated  = rate_vax / rate_pop   accounting for age distribution + variants + vaccines
+
+  frac_hosp_multiplier_unvaccinated <- frac_hosp_multiplier_vaccinated <- frac_icu_multiplier_unvaccinated <- frac_icu_multiplier_vaccinated <- frac_mort_multiplier_unvaccinated <- frac_mort_multiplier_vaccinated <- rep(NA_real_, nt)
+
   dt <- cbind(lethality, population)
 
   dt[, vax := 0]
@@ -126,17 +129,25 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
     }
     not_maxed_prop <- dt[vax < max_vax, sum(new_dose_proportion)]
     dt[, new_doses := (vax < max_vax) * new_dose_proportion / (1e-10 + not_maxed_prop) * vaccinated_per_day[it]]
-    dt[, vax := vax + new_doses]
+    dt[, vax := pmax(1e-10, pmin(pop, vax + new_doses))] #add 1e-10 so fractions are not NaN if all zero vax
     stopifnot(!anyNA(dt))
-    dt[, unvaccinated_pop := pmax(0, pop - vax)]
-    dt[, unvaccinated_pop_frac := unvaccinated_pop / sum(unvaccinated_pop)] #num unvax/total unvax
+    dt[, vaccinated_pop_frac := vax / sum(vax)] #age distribution of vaccinated
+    dt[, unvaccinated_pop_frac := (pop - vax) / sum(pop - vax)] #age distribution of unvaccinated
 
-    frac_hosp_multiplier[it] <- dt[, sum(hosp * unvaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ])
-    frac_icu_multiplier[it] <- dt[, sum(icu_rate * unvaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ])
-    frac_mort_multiplier[it] <- dt[, sum(mort_rate * unvaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ])
+    frac_hosp_multiplier_unvaccinated[it] <- dt[, sum(hosp * unvaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ])
+    frac_hosp_multiplier_vaccinated[it] <- dt[, sum(hosp * vaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ]) * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it])
+
+    frac_icu_multiplier_unvaccinated[it] <- dt[, sum(icu_rate * unvaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ])
+    frac_icu_multiplier_vaccinated[it] <- dt[, sum(icu_rate * vaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against ICU conditional on hospitalization
+
+    frac_mort_multiplier_unvaccinated[it] <- dt[, sum(mort_rate * unvaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ])
+    frac_mort_multiplier_vaccinated[it] <- dt[, sum(mort_rate * vaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against death conditional on ICU
   }
 
-  vaccines <- data.table(date, vaccinated_per_day, vaccine_efficacy_for_susceptibility, vaccine_efficacy_against_progression, duration_vaccinated, duration_natural, frac_hosp_multiplier, frac_icu_multiplier, frac_mort_multiplier, transmission_variant_multiplier)
+  vaccines <- data.table(date, vaccinated_per_day, vaccine_efficacy_for_susceptibility, duration_vaccinated, duration_natural,
+                         frac_hosp_multiplier_unvaccinated, frac_hosp_multiplier_vaccinated,
+                         frac_icu_multiplier_unvaccinated, frac_icu_multiplier_vaccinated,
+                         frac_mort_multiplier_unvaccinated, frac_mort_multiplier_vaccinated, transmission_variant_multiplier)
   return(list(vaccines = vaccines, vaccines_nonstan = list(doses = doses, variant_frac = variant_frac, variants = variants)))
 }
 

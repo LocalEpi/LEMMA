@@ -116,10 +116,9 @@ GetStanInputs <- function(inputs) {
   dates <- seq(day0 + 1, day0 + nt, by = "day")
   vaccines <- inputs$vaccines[date %in% dates]
   stopifnot(isTRUE(all.equal(vaccines$date, dates)))
-  stopifnot(setequal(names(vaccines), c("date", "vaccinated_per_day", "vaccine_efficacy_for_susceptibility",
-                                        "vaccine_efficacy_against_progression", "duration_vaccinated",
-                                        "duration_natural", "frac_hosp_multiplier", "frac_icu_multiplier",
-                                        "frac_mort_multiplier", "transmission_variant_multiplier")))
+  stopifnot(setequal(names(vaccines), c("date", "vaccinated_per_day", "vaccine_efficacy_for_susceptibility", "duration_vaccinated",
+                                        "duration_natural", "frac_hosp_multiplier_vaccinated", "frac_hosp_multiplier_unvaccinated", "frac_icu_multiplier_vaccinated", "frac_icu_multiplier_unvaccinated",
+                                        "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "transmission_variant_multiplier")))
   vaccines$date <- NULL
   seir_inputs <- c(seir_inputs, vaccines)
 
