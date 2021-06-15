@@ -87,13 +87,13 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   vaccine_efficacy_against_progression <- vaccine_efficacy_for_susceptibility <- duration_vaccinated <- duration_natural  <- transmission_variant_multiplier <- rep(NA_real_, nt)
   for (it in 1:nt) {
     vaccine_efficacy_against_progression[it] <- sum(variant_frac[it, ] *
-      (variants$vaccine_efficacy_against_progression_1 * doses$frac1[it] +
-        variants$vaccine_efficacy_against_progression_2 * doses$frac2[it] +
-        variants$vaccine_efficacy_against_progression_J * doses$fracJ[it]))
+                                                      (variants$vaccine_efficacy_against_progression_1 * doses$frac1[it] +
+                                                         variants$vaccine_efficacy_against_progression_2 * doses$frac2[it] +
+                                                         variants$vaccine_efficacy_against_progression_J * doses$fracJ[it]))
     vaccine_efficacy_for_susceptibility[it] <- sum(variant_frac[it, ] *
-      (variants$vaccine_efficacy_for_susceptibility_1 * doses$frac1[it] +
-        variants$vaccine_efficacy_for_susceptibility_2 * doses$frac2[it] +
-        variants$vaccine_efficacy_for_susceptibility_J * doses$fracJ[it]))
+                                                     (variants$vaccine_efficacy_for_susceptibility_1 * doses$frac1[it] +
+                                                        variants$vaccine_efficacy_for_susceptibility_2 * doses$frac2[it] +
+                                                        variants$vaccine_efficacy_for_susceptibility_J * doses$fracJ[it]))
 
     #input durations are in years, output in days
     duration_vaccinated[it] <- 365 * sum(variant_frac[it, ] * variants$duration_vaccinated_years)
@@ -108,7 +108,7 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   #multiplier_unvaccinated  = rate_unvax / rate_pop   accounting for age distribution + variants
   #multiplier_unvaccinated  = rate_vax / rate_pop   accounting for age distribution + variants + vaccines
 
-  frac_hosp_multiplier_unvaccinated <- frac_hosp_multiplier_vaccinated <- frac_icu_multiplier_unvaccinated <- frac_icu_multiplier_vaccinated <- frac_mort_multiplier_unvaccinated <- frac_mort_multiplier_vaccinated <- rep(NA_real_, nt)
+  frac_hosp_multiplier_unvaccinated <- frac_hosp_multiplier_vaccinated <- frac_icu_multiplier_unvaccinated <- frac_icu_multiplier_vaccinated <- frac_mort_multiplier_unvaccinated <- frac_mort_multiplier_vaccinated <- rep(1, nt)
 
   dt <- cbind(lethality, population)
 
@@ -119,6 +119,8 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   mort_rate_pop <- dt[, sum(mort_rate * pop_frac)] #rate relative to 18-30
 
   date <- seq(start_date, end_date, by = "day")
+  exposed.to.hosp <- 7 #approximate time from exposed to hosp - when the age distribution changes this should affect hosptialization rate about 7 days later
+  exposed.to.death <- 20 #same for death
   for (it in 1:nt) {
     dt[, max_vax := GetMaxVax(vax_uptake, date = start_date + it - 1, elligible_date, pop)]
     if (date[it] <= max_actual_vaccine_date) {
@@ -134,14 +136,19 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
     dt[, vaccinated_pop_frac := vax / sum(vax)] #age distribution of vaccinated
     dt[, unvaccinated_pop_frac := (pop - vax) / sum(pop - vax)] #age distribution of unvaccinated
 
-    frac_hosp_multiplier_unvaccinated[it] <- dt[, sum(hosp * unvaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ])
-    frac_hosp_multiplier_vaccinated[it] <- dt[, sum(hosp * vaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ]) * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it])
+    if ((it + exposed.to.hosp) <= nt) {
 
-    frac_icu_multiplier_unvaccinated[it] <- dt[, sum(icu_rate * unvaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ])
-    frac_icu_multiplier_vaccinated[it] <- dt[, sum(icu_rate * vaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against ICU conditional on hospitalization
+      frac_hosp_multiplier_unvaccinated[it + exposed.to.hosp] <- dt[, sum(hosp * unvaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ])
+      frac_hosp_multiplier_vaccinated[it + exposed.to.hosp] <- dt[, sum(hosp * vaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ]) * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it])
 
-    frac_mort_multiplier_unvaccinated[it] <- dt[, sum(mort_rate * unvaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ])
-    frac_mort_multiplier_vaccinated[it] <- dt[, sum(mort_rate * vaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against death conditional on ICU
+      frac_icu_multiplier_unvaccinated[it + exposed.to.hosp] <- dt[, sum(icu_rate * unvaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ])
+      frac_icu_multiplier_vaccinated[it + exposed.to.hosp] <- dt[, sum(icu_rate * vaccinated_pop_frac)] / icu_rate_pop * sum(var_icu_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against ICU conditional on hospitalization
+    }
+
+    if ((it + exposed.to.death) <= nt) {
+      frac_mort_multiplier_unvaccinated[it + exposed.to.death] <- dt[, sum(mort_rate * unvaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ])
+      frac_mort_multiplier_vaccinated[it + exposed.to.death] <- dt[, sum(mort_rate * vaccinated_pop_frac)] / mort_rate_pop * sum(var_mort_mult * variant_frac[it, ]) #current assumption is no additional vaccine protection against death conditional on ICU
+    }
   }
 
   vaccines <- data.table(date, vaccinated_per_day, vaccine_efficacy_for_susceptibility, duration_vaccinated, duration_natural,

@@ -185,7 +185,7 @@ transformed parameters {
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
-        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2))); //TODO: document this; maybe could speed up too
+        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2)));
       }
     }
 
@@ -239,7 +239,6 @@ transformed parameters {
       newSv_fail = (1 - vaccine_efficacy_for_susceptibility[it]) * vaccinated * frac_vac_S;
       newRlivev = vaccine_efficacy_for_susceptibility[it] * vaccinated * (1 - frac_vac_S); //for now only failed vaccination of Rlive just stays in newRliveu [small problem for those who then lose natural immunity - will be counted as non-breakthrough but should be breakthrough]
 
-      //needs work
       if (vaccine_efficacy_for_susceptibility[it + 1] > vaccine_efficacy_for_susceptibility[it]) {
          gained_protection = (vaccine_efficacy_for_susceptibility[it + 1] - vaccine_efficacy_for_susceptibility[it]) / (1 - vaccine_efficacy_for_susceptibility[it]) * x[Sv_fail, it];
       } else {
@@ -247,7 +246,7 @@ transformed parameters {
       }
 
 
-      S_lostv = 1.0/duration_vaccinated[it] * x[Sv_succ, it]; //TODO adjust based on vaccine_efficacy_for_susceptibility[it + 1] - vaccine_efficacy_for_susceptibility[it]
+      S_lostv = 1.0/duration_vaccinated[it] * x[Sv_succ, it];
       R_lostv = 1.0/duration_vaccinated[it] * x[Rlivev, it];
       R_lostnatu = 1.0/duration_natural[it] * x[Rliveu, it];
       R_lostnatv = 1.0/duration_natural[it] * x[Rlivev, it];
@@ -261,12 +260,9 @@ transformed parameters {
       frac_mortu = frac_mort * frac_mort_multiplier_unvaccinated[it];
       frac_mortv = frac_mort * frac_mort_multiplier_vaccinated[it];
 
-      //frac_hospv = frac_hospu * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
-
       //these need to multiplier hosp*icu*mort because frac_mort is fraction died given icu, frac_icu is fraction icu given hosp
       frac_mort_nonhospu = frac_mort_nonhosp * frac_hosp_multiplier_unvaccinated[it] * frac_icu_multiplier_unvaccinated[it] * frac_mort_multiplier_unvaccinated[it];
       frac_mort_nonhospv = frac_mort_nonhosp * frac_hosp_multiplier_vaccinated[it] * frac_icu_multiplier_vaccinated[it] * frac_mort_multiplier_vaccinated[it];
-      //frac_mort_nonhospv = frac_mort_nonhospu * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it]);
       //////////////////////////////////////////
       // S -> E -> I
 
