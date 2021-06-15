@@ -118,9 +118,10 @@ GetStanInputs <- function(inputs) {
   stopifnot(isTRUE(all.equal(vaccines$date, dates)))
   stopifnot(setequal(names(vaccines), c("date", "vaccinated_per_day", "vaccine_efficacy_for_susceptibility", "duration_vaccinated",
                                         "duration_natural", "frac_hosp_multiplier_vaccinated", "frac_hosp_multiplier_unvaccinated", "frac_icu_multiplier_vaccinated", "frac_icu_multiplier_unvaccinated",
-                                        "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "transmission_variant_multiplier")))
+                                        "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "transmission_multiplier_unvaccinated", "transmission_multiplier_vaccinated")))
   vaccines$date <- NULL
   seir_inputs <- c(seir_inputs, vaccines)
+  seir_inputs[['prior_infection_vaccine_scale']] <- inputs$internal$prior.infection.vaccine.scale
 
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
 
@@ -249,6 +250,7 @@ GetProjection <- function(fit, inputs) {
   # int Rpremort_nonhospv = 16;
   # int Rmortu = 17;
   # int Rmortv = 18;
+  # int Sv_fail = 19;
   x <- fit$par$x
 
   projection$exposed <- colSums(x[3:4, ])
@@ -256,7 +258,9 @@ GetProjection <- function(fit, inputs) {
   projection$activeCases <- colSums(x[3:12, ])
   projection$totalCases <- fit$par$total_cases
   projection$susceptibleUnvax <- x[1, ]
-  projection$vaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14, 16), ])
+  projection$vaccinated <- colSums(x[c(2, 4, 6, 8, 10, 12, 14, 16, 19), ])
+  projection$vaccinatedSuccessfully <- colSums(x[c(2, 4, 6, 8, 10, 12, 14, 16), ])
+  #excludes vaccine failed
 
   projection$deathsU <- x[17, ]
   projection$deathsV <- x[18, ]

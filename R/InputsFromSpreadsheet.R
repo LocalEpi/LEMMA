@@ -112,6 +112,12 @@ ProcessSheets <- function(sheets) {
   if (internal.args$add.timestamp.to.filestr) {
     internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
+  if (is.null(internal.args$prior.infection.vaccine.scale)) {
+    internal.args$prior.infection.vaccine.scale <- 1
+  }
+  if (is.null(internal.args$child.transmission.scale)) {
+    internal.args$child.transmission.scale <- 1
+  }
   internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
   start_date <- internal.args$simulation.start.date + 1
@@ -127,7 +133,8 @@ ProcessSheets <- function(sheets) {
                     start_date = start_date,
                     end_date = end_date,
                     population = sheets$`Vaccine Distribution`,
-                    variants = sheets$Variants)
+                    variants = sheets$Variants,
+                    child_transmission_scale = internal.args$child.transmission.scale)
   return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data, vaccines = vaccines.list$vaccines, vaccines_nonstan = vaccines.list$vaccines_nonstan))
 }
 

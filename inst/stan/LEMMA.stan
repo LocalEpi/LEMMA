@@ -42,8 +42,8 @@ data {
   real<lower=0.0> mu_frac_mort_nonhosp;
   real<lower=0.0> sigma_frac_mort_nonhosp;
 
-
   real<lower=0.0> lambda_ini_exposed;     // parameter for initial conditions of "exposed"
+
 
   //////////////////////////////////////////
   // interventions
@@ -67,7 +67,10 @@ data {
   real<lower=0.0> frac_icu_multiplier_vaccinated[nt];   //multiplier due to vaccines/variants
    real<lower=0.0> frac_mort_multiplier_unvaccinated[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_mort_multiplier_vaccinated[nt];   //multiplier due to vaccines/variants
-  real<lower=0.0> transmission_variant_multiplier[nt]; //multiplier due to variants only (vaccine effect is in vaccine_efficacy_for_susceptibility)
+  real<lower=0.0> transmission_multiplier_unvaccinated[nt]; //multiplier due to variants and age (vaccine effect is in vaccine_efficacy_for_susceptibility)
+  real<lower=0.0> transmission_multiplier_vaccinated[nt]; //multiplier due to variants and age (vaccine effect is in vaccine_efficacy_for_susceptibility)
+   real<lower=0.0> prior_infection_vaccine_scale; //e.g. 0.8 = those with prior infection 20% less likely to get vaccinated than those without prior infection
+
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
   real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
@@ -176,12 +179,13 @@ transformed parameters {
     real R_lostnatu;
     real R_lostnatv;
     real gained_protection;
+    real infected_effective;
 
     //////////////////////////////////////////
     // Calculate beta for each time point
     beta_0 = r0 / (frac_hosp * duration_pre_hosp + (1 - frac_hosp) * duration_rec_mild);
     for (it in 1:nt) {
-      beta[it] = beta_0 * transmission_variant_multiplier[it];
+      beta[it] = beta_0;
       for (iinter in 1:ninter) {
         //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
@@ -207,13 +211,13 @@ transformed parameters {
     for (it in 1:nt-1){
       //////////////////////////////////////////
       // set transition variables
+      infected_effective = transmission_multiplier_unvaccinated[it] * (x[Imildu,it] + x[Iprehu,it]) + transmission_multiplier_vaccinated[it] * (x[Imildv,it] + x[Iprehv,it]);
+
       newEu = fmin(x[Su,it],
-      x[Su,it] * beta[it] / npop *
-      (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
+      x[Su,it] * beta[it]/ npop * infected_effective);
 
       newEv = fmin(x[Sv_fail,it],
-      x[Sv_fail,it] * beta[it] / npop *
-      (x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]));
+      x[Sv_fail,it] * beta[it] / npop * infected_effective);
 
       total_cases[it + 1] = newEu + newEv + total_cases[it];
       total_casesu[it + 1] = newEu + total_casesu[it];
@@ -234,7 +238,7 @@ transformed parameters {
       leave_icuv = 1.0/duration_hosp_icu * x[Hicuv, it];
       leave_premort_nonhospu = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospu, it];
       leave_premort_nonhospv = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospv, it];
-      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
+      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + prior_infection_vaccine_scale * x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
       newSv_succ = vaccine_efficacy_for_susceptibility[it] * vaccinated * frac_vac_S;
       newSv_fail = (1 - vaccine_efficacy_for_susceptibility[it]) * vaccinated * frac_vac_S;
       newRlivev = vaccine_efficacy_for_susceptibility[it] * vaccinated * (1 - frac_vac_S); //for now only failed vaccination of Rlive just stays in newRliveu [small problem for those who then lose natural immunity - will be counted as non-breakthrough but should be breakthrough]
@@ -364,11 +368,16 @@ generated quantities{
   real<lower=0.0> Rt[nt];
   {
     real frac_prehosp;
+    real frac_vaccinated;
     real avg_duration;
+    real avg_transmission_multiplier;
     for (it in 1:nt) {
-      frac_prehosp = (1e-10 + x[Iprehu, it] + x[Iprehv, it]) / (1e-10 + x[Iprehu, it] + x[Iprehv, it] + x[Imildu, it] + x[Imildv, it]);
+      frac_vaccinated = (x[Imildv,it] + x[Iprehv,it]) / (1e-10 + x[Imildu,it] + x[Iprehu,it] + x[Imildv,it] + x[Iprehv,it]); //at t=1 converges to 0
+      avg_transmission_multiplier = transmission_multiplier_unvaccinated[it] * (1 - frac_vaccinated) + transmission_multiplier_vaccinated[it] * frac_vaccinated;
+
+      frac_prehosp = (1e-10 * frac_hosp + x[Iprehu, it] + x[Iprehv, it]) / (1e-10 + x[Iprehu, it] + x[Iprehv, it] + x[Imildu, it] + x[Imildv, it]); //at t=1 converges to frac_hosp
       avg_duration = frac_prehosp * duration_pre_hosp + (1 - frac_prehosp) * duration_rec_mild;
-      Rt[it] = beta[it] * avg_duration * (x[Su, it] + x[Sv_fail, it]) / npop;
+      Rt[it] = beta[it] * avg_transmission_multiplier * avg_duration * (x[Su, it] + x[Sv_fail, it]) / npop;
     }
   }
 }

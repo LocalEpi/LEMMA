@@ -39,7 +39,7 @@ GetMaxVax <- function(vax_uptake, date, elligible_date, pop) {
   return(uptake * pop)
 }
 
-GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, population, variants) {
+GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, population, variants, child_transmission_scale) {
   population <- copy(population)
   max_actual_vaccine_date <- doses_actual[, max(date)]
   doses <- GetDoses(doses_actual, doses_future, population, start_date, end_date)
@@ -84,7 +84,7 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   }
   variant_frac <- variant_frac / rowSums(variant_frac) #recycles row sum
 
-  vaccine_efficacy_against_progression <- vaccine_efficacy_for_susceptibility <- duration_vaccinated <- duration_natural  <- transmission_variant_multiplier <- rep(NA_real_, nt)
+  vaccine_efficacy_against_progression <- vaccine_efficacy_for_susceptibility <- duration_vaccinated <- duration_natural <- rep(NA_real_, nt)
   for (it in 1:nt) {
     vaccine_efficacy_against_progression[it] <- sum(variant_frac[it, ] *
                                                       (variants$vaccine_efficacy_against_progression_1 * doses$frac1[it] +
@@ -98,7 +98,6 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
     #input durations are in years, output in days
     duration_vaccinated[it] <- 365 * sum(variant_frac[it, ] * variants$duration_vaccinated_years)
     duration_natural[it] <- 365 * sum(variant_frac[it, ] * variants$duration_natural_years)
-    transmission_variant_multiplier[it] <- sum(variant_frac[it, ] * variants$transmisson_mult)
   }
 
   #input is mort|infected, LEMMA uses icu|hosp and mort|icu
@@ -108,15 +107,18 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   #multiplier_unvaccinated  = rate_unvax / rate_pop   accounting for age distribution + variants
   #multiplier_unvaccinated  = rate_vax / rate_pop   accounting for age distribution + variants + vaccines
 
-  frac_hosp_multiplier_unvaccinated <- frac_hosp_multiplier_vaccinated <- frac_icu_multiplier_unvaccinated <- frac_icu_multiplier_vaccinated <- frac_mort_multiplier_unvaccinated <- frac_mort_multiplier_vaccinated <- rep(1, nt)
+  frac_hosp_multiplier_unvaccinated <- frac_hosp_multiplier_vaccinated <- frac_icu_multiplier_unvaccinated <- frac_icu_multiplier_vaccinated <- frac_mort_multiplier_unvaccinated <- frac_mort_multiplier_vaccinated <- transmission_multiplier_unvaccinated <- transmission_multiplier_vaccinated <- rep(1, nt)
 
   dt <- cbind(lethality, population)
 
+  dt[age < 12, transmission_multiplier := child_transmission_scale]
+  dt[age >= 12, transmission_multiplier := 1]
   dt[, vax := 0]
   dt[, pop_frac := pop / sum(pop)]
   hosp_rate_pop <- dt[, sum(hosp * pop_frac)] #rate relative to 18-30
   icu_rate_pop <- dt[, sum(icu_rate * pop_frac)] #rate relative to 18-30
   mort_rate_pop <- dt[, sum(mort_rate * pop_frac)] #rate relative to 18-30
+  transmission_multiplier_pop <- dt[, sum(transmission_multiplier * pop_frac)]
 
   date <- seq(start_date, end_date, by = "day")
   exposed.to.hosp <- 7 #approximate time from exposed to hosp - when the age distribution changes this should affect hosptialization rate about 7 days later
@@ -136,8 +138,13 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
     dt[, vaccinated_pop_frac := vax / sum(vax)] #age distribution of vaccinated
     dt[, unvaccinated_pop_frac := (pop - vax) / sum(pop - vax)] #age distribution of unvaccinated
 
-    if ((it + exposed.to.hosp) <= nt) {
+    transmission_multiplier_unvaccinated[it] <- dt[, sum(transmission_multiplier * unvaccinated_pop_frac)] /
+      transmission_multiplier_pop * sum(variants$transmisson_mult * variant_frac[it, ])
+    transmission_multiplier_vaccinated[it] <- dt[, sum(transmission_multiplier * vaccinated_pop_frac)] /
+      transmission_multiplier_pop * sum(variants$transmisson_mult * variant_frac[it, ])
 
+
+    if ((it + exposed.to.hosp) <= nt) {
       frac_hosp_multiplier_unvaccinated[it + exposed.to.hosp] <- dt[, sum(hosp * unvaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ])
       frac_hosp_multiplier_vaccinated[it + exposed.to.hosp] <- dt[, sum(hosp * vaccinated_pop_frac)] / hosp_rate_pop * sum(var_hosp_mult * variant_frac[it, ]) * (1 - vaccine_efficacy_against_progression[it]) / (1 - vaccine_efficacy_for_susceptibility[it])
 
@@ -154,7 +161,7 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
   vaccines <- data.table(date, vaccinated_per_day, vaccine_efficacy_for_susceptibility, duration_vaccinated, duration_natural,
                          frac_hosp_multiplier_unvaccinated, frac_hosp_multiplier_vaccinated,
                          frac_icu_multiplier_unvaccinated, frac_icu_multiplier_vaccinated,
-                         frac_mort_multiplier_unvaccinated, frac_mort_multiplier_vaccinated, transmission_variant_multiplier)
+                         frac_mort_multiplier_unvaccinated, frac_mort_multiplier_vaccinated, transmission_multiplier_unvaccinated, transmission_multiplier_vaccinated)
   return(list(vaccines = vaccines, vaccines_nonstan = list(doses = doses, variant_frac = variant_frac, variants = variants)))
 }
 
