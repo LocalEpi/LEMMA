@@ -121,6 +121,7 @@ GetStanInputs <- function(inputs) {
                                         "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "transmission_variant_multiplier")))
   vaccines$date <- NULL
   seir_inputs <- c(seir_inputs, vaccines)
+  seir_inputs[['prior_infection_vaccine_scale']] <- inputs$internal$prior.infection.vaccine.scale
 
   stopifnot(seir_inputs[['vaccine_efficacy_for_susceptibility']] <= seir_inputs[['vaccine_efficacy_against_progression']])
 

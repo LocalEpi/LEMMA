@@ -112,6 +112,12 @@ ProcessSheets <- function(sheets) {
   if (internal.args$add.timestamp.to.filestr) {
     internal.args$output.filestr <- paste0(internal.args$output.filestr, gsub(":", "-", as.character(date()), fixed = T))
   }
+  if (is.null(internal.args$prior.infection.vaccine.scale)) {
+    internal.args$prior.infection.vaccine.scale <- 1
+  }
+  if (is.null(internal.args$child.transmission.scale)) {
+    internal.args$child.transmission.scale <- 1
+  }
   internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
   start_date <- internal.args$simulation.start.date + 1

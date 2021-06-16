@@ -70,6 +70,8 @@ data {
   real<lower=0.0> transmission_variant_multiplier[nt]; //multiplier due to variants only (vaccine effect is in vaccine_efficacy_for_susceptibility)
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
+  real<lower=0.0> prior_infection_vaccine_scale; //e.g. 0.8 = those with prior infection 20% less likely to get vaccinated than those without prior infection
+
   real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
   real<lower=0.0> sigma_frac_tested;      // sd of infected who test positiveof infected who test positive
 
@@ -234,7 +236,7 @@ transformed parameters {
       leave_icuv = 1.0/duration_hosp_icu * x[Hicuv, it];
       leave_premort_nonhospu = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospu, it];
       leave_premort_nonhospv = 1.0/duration_mort_nonhosp * x[Rpremort_nonhospv, it];
-      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
+      frac_vac_S = x[Su, it] / (x[Su, it] + x[Eu, it] + prior_infection_vaccine_scale * x[Rliveu, it]); //approx - ignores I and splits between S and Rlive - small magnitude
       newSv_succ = vaccine_efficacy_for_susceptibility[it] * vaccinated * frac_vac_S;
       newSv_fail = (1 - vaccine_efficacy_for_susceptibility[it]) * vaccinated * frac_vac_S;
       newRlivev = vaccine_efficacy_for_susceptibility[it] * vaccinated * (1 - frac_vac_S); //for now only failed vaccination of Rlive just stays in newRliveu [small problem for those who then lose natural immunity - will be counted as non-breakthrough but should be breakthrough]
