@@ -1,3 +1,13 @@
+# --------------------------------------------------------------------------------
+#   Functions:
+#   1. CredibilityIntervalFromExcel
+#   2. ReadExcel
+#   3. TableToList
+#   4. ReadInputs
+#   5. AddInterventions
+#   6. ProcessSheets
+# --------------------------------------------------------------------------------
+
 #' Run Credibility Interval based on Excel inputs
 #'
 #' @param input.file A .xlsx file

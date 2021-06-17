@@ -1,5 +1,9 @@
-library(data.table)
-library(matrixStats)
+# --------------------------------------------------------------------------------
+#   Functions:
+#   1. GetDoses
+#   2. GetMaxVax
+#   3. GetVaccineParams
+# --------------------------------------------------------------------------------
 
 
 #currently uses total first and second doses per day with stable age distribution - could extend in future to day x age x dose_num
