@@ -1,6 +1,7 @@
 Forecasts and scenarios for California counties:  
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
+https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios  
+https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Map
 
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management and Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospital and ICU census, hospital admissions, deaths, cases and seroprevalence.

@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LEMMA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.1</span>
       </span>
     </div>
 
@@ -82,7 +82,7 @@
 
       
 
-      </header><script src="Michigan_files/header-attrs-2.6/header-attrs.js"></script><div class="row">
+      </header><script src="Michigan_files/header-attrs-2.8/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Vaccine Surge and/or Reopening Pause in Michigan</h1>
@@ -90,7 +90,7 @@
             
             <h4 class="date">4/3/2021</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/LocalEpi/LEMMA/blob/master/vignettes/vignettes/Michigan.Rmd"><code>vignettes/vignettes/Michigan.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/LocalEpi/LEMMA/blob/master/vignettes/Michigan.Rmd"><code>vignettes/Michigan.Rmd</code></a></small>
       <div class="hidden name"><code>Michigan.Rmd</code></div>
 
     </div>
@@ -104,11 +104,12 @@
 4. Both Vaccine Surge and Reopening Pause.</p>
 <p>With regard to the reopening pause, this might be possible by closing indoor dining, indoor bars and indoor gyms for two weeks. For comparison, we estimate that restrictions and behavior change in March 2020 reduced the effective contact rate by 67%.</p>
 <p>Relative to the status quo, we estimate that the combined Vaccine Surge and Reopening Pause could reduce hospital admissions by 23000 and deaths by 2500 from April 3 to July 1. The Vaccine Surge alone could reduce hospital admissions by 10000 and deaths by 1200. The Reopening Pause alone could reduce hospital admissions by 16000 and deaths by 1700.</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">LEMMA</span>)
-<span class="no">no_change</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"MI.xlsx"</span>)
-<span class="no">pause</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"MI_pause.xlsx"</span>)
-<span class="no">double</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"MI_double.xlsx"</span>)
-<span class="no">pause_double</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span>(<span class="st">"MI_pause_double.xlsx"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/LocalEpi/LEMMA/">LEMMA</a></span><span class="op">)</span>
+<span class="va">no_change</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span><span class="op">(</span><span class="st">"MI.xlsx"</span><span class="op">)</span>
+<span class="va">pause</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span><span class="op">(</span><span class="st">"MI_pause.xlsx"</span><span class="op">)</span>
+<span class="va">double</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span><span class="op">(</span><span class="st">"MI_double.xlsx"</span><span class="op">)</span>
+<span class="va">pause_double</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CredibilityIntervalFromExcel.html">CredibilityIntervalFromExcel</a></span><span class="op">(</span><span class="st">"MI_pause_double.xlsx"</span><span class="op">)</span></code></pre></div>
 <p><img src="MI_admits.png"><img src="MI_hosp.png"><img src="MI_deaths.png"></p>
 <div id="key-uncertainty---seroprevalence" class="section level2">
 <h2 class="hasAnchor">
@@ -271,45 +272,46 @@ Code to reproduce this sensitivity analysis is below.</p>
 ## 142            TRUE FALSE        FALSE           1.7    0.7      1.04       2334.124       333.7354
 ## 143           FALSE  TRUE        FALSE           1.7    0.7      1.04       6550.384       738.8318
 ## 144           FALSE FALSE        FALSE           1.7    0.7      1.04          0.000         0.0000</code></pre>
-<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="no">Scenario</span> <span class="kw">&lt;-</span> <span class="kw">function</span>(<span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>) {
-  <span class="no">sheets</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">ReadInputs</span>(<span class="st">"MI.xlsx"</span>)
-  <span class="no">pause_date</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span>(<span class="st">"2021/4/3"</span>)
-  <span class="kw">if</span> (<span class="no">pause</span>) {
-    <span class="no">sheets</span>$<span class="no">Interventions</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span>(<span class="no">sheets</span>$<span class="no">Interventions</span>,
-                                  <span class="fu">data.table</span>(<span class="kw">mu_t_inter</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">pause_date</span>, <span class="no">pause_date</span> + <span class="fl">14</span>),
-                                             <span class="kw">sigma_t_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>,
-                                             <span class="kw">mu_beta_inter</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.7</span>, <span class="fl">1</span>/<span class="fl">0.7</span>),
-                                             <span class="kw">sigma_beta_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>,
-                                             <span class="kw">mu_len_inter</span> <span class="kw">=</span> <span class="fl">7</span>,
-                                             <span class="kw">sigma_len_inter</span> <span class="kw">=</span> <span class="fl">0.1</span>))
-  }
-  <span class="kw">if</span> (<span class="no">double_vaccines</span>) {
-    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">dose1</span> <span class="kw">:=</span> <span class="no">dose1</span> * <span class="fl">2</span>]
-    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">dose2</span> <span class="kw">:=</span> <span class="no">dose2</span> * <span class="fl">2</span>]
-    <span class="no">sheets</span>$<span class="no">`Vaccine Doses - Observed`</span>[<span class="no">date</span> <span class="kw">&gt;=</span> <span class="no">pause_date</span> <span class="kw">&amp;</span> <span class="no">date</span> <span class="kw">&lt;=</span> (<span class="no">pause_date</span> + <span class="fl">14</span>), <span class="no">doseJ</span> <span class="kw">:=</span> <span class="no">doseJ</span> * <span class="fl">2</span>]
-  }
-  <span class="kw">if</span> (<span class="no">low_seroprev</span>) {
-    <span class="no">sheets</span>$<span class="no">`Parameters with Distributions`</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"frac_tested"</span>, <span class="no">Mean</span> <span class="kw">:=</span> <span class="fl">0.35</span>]
-  } <span class="kw">else</span> {
-    <span class="no">sheets</span>$<span class="no">`Parameters with Distributions`</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"frac_tested"</span>, <span class="no">Mean</span> <span class="kw">:=</span> <span class="fl">0.25</span>]
-  }
-  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">transmisson_mult</span> <span class="kw">:=</span> <span class="no">trans_mult_UK</span>]
-  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">frac_on_day0</span> <span class="kw">:=</span> <span class="no">cur_UK</span>]
-  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"Wild"</span>, <span class="no">frac_on_day0</span> <span class="kw">:=</span> <span class="fl">1</span> - <span class="no">cur_UK</span>]
-  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">daily_growth_prior</span> <span class="kw">:=</span> <span class="no">growth_UK</span>]
-  <span class="no">sheets</span>$<span class="no">Variants</span>[<span class="no">name</span> <span class="kw">==</span> <span class="st">"UK"</span>, <span class="no">daily_growth_future</span> <span class="kw">:=</span> <span class="no">growth_UK</span>]
-  <span class="no">sheets</span>$<span class="no">Internal</span>[<span class="no">internal.name</span> <span class="kw">==</span> <span class="st">"output.filestr"</span>, <span class="no">value</span> <span class="kw">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span>(<span class="st">"MI_"</span>, <span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>)]
-  <span class="no">inputs</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">ProcessSheets</span>(<span class="no">sheets</span>)
-  <span class="no">lemma</span> <span class="kw">&lt;-</span> <span class="kw pkg">LEMMA</span><span class="kw ns">:::</span><span class="fu">CredibilityInterval</span>(<span class="no">inputs</span>)
-  <span class="fu"><a href="https://rdrr.io/r/base/function.html">return</a></span>(<span class="no">lemma</span>)
-}
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">Scenario</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pause</span>, <span class="va">double_vaccines</span>, <span class="va">low_seroprev</span>, <span class="va">trans_mult_UK</span>, <span class="va">cur_UK</span>, <span class="va">growth_UK</span><span class="op">)</span> <span class="op">{</span>
+  <span class="va">sheets</span> <span class="op">&lt;-</span> <span class="fu">LEMMA</span><span class="fu">:::</span><span class="fu">ReadInputs</span><span class="op">(</span><span class="st">"MI.xlsx"</span><span class="op">)</span>
+  <span class="va">pause_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2021/4/3"</span><span class="op">)</span>
+  <span class="kw">if</span> <span class="op">(</span><span class="va">pause</span><span class="op">)</span> <span class="op">{</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">Interventions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">sheets</span><span class="op">$</span><span class="va">Interventions</span>,
+                                  <span class="fu">data.table</span><span class="op">(</span>mu_t_inter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">pause_date</span>, <span class="va">pause_date</span> <span class="op">+</span> <span class="fl">14</span><span class="op">)</span>,
+                                             sigma_t_inter <span class="op">=</span> <span class="fl">0.1</span>,
+                                             mu_beta_inter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">0.7</span><span class="op">)</span>,
+                                             sigma_beta_inter <span class="op">=</span> <span class="fl">0.1</span>,
+                                             mu_len_inter <span class="op">=</span> <span class="fl">7</span>,
+                                             sigma_len_inter <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span>
+  <span class="op">}</span>
+  <span class="kw">if</span> <span class="op">(</span><span class="va">double_vaccines</span><span class="op">)</span> <span class="op">{</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">`Vaccine Doses - Observed`</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;=</span> <span class="va">pause_date</span> <span class="op">&amp;</span> <span class="va">date</span> <span class="op">&lt;=</span> <span class="op">(</span><span class="va">pause_date</span> <span class="op">+</span> <span class="fl">14</span><span class="op">)</span>, <span class="va">dose1</span> <span class="op">:=</span> <span class="va">dose1</span> <span class="op">*</span> <span class="fl">2</span><span class="op">]</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">`Vaccine Doses - Observed`</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;=</span> <span class="va">pause_date</span> <span class="op">&amp;</span> <span class="va">date</span> <span class="op">&lt;=</span> <span class="op">(</span><span class="va">pause_date</span> <span class="op">+</span> <span class="fl">14</span><span class="op">)</span>, <span class="va">dose2</span> <span class="op">:=</span> <span class="va">dose2</span> <span class="op">*</span> <span class="fl">2</span><span class="op">]</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">`Vaccine Doses - Observed`</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;=</span> <span class="va">pause_date</span> <span class="op">&amp;</span> <span class="va">date</span> <span class="op">&lt;=</span> <span class="op">(</span><span class="va">pause_date</span> <span class="op">+</span> <span class="fl">14</span><span class="op">)</span>, <span class="va">doseJ</span> <span class="op">:=</span> <span class="va">doseJ</span> <span class="op">*</span> <span class="fl">2</span><span class="op">]</span>
+  <span class="op">}</span>
+  <span class="kw">if</span> <span class="op">(</span><span class="va">low_seroprev</span><span class="op">)</span> <span class="op">{</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">`Parameters with Distributions`</span><span class="op">[</span><span class="va">internal.name</span> <span class="op">==</span> <span class="st">"frac_tested"</span>, <span class="va">Mean</span> <span class="op">:=</span> <span class="fl">0.35</span><span class="op">]</span>
+  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span>
+    <span class="va">sheets</span><span class="op">$</span><span class="va">`Parameters with Distributions`</span><span class="op">[</span><span class="va">internal.name</span> <span class="op">==</span> <span class="st">"frac_tested"</span>, <span class="va">Mean</span> <span class="op">:=</span> <span class="fl">0.25</span><span class="op">]</span>
+  <span class="op">}</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Variants</span><span class="op">[</span><span class="va">name</span> <span class="op">==</span> <span class="st">"UK"</span>, <span class="va">transmisson_mult</span> <span class="op">:=</span> <span class="va">trans_mult_UK</span><span class="op">]</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Variants</span><span class="op">[</span><span class="va">name</span> <span class="op">==</span> <span class="st">"UK"</span>, <span class="va">frac_on_day0</span> <span class="op">:=</span> <span class="va">cur_UK</span><span class="op">]</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Variants</span><span class="op">[</span><span class="va">name</span> <span class="op">==</span> <span class="st">"Wild"</span>, <span class="va">frac_on_day0</span> <span class="op">:=</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">cur_UK</span><span class="op">]</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Variants</span><span class="op">[</span><span class="va">name</span> <span class="op">==</span> <span class="st">"UK"</span>, <span class="va">daily_growth_prior</span> <span class="op">:=</span> <span class="va">growth_UK</span><span class="op">]</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Variants</span><span class="op">[</span><span class="va">name</span> <span class="op">==</span> <span class="st">"UK"</span>, <span class="va">daily_growth_future</span> <span class="op">:=</span> <span class="va">growth_UK</span><span class="op">]</span>
+  <span class="va">sheets</span><span class="op">$</span><span class="va">Internal</span><span class="op">[</span><span class="va">internal.name</span> <span class="op">==</span> <span class="st">"output.filestr"</span>, <span class="va">value</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"MI_"</span>, <span class="va">pause</span>, <span class="va">double_vaccines</span>, <span class="va">low_seroprev</span>, <span class="va">trans_mult_UK</span>, <span class="va">cur_UK</span>, <span class="va">growth_UK</span><span class="op">)</span><span class="op">]</span>
+  <span class="va">inputs</span> <span class="op">&lt;-</span> <span class="fu">LEMMA</span><span class="fu">:::</span><span class="fu">ProcessSheets</span><span class="op">(</span><span class="va">sheets</span><span class="op">)</span>
+  <span class="va">lemma</span> <span class="op">&lt;-</span> <span class="fu">LEMMA</span><span class="fu">:::</span><span class="fu">CredibilityInterval</span><span class="op">(</span><span class="va">inputs</span><span class="op">)</span>
+  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">lemma</span><span class="op">)</span>
+<span class="op">}</span>
 
-<span class="no">RunScenario</span> <span class="kw">&lt;-</span> <span class="kw">function</span>(<span class="no">index</span>) {
-  <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span>(<span class="no">scen</span>[<span class="no">index</span>, ], <span class="fu">Scenario</span>(<span class="no">pause</span>, <span class="no">double_vaccines</span>, <span class="no">low_seroprev</span>, <span class="no">trans_mult_UK</span>, <span class="no">cur_UK</span>, <span class="no">growth_UK</span>))
-}
+<span class="va">RunScenario</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">index</span><span class="op">)</span> <span class="op">{</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span><span class="va">scen</span><span class="op">[</span><span class="va">index</span>, <span class="op">]</span>, <span class="fu">Scenario</span><span class="op">(</span><span class="va">pause</span>, <span class="va">double_vaccines</span>, <span class="va">low_seroprev</span>, <span class="va">trans_mult_UK</span>, <span class="va">cur_UK</span>, <span class="va">growth_UK</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
 
-<span class="no">scen</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span>(<span class="kw">pause</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">double_vaccines</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">low_seroprev</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="no">T</span>, <span class="no">F</span>), <span class="kw">trans_mult_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1.5</span>, <span class="fl">1.7</span>), <span class="kw">cur_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span>), <span class="kw">growth_UK</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1.02</span>, <span class="fl">1.03</span>, <span class="fl">1.04</span>))
-<span class="no">lemma_list</span> <span class="kw">&lt;-</span> <span class="fu">mclapply</span>(<span class="fl">1</span>:<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span>(<span class="no">scen</span>), <span class="no">RunScenario</span>, <span class="kw">mc.cores</span> <span class="kw">=</span> <span class="fl">12</span>)</pre></body></html></div>
+<span class="va">scen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span>pause <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">T</span>, <span class="cn">F</span><span class="op">)</span>, double_vaccines <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">T</span>, <span class="cn">F</span><span class="op">)</span>, low_seroprev <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">T</span>, <span class="cn">F</span><span class="op">)</span>, trans_mult_UK <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">1.7</span><span class="op">)</span>, cur_UK <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.7</span><span class="op">)</span>, growth_UK <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1.02</span>, <span class="fl">1.03</span>, <span class="fl">1.04</span><span class="op">)</span><span class="op">)</span>
+<span class="va">lemma_list</span> <span class="op">&lt;-</span> <span class="fu">mclapply</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">scen</span><span class="op">)</span>, <span class="va">RunScenario</span>, mc.cores <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></code></pre></div>
 </div>
   </div>
 
@@ -328,7 +330,7 @@ Code to reproduce this sensitivity analysis is below.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

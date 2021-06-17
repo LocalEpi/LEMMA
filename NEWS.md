@@ -1,3 +1,11 @@
+## LEMMA 2.1
+### New Features
+* Added outputs for outcomes among vaccinated and unvaccinated
+* Added parameters for relative transmission among age 0-11, relative probability of previously infected to be vaccinated
+
+### Minor improvements and fixes 
+* Improved modelling of vaccinated and unvaccinated compartments to better match vaccine efficacy inputs
+
 ## LEMMA 2.0.4
 ### Minor improvements and fixes 
 * When adding automatic interventions, do not consider dates of future interventions
