@@ -5,6 +5,9 @@ Forecasts and scenarios for California counties:
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
 
+LEMMA Shiny app:
+https://localepi.shinyapps.io/LEMMA-Shiny/
+
 
 ### License
  
