@@ -20,41 +20,41 @@
 CredibilityIntervalData <- function(inputs, fit.to.data = NULL) {
   inputs$all.inputs.str <- ToString(inputs)
   inputs.copy <- copy(inputs)
-  
+
   new.interventions <- inputs$interventions[mu_t_inter > max(inputs$obs.data$date)]
   inputs$interventions <- inputs$interventions[mu_t_inter <= max(inputs$obs.data$date)]
-  
+
   if (is.null(fit.to.data)) {
     fit.to.data <- RunSim(inputs)
   }
   fit.extended <- ExtendSim(inputs, fit.to.data, new.interventions)
   projection <- GetProjection(fit.extended, inputs)
-  
+
   return(
     list(
-      fit.to.data = fit.to.data, 
-      fit.extended = fit.extended, 
+      fit.to.data = fit.to.data,
+      fit.extended = fit.extended,
       projection = projection,
       inputs = inputs.copy
     )
-  ) 
+  )
 }
 
 #` Main function to calculate credibility interval
 CredibilityInterval <- function(inputs, fit.to.data = NULL) {
   TestOutputFile(inputs$internal.args$output.filestr)
-  
+
   ci_data <- CredibilityIntervalData(inputs, fit.to.data)
-  
+
   excel.output <- GetExcelOutput(ci_data$projection, ci_data$fit.to.data, ci_data$inputs)
   gplot <- GetPdfOutput(ci_data$fit.extended, ci_data$projection, ci_data$inputs)
   invisible(
     list(
-      fit.to.data = ci_data$fit.to.data, 
-      fit.extended = ci_data$fit.extended, 
-      projection = ci_data$projection, 
-      gplot = gplot, 
-      excel.output = excel.output, 
+      fit.to.data = ci_data$fit.to.data,
+      fit.extended = ci_data$fit.extended,
+      projection = ci_data$projection,
+      gplot = gplot,
+      excel.output = excel.output,
       inputs = ci_data$inputs
     )
   )
@@ -156,7 +156,7 @@ GetStanInputs <- function(inputs) {
   stopifnot(isTRUE(all.equal(vaccines$date, dates)))
   stopifnot(setequal(names(vaccines), c("date", "vaccinated_per_day", "vaccine_efficacy_for_susceptibility", "duration_vaccinated",
                                         "duration_natural", "frac_hosp_multiplier_vaccinated", "frac_hosp_multiplier_unvaccinated", "frac_icu_multiplier_vaccinated", "frac_icu_multiplier_unvaccinated",
-                                        "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "transmission_multiplier_unvaccinated", "transmission_multiplier_vaccinated")))
+                                        "frac_mort_multiplier_vaccinated", "frac_mort_multiplier_unvaccinated", "frac_mort_nonhosp_multiplier_vaccinated", "frac_mort_nonhosp_multiplier_unvaccinated", "transmission_multiplier_unvaccinated", "transmission_multiplier_unvaccinated", "transmission_multiplier_vaccinated")))
   vaccines$date <- NULL
   seir_inputs <- c(seir_inputs, vaccines)
   seir_inputs[['prior_infection_vaccine_scale']] <- inputs$internal$prior.infection.vaccine.scale

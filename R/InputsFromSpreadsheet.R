@@ -144,7 +144,8 @@ ProcessSheets <- function(sheets) {
                     end_date = end_date,
                     population = sheets$`Vaccine Distribution`,
                     variants = sheets$Variants,
-                    child_transmission_scale = internal.args$child.transmission.scale)
+                    child_transmission_scale = internal.args$child.transmission.scale,
+                    skip_second_dose_fraction = internal.args$skip.second.dose.fraction)
   return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, interventions = interventions, obs.data = obs.data, vaccines = vaccines.list$vaccines, vaccines_nonstan = vaccines.list$vaccines_nonstan))
 }
 

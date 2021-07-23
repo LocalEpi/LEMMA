@@ -65,8 +65,11 @@ data {
   real<lower=0.0> frac_hosp_multiplier_vaccinated[nt];  //multiplier due to vaccines/variants
   real<lower=0.0> frac_icu_multiplier_unvaccinated[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_icu_multiplier_vaccinated[nt];   //multiplier due to vaccines/variants
-   real<lower=0.0> frac_mort_multiplier_unvaccinated[nt];   //multiplier due to vaccines/variants
+  real<lower=0.0> frac_mort_multiplier_unvaccinated[nt];   //multiplier due to vaccines/variants
   real<lower=0.0> frac_mort_multiplier_vaccinated[nt];   //multiplier due to vaccines/variants
+  real<lower=0.0> frac_mort_nonhosp_multiplier_unvaccinated[nt];   //multiplier due to vaccines/variants
+  real<lower=0.0> frac_mort_nonhosp_multiplier_vaccinated[nt];   //multiplier due to vaccines/variants
+
   real<lower=0.0> transmission_multiplier_unvaccinated[nt]; //multiplier due to variants and age (vaccine effect is in vaccine_efficacy_for_susceptibility)
   real<lower=0.0> transmission_multiplier_vaccinated[nt]; //multiplier due to variants and age (vaccine effect is in vaccine_efficacy_for_susceptibility)
    real<lower=0.0> prior_infection_vaccine_scale; //e.g. 0.8 = those with prior infection 20% less likely to get vaccinated than those without prior infection
@@ -265,8 +268,8 @@ transformed parameters {
       frac_mortv = frac_mort * frac_mort_multiplier_vaccinated[it];
 
       //these need to multiplier hosp*icu*mort because frac_mort is fraction died given icu, frac_icu is fraction icu given hosp
-      frac_mort_nonhospu = frac_mort_nonhosp * frac_hosp_multiplier_unvaccinated[it] * frac_icu_multiplier_unvaccinated[it] * frac_mort_multiplier_unvaccinated[it];
-      frac_mort_nonhospv = frac_mort_nonhosp * frac_hosp_multiplier_vaccinated[it] * frac_icu_multiplier_vaccinated[it] * frac_mort_multiplier_vaccinated[it];
+      frac_mort_nonhospu = frac_mort_nonhosp * frac_mort_nonhosp_multiplier_unvaccinated[it];
+      frac_mort_nonhospv = frac_mort_nonhosp * frac_mort_nonhosp_multiplier_vaccinated[it];
       //////////////////////////////////////////
       // S -> E -> I
 
