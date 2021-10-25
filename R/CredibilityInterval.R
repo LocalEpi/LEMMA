@@ -308,6 +308,7 @@ GetProjection <- function(fit, inputs) {
   projection$totalCasesV <- fit$par$total_casesv
 
   projection$relativeEffectiveContactRate <- fit$par$beta / fit$par$beta[1]
+  projection$effectiveContactRate <- fit$par$beta
 
   return(data.table(date, as.data.table(projection)))
 }
