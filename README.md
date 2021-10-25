@@ -5,9 +5,8 @@ Forecasts and scenarios for California counties:
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
 https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
 
-LEMMA Shiny app:
-https://localepi.shinyapps.io/LEMMA-Shiny/
-
+Details on waning vs booster scenarios for California counties:
+https://github.com/LocalEpi/LEMMA-Forecasts/blob/master/README.md
 
 ### License
  
