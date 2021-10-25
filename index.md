@@ -8,6 +8,9 @@ LEMMA (Local Epidemic Modeling for Management and Action) is designed to provide
 
 As of LEMMA 2.0, vaccine and variant modeling is now supported - see documentation below.
 
+The [LEMMA Shiny app](https://localepi.shinyapps.io/LEMMA-Shiny/) provides a convenient web interface to the functionality of the LEMMA and [LEMMA-Forecasts](https://localepi.github.io/LEMMA-Forecasts/) packages. The app supports the full Excel based input as well as user-friendly forecasting
+and scenarios, and users may download Excel and PDF files summarizing output. 
+
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to
 
@@ -17,6 +20,7 @@ LEMMA is a collaborative effort between experts in Medicine, Public Health, and 
 - Diane Havlir - UC San Francisco
 - James Peng - UC San Francisco
 - Sophia Tan - UC Berkeley
+- Sean L. Wu - UC Berkeley
 - Maya L. Petersen - UC Berkeley
 
 We have moved our model fitting from R to Stan. Our Stan implementation is based on the "Santa Cruz County COVID-19 Model" (https://github.com/jpmattern/seir-covid19) by Jann Paul Mattern (UC Santa Cruz) and Mikala Caton (Santa Cruz County Health Services Agency). We are very grateful to Paul and Mikala for generously sharing their code and helping us.
