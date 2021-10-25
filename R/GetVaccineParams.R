@@ -219,6 +219,6 @@ GetVaccineParams <- function(doses_actual, doses_future, start_date, end_date, p
                          frac_hosp_multiplier_unvaccinated, frac_hosp_multiplier_vaccinated,
                          frac_icu_multiplier_unvaccinated, frac_icu_multiplier_vaccinated,
                          frac_mort_multiplier_unvaccinated, frac_mort_multiplier_vaccinated, frac_mort_nonhosp_multiplier_unvaccinated, frac_mort_nonhosp_multiplier_vaccinated, transmission_multiplier_unvaccinated, transmission_multiplier_vaccinated)
-  return(list(vaccines = vaccines, vaccines_nonstan = list(doses = doses, variant_frac = variant_frac, variants = variants)))
+  return(list(vaccines = vaccines, vaccines_nonstan = list(doses = doses, variant_frac = variant_frac, variants = variants, nonstan_dt = data.table(date, vaccine_efficacy_against_progression))))
 }
 
