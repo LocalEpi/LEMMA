@@ -1,15 +1,14 @@
-Forecasts and scenarios for California counties:  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Map
-
 # LEMMA
 LEMMA (Local Epidemic Modeling for Management and Action) is designed to provide regional (e.g. city or county-level) projections of the SARS-CoV-2 (COVID-19) epidemic under various scenarios. Daily projections with uncertainty bounds are made for hospitalizations, ICU use active cases, and total cases. As detailed below, LEMMA allows for a range of user-specified parameterizations (including on the model structure) and is fit using case series data of COVID-19 hospital and ICU census, hospital admissions, deaths, cases and seroprevalence.
 
 As of LEMMA 2.0, vaccine and variant modeling is now supported - see documentation below.
 
-The [LEMMA Shiny app](https://localepi.shinyapps.io/LEMMA-Shiny/) provides a convenient web interface to the functionality of the LEMMA and [LEMMA-Forecasts](https://localepi.github.io/LEMMA-Forecasts/) packages. The app supports the full Excel based input as well as user-friendly forecasting
-and scenarios, and users may download Excel and PDF files summarizing output. 
+Forecasts and scenarios for California counties:  
+https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
+https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios  
+
+Details on waning vs booster scenarios for California counties:  
+https://github.com/LocalEpi/LEMMA-Forecasts/blob/master/README.md
 
 ## Contributors
 LEMMA is a collaborative effort between experts in Medicine, Public Health, and Data Science, including but not limited to

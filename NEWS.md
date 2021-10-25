@@ -1,3 +1,8 @@
+## LEMMA 2.1.1
+### Minor improvements and fixes 
+* Minor additional outputs
+* Added skip.second.dose.fraction 
+
 ## LEMMA 2.1
 ### New Features
 * Added outputs for outcomes among vaccinated and unvaccinated
