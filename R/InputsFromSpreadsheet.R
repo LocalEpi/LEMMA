@@ -128,6 +128,9 @@ ProcessSheets <- function(sheets) {
   if (is.null(internal.args$child.transmission.scale)) {
     internal.args$child.transmission.scale <- 1
   }
+  if (is.null(internal.args$skip.second.dose.fraction)) {
+    internal.args$skip.second.dose.fraction <- 0
+  }
   internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
   start_date <- internal.args$simulation.start.date + 1
