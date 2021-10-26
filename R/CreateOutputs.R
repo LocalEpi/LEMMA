@@ -33,7 +33,7 @@ GetExcelOutputData <- function(projection, fit, inputs) {
 GetExcelOutput <- function(projection, fit, inputs) {
   output.list <- GetExcelOutputData(projection, fit, inputs)
   filestr.out <- paste0(inputs$internal.args$output.filestr, ".xlsx")
-  openxlsx::write.xlsx(output.list, file = filestr.out)
+  openxlsx::write.xlsx(output.list, file = filestr.out, overwrite = T)
   cat("\nExcel output: ", filestr.out, "\n")
   return(output.list)
 }
