@@ -15,7 +15,6 @@
 #' @import ggplot2
 
 GetExcelOutputData <- function(projection, fit, inputs) {
-  options("openxlsx.numFmt" = "0.00")
   display.date.range <- seq(inputs$model.inputs$start.display.date, inputs$model.inputs$end.date, by = "day")
   output.list <- list(projection = projection[date %in% display.date.range])
 
