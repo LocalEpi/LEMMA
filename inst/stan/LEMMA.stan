@@ -129,7 +129,7 @@ parameters {
   real<lower=0.0> ini_exposed;
   real<lower=0.0> sigma_obs[nobs_types];
   real<lower=0.0> r0;
-  real<lower=0.0> beta_multiplier[ninter];
+  real<lower=0.1> beta_multiplier[ninter];
   real<lower=1.0> t_inter[ninter];
   real<lower=1.0> len_inter[ninter];
 
