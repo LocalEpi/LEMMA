@@ -9,7 +9,12 @@ CredibilityIntervalData <- function(inputs, fit.to.data = NULL) {
   if (is.null(fit.to.data)) {
     fit.to.data <- RunSim(inputs)
   }
-  fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data))
+  if (inputs$internal.args$sampling) {
+    fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data))
+  } else {
+    fit.extended <- ExtendSim_optimizing(inputs = inputs, fit.to.data = fit.to.data)
+  }
+
   #projection <- GetProjection(fit.extended, inputs)
   projection <- NULL #temp
   return(
@@ -152,6 +157,12 @@ GetStanInputs <- function(inputs) {
   # lambda parameter for initial conditions of infected
   seir_inputs[['lambda_initial_infected']] = 1 / inputs$internal.args$intial_infected
 
+  # interventions
+  inputs$interventions$t_inter <- as.numeric(inputs$interventions$t_inter - day0)
+  seir_inputs <- c(seir_inputs, lapply(inputs$interventions, as.array)) #as.array fixes problems if only one intervention
+
+  # number of interventions
+  seir_inputs[['ninter']] = nrow(inputs$interventions)
   return(seir_inputs)
 }
 
@@ -168,22 +179,50 @@ RunSim <- function(inputs) {
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
-  fit <- rstan::sampling(stanmodels$LEMMA,
-                         data = seir_inputs,
-                         seed = inputs$internal.args$random.seed,
-                         init = GetInit,
-                         # iter = 100, #temp
-                         verbose = F,
-                         refresh = F,
-                         cores = 4,
-  )
-  # if (fit$return_code != 0) {
-  #   warning("Stan code did not converge! Results are not reliable. return_code = ", fit$return_code)
-  # }
+  if (internal.args$sampling) {
+    for (itry in 0:5) {
+      fit <- rstan::sampling(stanmodels$LEMMA,
+                             data = seir_inputs,
+                             seed = inputs$internal.args$random.seed + itry,
+                             init = GetInit,
+                             verbose = F,
+                             refresh = 500,
+                             cores = 4,
+                             iter = internal.args$iter,
+                             warmup = internal.args$warmup,
+                             control = list(max_treedepth = internal.args$max_treedepth,
+                                            adapt_delta = internal.args$adapt_delta)
+      )
+      rhat <- max(bayesplot::rhat(fit), na.rm=T)
+      if (rhat < 1.1) {
+        ParallelLogger::logInfo("sampling converged, rhat = ", rhat)
+        break
+      } else {
+        ParallelLogger::logInfo("sampling did not converge, rhat = ", rhat, " itry = ", itry)
+      }
+    }
+  } else {
+    for (itry in 0:5) {
+      fit <- rstan::optimizing(stanmodels$LEMMA,
+                               data = seir_inputs,
+                               seed = inputs$internal.args$random.seed + itry,
+                               init = GetInit,
+                               iter = inputs$internal.args$iter,
+                               verbose = T,
+                               as_vector = F
+      )
+      if (min(fit$par$sim_data) > 0.001 & fit$return_code == 0) {
+        ParallelLogger::logInfo("optimizing converged")
+        break
+      } else {
+        ParallelLogger::logInfo("optimizing did not converge, return_code = ", fit$return_code, " min(fit$par$sim_data) = ", min(fit$par$sim_data), " itry = ", itry)
+      }
+    }
+  }
   return(fit)
 }
 
-ExtendSim_old <- function(inputs, fit.to.data) {
+ExtendSim_optimizing <- function(inputs, fit.to.data) {
   GetInit <- function(chain_id) {
     init <- fit.to.data$par
     return(init)

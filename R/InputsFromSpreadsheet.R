@@ -45,6 +45,7 @@ ReadInputs <- function(path) {
   #suppress warning in Vaccine Doses about date
   sheets <- list(ReadExcel(path, sheet = "Parameters with Distributions"),
                  ReadExcel(path, col_types = c("text", "text", "list"), sheet = "Model Inputs"),
+                 ReadExcel(path, sheet = "Interventions", skip = 2),
                  ReadExcel(path, sheet = "Data", skip = 3),
                  ReadExcel(path, sheet = "PUI Details", skip = 4),
                  ReadExcel(path, col_types = c("text", "list", "skip", "skip"), sheet = "Internal"))
@@ -62,6 +63,7 @@ ProcessSheets <- function(sheets) {
 
   model.inputs <- TableToList(sheets$`Model Inputs`)
   internal.args <- TableToList(sheets$Internal)
+  interventions <- sheets$Interventions
   obs.data <- sheets$Data
 
   all.na <- rowAlls(is.na(as.matrix(obs.data[, -"date"])))
@@ -76,7 +78,7 @@ ProcessSheets <- function(sheets) {
 
   internal.args$weights <- rep(1, length(DataTypes())) #TODO - make this an input?
 
-  return(list(params = params, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, obs.data = obs.data))
+  return(list(params = params, interventions = interventions, frac_pui = frac_pui, model.inputs = model.inputs, internal.args = internal.args, obs.data = obs.data))
 }
 
 
