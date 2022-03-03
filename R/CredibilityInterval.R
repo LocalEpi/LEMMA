@@ -166,6 +166,24 @@ GetStanInputs <- function(inputs) {
   return(seir_inputs)
 }
 
+GetSimVsObs <- function(obs_data, tobs, sim_data) {
+  min_ratio <- Inf
+  for (i in 1:nrow(tobs)) {
+    for (j in 1:ncol(tobs)) {
+      tt <- tobs[i, j]
+      if (tt > 0) {
+        obs <- obs_data[i, j]
+        sim <- sim_data[i, tt]
+        if (obs > 0) {
+          ratio <- sim / obs
+          min_ratio <- pmin(min_ratio, ratio)
+        }
+      }
+    }
+  }
+  return(min_ratio)
+}
+
 RunSim <- function(inputs) {
   inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
@@ -202,7 +220,7 @@ RunSim <- function(inputs) {
       }
     }
   } else {
-    for (itry in 0:5) {
+    for (itry in 0:20) {
       fit <- rstan::optimizing(stanmodels$LEMMA,
                                data = seir_inputs,
                                seed = inputs$internal.args$random.seed + itry,
@@ -211,11 +229,12 @@ RunSim <- function(inputs) {
                                verbose = T,
                                as_vector = F
       )
-      if (min(fit$par$sim_data) > 0.001 & fit$return_code == 0) {
+      sim_vs_obs <- GetSimVsObs(seir_inputs$obs_data, seir_inputs$tobs, fit$par$sim_data)
+      if (sim_vs_obs > 0.01 & fit$return_code == 0) {
         ParallelLogger::logInfo("optimizing converged")
         break
       } else {
-        ParallelLogger::logInfo("optimizing did not converge, return_code = ", fit$return_code, " min(fit$par$sim_data) = ", min(fit$par$sim_data), " itry = ", itry)
+        ParallelLogger::logInfo("optimizing did not converge, return_code = ", fit$return_code, " sim_vs_obs = ", sim_vs_obs, " itry = ", itry)
       }
     }
   }
