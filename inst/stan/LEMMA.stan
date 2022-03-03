@@ -37,6 +37,10 @@ data {
   real<lower=0.0> sigma_hosp_delta;
   real<lower=0.0> mu_cases_delta;
   real<lower=0.0> sigma_cases_delta;
+  real<lower=0.0> mu_duration_protection_infection;
+  real<lower=0.0> sigma_duration_protection_infection;
+
+
 
   real<lower=0.0> lambda_initial_infected;     // parameter for initial conditions of "exposed"
 
@@ -85,6 +89,7 @@ parameters {
   real<lower=1.0> duration_rec_mild;
   real<lower=1.0> duration_pre_hosp;
   real<lower=1.0> duration_hosp_mod;
+  real<lower=1.0> duration_protection_infection;
 
   real<lower=0.0, upper=1.0> frac_tested;
 
@@ -131,6 +136,7 @@ transformed parameters {
     real frac_increased_severity_protection;
     real new_admits;
     real VE_severe_given_infection;
+    real lost_protection_infection;
     row_vector[nt]  hosp_frac_delta;
     row_vector[nt]  case_frac_delta;
 
@@ -190,13 +196,15 @@ transformed parameters {
       frac_hosp = frac_hosp_lemma * (1 - VE_severe_given_infection) * severity;
       new_admits = x[Ipreh, it] / duration_pre_hosp;
 
-      x[S, it + 1] = x[S, it] - new_protected - newE;
+      lost_protection_infection = x[P, it] / duration_protection_infection;
+
+      x[S, it + 1] = x[S, it] - new_protected - newE + lost_protection_infection;
       x[E, it + 1] = x[E, it] + newE - newI;
       x[Imild, it + 1] = x[Imild, it] + newI * (1 - frac_hosp) - x[Imild, it] / duration_rec_mild;
       x[Ipreh, it + 1] = x[Ipreh, it] + newI * frac_hosp - new_admits;
       x[Hmod, it + 1] = x[Hmod, it] + new_admits - x[Hmod, it] / duration_hosp_mod;
       x[Rlive, it + 1] = x[Rlive, it] + x[Hmod, it] / duration_hosp_mod + x[Imild, it] / duration_rec_mild;
-      x[P, it + 1] = x[P, it] + new_protected;
+      x[P, it + 1] = x[P, it] + new_protected - lost_protection_infection;
 
       soon_positive[it + 1] = soon_positive[it] + newE * frac_tested - soon_positive[it] / test_delay;
       new_cases[it + 1] = soon_positive[it + 1] / test_delay;
@@ -235,6 +243,7 @@ model {
   duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
   duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
   duration_hosp_mod ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
+  duration_protection_infection ~ normal(mu_duration_protection_infection, sigma_duration_protection_infection);
 
   for (iinter in 1:ninter) {
     beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
