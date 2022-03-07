@@ -60,9 +60,10 @@ ProjectScenario <- function(lemma.object, new.inputs) {
 }
 
 #order needs to match LEMMA.stan:
-# int obs_hosp_census = 1;
-# int obs_cases = 2;
-DataTypes <- function() c("hosp", "cases")
+# int obs_hosp_census = 1; //combined hospitalized
+# int obs_cases1 = 2;
+# int obs_cases2 = 3;
+DataTypes <- function() c("hosp", "cases1", "cases2")
 
 GetStanInputs <- function(inputs) {
   dt <- melt(inputs$params, id.vars = "name")
@@ -150,12 +151,11 @@ GetStanInputs <- function(inputs) {
   # real<lower=0.0> booster_VE_infection;
   # real<lower=0.0> booster_VE_severe;
   seir_inputs <- c(seir_inputs, inputs$omicron) #temp
-  seir_inputs$holiday_start <- as.numeric(seir_inputs$holiday_start - day0)
-  seir_inputs$holiday_end <- as.numeric(seir_inputs$holiday_end - day0)
-  seir_inputs$num_boosters <- seir_inputs$num_boosters[1:nt]
+
+  # seir_inputs$num_boosters <- seir_inputs$num_boosters[1:nt]
 
   # lambda parameter for initial conditions of infected
-  seir_inputs[['lambda_initial_infected']] = 1 / inputs$internal.args$intial_infected
+  # seir_inputs[['lambda_initial_infected']] = 1 / inputs$internal.args$intial_infected
 
   # interventions
   inputs$interventions$t_inter <- as.numeric(inputs$interventions$t_inter - day0)
