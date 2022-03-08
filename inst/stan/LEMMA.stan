@@ -16,14 +16,18 @@ data {
 
   //////////////////////////////////////////
   // prior parameter distributions
-  real<lower=1.0> mu_duration_latent;     // mean duration in "exposed" stage
-  real<lower=0.0> sigma_duration_latent;  // sd duration in "exposed" stage
+  real<lower=1.0> mu_duration_latent1;     // mean duration in "exposed" stage
+  real<lower=0.0> sigma_duration_latent1;  // sd duration in "exposed" stage
+  real<lower=1.0> mu_duration_latent2;     // mean duration in "exposed" stage
+  real<lower=0.0> sigma_duration_latent2;  // sd duration in "exposed" stage
   real<lower=1.0> mu_duration_rec_mild;   // mean duration in "infectious" stage for mild cases
   real<lower=0.0> sigma_duration_rec_mild;// sd duration in "infectious" stage for mild cases
   real<lower=1.0> mu_duration_pre_hosp;   // mean duration in "infectious" stage for hospitalized cases
   real<lower=0.0> sigma_duration_pre_hosp;// sd duration in "infectious" stage for hospitalized cases
-  real<lower=1.0> mu_duration_hosp_mod;   // mean duration in hospital for non-ICU cases
-  real<lower=0.0> sigma_duration_hosp_mod;// sd duration in hospital for non-ICU cases
+  real<lower=1.0> mu_duration_hosp_mod1;   // mean duration in hospital for non-ICU cases
+  real<lower=0.0> sigma_duration_hosp_mod1;// sd duration in hospital for non-ICU cases
+  real<lower=1.0> mu_duration_hosp_mod2;   // mean duration in hospital for non-ICU cases
+  real<lower=0.0> sigma_duration_hosp_mod2;// sd duration in hospital for non-ICU cases
 
   real<lower=0.0> mu_frac_tested;         // mean of infected who test positive
   real<lower=0.0> sigma_frac_tested;      // sd of infected who test positiveof infected who test positive
@@ -35,12 +39,8 @@ data {
   real<lower=0.0> sigma_frac_hosp;
   real<lower=0.0> mu_trans_multiplier;
   real<lower=0.0> sigma_trans_multiplier;
-  real<lower=0.0> mu_duration_latent_multiplier;
-  real<lower=0.0> sigma_duration_latent_multiplier;
   real<lower=0.0> mu_frac_hosp_multiplier;
   real<lower=0.0> sigma_frac_hosp_multiplier;
-  real<lower=0.0> mu_duration_hosp_mod_multiplier;
-  real<lower=0.0> sigma_duration_hosp_mod_multiplier;
 
   real<lower=0.0> mu_duration_protection_infection;
   real<lower=0.0> sigma_duration_protection_infection;
@@ -97,14 +97,14 @@ transformed data {
 }
 parameters {
   real<lower=1.0> duration_latent1; // duration is a minimum of 1 which is the stepsize of this model
+  real<lower=1.0> duration_latent2; // duration is a minimum of 1 which is the stepsize of this model
   real<lower=1.0> duration_rec_mild;
   real<lower=1.0> duration_pre_hosp;
   real<lower=1.0> duration_hosp_mod1;
+  real<lower=1.0> duration_hosp_mod2;
   real<lower=1.0> duration_protection_infection;
-  real<lower=0.0> frac_hosp1;
+  real<lower=0.0, upper = 1.0> frac_hosp1;
 
-  real<lower=0.0> duration_latent_multiplier;
-  real<lower=0.0> duration_hosp_mod_multiplier;
   real<lower=0.0> frac_hosp_multiplier;
 
   real<lower=0.0, upper=1.0> frac_tested;
@@ -127,8 +127,6 @@ transformed parameters {
   row_vector<lower=0.0>[nt] soon_positive2;
   real<lower=0.0> beta[nt];
   // real<lower=0.0> frac_hosp_0;
-  real<lower=1.0> duration_latent2;
-  real<lower=1.0> duration_hosp_mod2;
   real<lower=0.0> frac_hosp2;
 
   for (it in 1:nt) {
@@ -161,8 +159,6 @@ transformed parameters {
     real frac_E2_from_P1;
     real frac_E2_from_Rlive1;
 
-    duration_latent2 = duration_latent1 * duration_latent_multiplier;
-    duration_hosp_mod2 = duration_hosp_mod1 * duration_hosp_mod_multiplier;
     frac_hosp2 = frac_hosp1 * frac_hosp_multiplier;
 
     // VE_severe_given_infection = VE_severe_given_infection_0;
@@ -175,6 +171,9 @@ transformed parameters {
     frac_init_E = duration_latent1 / (duration_latent1 + avg_duration);
     x[E1, 1] = frac_init_E * initial_infected1;
     x[Imild1, 1] = (1 - frac_init_E) * initial_infected1 * (1 - frac_hosp_init);
+    if (x[Imild1, 1] < 0) {
+      print("x[Imild1, 1]=",x[Imild1, 1]," frac_init_E=",frac_init_E," initial_infected1=", initial_infected1, " frac_hosp_init=", frac_hosp_init, " duration_latent1=",duration_latent1, " duration_rec_mild=",duration_rec_mild)
+    }
     x[Ipreh1, 1] = (1 - frac_init_E) * initial_infected1 * frac_hosp_init;
     x[Hmod1, 1] = init_hosp1;
     x[P1, 1] = npop * (VE_infection1 - VE_infection2);
@@ -212,14 +211,13 @@ transformed parameters {
 
       if (it == variant2_introduction) {
         newE2 = initial_infected2_fraction * newE1;
-        print("newE2 = ", newE2)
       } else {
         newE2 = fmin(S2, beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
       }
 
 
       newI1 = x[E1, it] / duration_latent1;
-      newI2 = x[E2, it] / duration_latent2;
+      newI2 = fmin(x[E2, it], x[E2, it] / duration_latent2);
 
       //this all needs work
       // frac_boosters_to_susceptible = x[S, it] / (x[S, it] + omicron_recovered_booster_scale * x[Rlive, it]);
@@ -248,44 +246,48 @@ transformed parameters {
       x[E1, it + 1] = x[E1, it] + newE1 - newI1;
       x[E2, it + 1] = x[E2, it] + newE2 - newI2;
 
-      x[Imild1, it + 1] = x[Imild1, it] + newI1 * (1 - frac_hosp1) - x[Imild1, it] / duration_rec_mild;
-      x[Imild2, it + 1] = x[Imild2, it] + newI2 * (1 - frac_hosp2) - x[Imild2, it] / duration_rec_mild;
-
-      x[Ipreh1, it + 1] = x[Ipreh1, it] + newI1 * frac_hosp1 - new_admits1;
-      x[Ipreh2, it + 1] = x[Ipreh2, it] + newI2 * frac_hosp2 - new_admits2;
-
-      x[Hmod1, it + 1] = x[Hmod1, it] + new_admits1 - x[Hmod1, it] / duration_hosp_mod1;
-      x[Hmod2, it + 1] = x[Hmod2, it] + new_admits2 - x[Hmod2, it] / duration_hosp_mod2;
-
-      x[P1, it + 1] = x[P1, it] + new_protected1 - lost_protection_infection1 +  lost_protection_infection12 - newE2 * frac_E2_from_P1;
-      x[P12, it + 1] = x[P12, it] + new_protected12 - lost_protection_infection12;
-
-      x[Rlive1, it + 1] = x[Rlive1, it] + x[Hmod1, it] / duration_hosp_mod1 + x[Imild1, it] / duration_rec_mild - newE2 * frac_E2_from_Rlive1;
-      x[Rlive12, it + 1] = x[Rlive12, it] + x[Hmod2, it] / duration_hosp_mod2 + x[Imild2, it] / duration_rec_mild;
-
-
-
-      soon_positive1[it + 1] = soon_positive1[it] + newE1 * frac_tested - soon_positive1[it] / test_delay;
-      soon_positive2[it + 1] = soon_positive2[it] + newE2 * frac_tested - soon_positive2[it] / test_delay;
-      new_cases1[it + 1] = soon_positive1[it + 1] / test_delay;
-      new_cases2[it + 1] = soon_positive2[it + 1] / test_delay;
-
-      // if (is_nan(new_cases1[it + 1])) {
-        //   print("is nan cases:")
-        //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
-        //   reject("new_cases[it+1] is nan")
+      // if (it == variant2_introduction || it == (variant2_introduction+1)) {
+        //   print("it = ", it, " newE2 = ", newE2, " newI2 = ", newI2, " x[E2, it] = ", x[E2, it], " x[E2, it + 1] = ", x[E2, it + 1], " duration_latent2 = ", duration_latent2)
         // }
 
-        // if (is_nan(sum(x[:, it + 1]))) {
-          //   print("is nan:")
-          //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
-          //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
+        x[Imild1, it + 1] = x[Imild1, it] + newI1 * (1 - frac_hosp1) - x[Imild1, it] / duration_rec_mild;
+        x[Imild2, it + 1] = x[Imild2, it] + newI2 * (1 - frac_hosp2) - x[Imild2, it] / duration_rec_mild;
+
+        x[Ipreh1, it + 1] = x[Ipreh1, it] + newI1 * frac_hosp1 - new_admits1;
+        x[Ipreh2, it + 1] = x[Ipreh2, it] + newI2 * frac_hosp2 - new_admits2;
+
+        x[Hmod1, it + 1] = x[Hmod1, it] + new_admits1 - x[Hmod1, it] / duration_hosp_mod1;
+        x[Hmod2, it + 1] = x[Hmod2, it] + new_admits2 - x[Hmod2, it] / duration_hosp_mod2;
+
+        x[P1, it + 1] = x[P1, it] + new_protected1 - lost_protection_infection1 +  lost_protection_infection12 - newE2 * frac_E2_from_P1;
+        x[P12, it + 1] = x[P12, it] + new_protected12 - lost_protection_infection12;
+
+        x[Rlive1, it + 1] = x[Rlive1, it] + x[Hmod1, it] / duration_hosp_mod1 + x[Imild1, it] / duration_rec_mild - newE2 * frac_E2_from_Rlive1;
+        x[Rlive12, it + 1] = x[Rlive12, it] + x[Hmod2, it] / duration_hosp_mod2 + x[Imild2, it] / duration_rec_mild;
+
+
+
+        soon_positive1[it + 1] = soon_positive1[it] + newE1 * frac_tested - soon_positive1[it] / test_delay;
+        soon_positive2[it + 1] = soon_positive2[it] + newE2 * frac_tested - soon_positive2[it] / test_delay;
+        new_cases1[it + 1] = soon_positive1[it + 1] / test_delay;
+        new_cases2[it + 1] = soon_positive2[it + 1] / test_delay;
+
+        // if (is_nan(new_cases1[it + 1])) {
+          //   print("is nan cases:")
+          //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
+          //   reject("new_cases[it+1] is nan")
           // }
-          // test
-          if (fabs(sum(x[:, it + 1])-npop) > 0.01) {
-            // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
-            reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], " ====  ", x[:, it+1]);
-          }
+
+          // if (is_nan(sum(x[:, it + 1]))) {
+            //   print("is nan:")
+            //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
+            //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
+            // }
+            // test
+            if (fabs(sum(x[:, it + 1])-npop) > 0.01) {
+              // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
+              reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], " ====  ", x[:, it+1]);
+            }
     }
 
     // Data for fitting
@@ -302,12 +304,12 @@ model {
   //////////////////////////////////////////
   // prior distributions
   //
-  duration_latent1 ~ normal(mu_duration_latent, sigma_duration_latent);
-  duration_latent_multiplier ~ normal(mu_duration_latent_multiplier, sigma_duration_latent_multiplier);
+  duration_latent1 ~ normal(mu_duration_latent1, sigma_duration_latent1);
+  duration_latent2 ~ normal(mu_duration_latent2, sigma_duration_latent2);
   duration_rec_mild ~ normal(mu_duration_rec_mild, sigma_duration_rec_mild);
   duration_pre_hosp ~ normal(mu_duration_pre_hosp, sigma_duration_pre_hosp);
-  duration_hosp_mod1 ~ normal(mu_duration_hosp_mod, sigma_duration_hosp_mod);
-  duration_hosp_mod_multiplier ~ normal(mu_duration_hosp_mod_multiplier, sigma_duration_hosp_mod_multiplier);
+  duration_hosp_mod1 ~ normal(mu_duration_hosp_mod1, sigma_duration_hosp_mod1);
+  duration_hosp_mod2 ~ normal(mu_duration_hosp_mod2, sigma_duration_hosp_mod2);
   duration_protection_infection ~ normal(mu_duration_protection_infection, sigma_duration_protection_infection);
 
   beta_0 ~ normal(mu_beta0, sigma_beta0);
@@ -316,6 +318,7 @@ model {
   }
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
+  frac_hosp1 ~ normal(mu_frac_hosp, sigma_frac_hosp);
   trans_multiplier ~ normal(mu_trans_multiplier, sigma_trans_multiplier);
   test_delay ~ normal(mu_test_delay, sigma_test_delay);
 
