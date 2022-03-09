@@ -331,13 +331,15 @@ model {
   trans_multiplier ~ normal(mu_trans_multiplier, sigma_trans_multiplier);
   test_delay ~ normal(mu_test_delay, sigma_test_delay);
 
-  initial_infected1 ~ exponential(lambda_initial_infected1);
+  // initial_infected1 ~ exponential(lambda_initial_infected1);
+  initial_infected1 ~ normal(1/lambda_initial_infected1, 0.1 * 1/lambda_initial_infected1);
 
   //////////////////////////////////////////
   // fitting observations
-  sigma_obs ~ exponential(sigma_obs_est_inv);
 
   if (fit_to_data) {
+    sigma_obs ~ exponential(sigma_obs_est_inv);
+
     //deal with PUIs and NAs in R
     for (itype in 1:nobs_types) {
       if (nobs[itype] > 0) {
@@ -360,6 +362,10 @@ generated quantities{
       } else {
         sim_data_with_error[itype] = sim_data[itype];
       }
+    }
+  } else {
+    for (itype in 1:nobs_types) {
+      sim_data_with_error[itype] = sim_data[itype];
     }
   }
   {

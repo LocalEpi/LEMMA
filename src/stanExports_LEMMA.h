@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(376, 374, "end", "model_LEMMA");
+    reader.add_event(382, 380, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1612,17 +1612,17 @@ public:
             lp_accum__.add(normal_log<propto__>(trans_multiplier, mu_trans_multiplier, sigma_trans_multiplier));
             current_statement_begin__ = 332;
             lp_accum__.add(normal_log<propto__>(test_delay, mu_test_delay, sigma_test_delay));
-            current_statement_begin__ = 334;
-            lp_accum__.add(exponential_log<propto__>(initial_infected1, lambda_initial_infected1));
-            current_statement_begin__ = 338;
-            lp_accum__.add(exponential_log<propto__>(sigma_obs, sigma_obs_est_inv));
+            current_statement_begin__ = 335;
+            lp_accum__.add(normal_log<propto__>(initial_infected1, (1 / lambda_initial_infected1), ((0.1 * 1) / lambda_initial_infected1)));
             current_statement_begin__ = 340;
             if (as_bool(fit_to_data)) {
-                current_statement_begin__ = 342;
+                current_statement_begin__ = 341;
+                lp_accum__.add(exponential_log<propto__>(sigma_obs, sigma_obs_est_inv));
+                current_statement_begin__ = 344;
                 for (int itype = 1; itype <= nobs_types; ++itype) {
-                    current_statement_begin__ = 343;
+                    current_statement_begin__ = 345;
                     if (as_bool(logical_gt(get_base1(nobs, itype, "nobs", 1), 0))) {
-                        current_statement_begin__ = 344;
+                        current_statement_begin__ = 346;
                         lp_accum__.add(normal_log<propto__>(stan::model::rvalue(obs_data, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_min_max(1, get_base1(nobs, itype, "nobs", 1)), stan::model::nil_index_list())), "obs_data"), stan::model::rvalue(sim_data, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_multi(stan::model::rvalue(tobs, stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_min_max(1, get_base1(nobs, itype, "nobs", 1)), stan::model::nil_index_list())), "tobs")), stan::model::nil_index_list())), "sim_data"), get_base1(sigma_obs, itype, "sigma_obs", 1)));
                     }
                 }
@@ -2325,50 +2325,59 @@ public:
             }
             if (!include_gqs__) return;
             // declare and define generated quantities
-            current_statement_begin__ = 351;
+            current_statement_begin__ = 353;
             validate_non_negative_index("sim_data_with_error", "nobs_types", nobs_types);
             validate_non_negative_index("sim_data_with_error", "nt", nt);
             Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> sim_data_with_error(nobs_types, nt);
             stan::math::initialize(sim_data_with_error, DUMMY_VAR__);
             stan::math::fill(sim_data_with_error, DUMMY_VAR__);
             // generated quantities statements
-            current_statement_begin__ = 354;
+            current_statement_begin__ = 356;
             if (as_bool(fit_to_data)) {
-                current_statement_begin__ = 355;
+                current_statement_begin__ = 357;
                 for (int itype = 1; itype <= nobs_types; ++itype) {
-                    current_statement_begin__ = 356;
+                    current_statement_begin__ = 358;
                     if (as_bool(logical_gt(get_base1(nobs, itype, "nobs", 1), 0))) {
-                        current_statement_begin__ = 357;
+                        current_statement_begin__ = 359;
                         for (int it = 1; it <= nt; ++it) {
-                            current_statement_begin__ = 358;
+                            current_statement_begin__ = 360;
                             stan::model::assign(sim_data_with_error, 
                                         stan::model::cons_list(stan::model::index_uni(itype), stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list())), 
                                         stan::math::fmax(0.0, normal_rng(get_base1(sim_data, itype, it, "sim_data", 1), get_base1(sigma_obs, itype, "sigma_obs", 1), base_rng__)), 
                                         "assigning variable sim_data_with_error");
                         }
                     } else {
-                        current_statement_begin__ = 361;
+                        current_statement_begin__ = 363;
                         stan::model::assign(sim_data_with_error, 
                                     stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
                                     get_base1(sim_data, itype, "sim_data", 1), 
                                     "assigning variable sim_data_with_error");
                     }
                 }
+            } else {
+                current_statement_begin__ = 367;
+                for (int itype = 1; itype <= nobs_types; ++itype) {
+                    current_statement_begin__ = 368;
+                    stan::model::assign(sim_data_with_error, 
+                                stan::model::cons_list(stan::model::index_uni(itype), stan::model::nil_index_list()), 
+                                get_base1(sim_data, itype, "sim_data", 1), 
+                                "assigning variable sim_data_with_error");
+                }
             }
             {
-            current_statement_begin__ = 366;
+            current_statement_begin__ = 372;
             local_scalar_t__ frac_prehosp(DUMMY_VAR__);
             (void) frac_prehosp;  // dummy to suppress unused var warning
             stan::math::initialize(frac_prehosp, DUMMY_VAR__);
             stan::math::fill(frac_prehosp, DUMMY_VAR__);
-            current_statement_begin__ = 367;
+            current_statement_begin__ = 373;
             local_scalar_t__ avg_duration(DUMMY_VAR__);
             (void) avg_duration;  // dummy to suppress unused var warning
             stan::math::initialize(avg_duration, DUMMY_VAR__);
             stan::math::fill(avg_duration, DUMMY_VAR__);
             }
             // validate, write generated quantities
-            current_statement_begin__ = 351;
+            current_statement_begin__ = 353;
             size_t sim_data_with_error_j_2_max__ = nt;
             size_t sim_data_with_error_j_1_max__ = nobs_types;
             for (size_t j_2__ = 0; j_2__ < sim_data_with_error_j_2_max__; ++j_2__) {

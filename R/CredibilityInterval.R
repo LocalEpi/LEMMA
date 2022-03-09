@@ -193,7 +193,7 @@ RunSim <- function(inputs) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
-    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, ini_exposed = 1 / seir_inputs$lambda_ini_exposed))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1))
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
