@@ -50,8 +50,8 @@ data {
 
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
-  real<lower=0.0> VE_infection1;
-  real<lower=0.0> VE_infection2;
+  real<lower=0.0> VE_infection1_init;
+  real<lower=0.0> VE_infection2_init;
   real<lower=0.0> init_hosp1;
 
   // real<lower=0.0> omicron_recovered_booster_scale;
@@ -60,7 +60,8 @@ data {
   // real<lower=0.0> booster_VE_severe;
   real<lower=0.0> frac_incidental1;
   real<lower=0.0> frac_incidental2;
-  // real<lower=0.0> VE_severe_given_infection_0;
+  real<lower=0.0> VE_severe_given_infection1_init;
+  real<lower=0.0> VE_severe_given_infection2_init;
 
   int<lower=0> variant2_introduction;
 
@@ -69,6 +70,8 @@ data {
   real<lower=1.0> len_inter[ninter];     // mean length of each intervention
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
+
+  int fit_to_data;
 }
 
 transformed data {
@@ -103,7 +106,7 @@ parameters {
   real<lower=1.0> duration_hosp_mod1;
   real<lower=1.0> duration_hosp_mod2;
   real<lower=1.0> duration_protection_infection;
-  real<lower=0.0, upper = 1.0> frac_hosp1;
+  real<lower=0.0, upper = 1.0> frac_hosp1_naive;
 
   real<lower=0.0> frac_hosp_multiplier;
 
@@ -127,7 +130,7 @@ transformed parameters {
   row_vector<lower=0.0>[nt] soon_positive2;
   real<lower=0.0> beta[nt];
   // real<lower=0.0> frac_hosp_0;
-  real<lower=0.0> frac_hosp2;
+  real<lower=0.0> frac_hosp2_naive;
 
   for (it in 1:nt) {
     for (itype in 1:nobs_types) {
@@ -150,7 +153,8 @@ transformed parameters {
     real frac_increased_severity_protection;
     real new_admits1;
     real new_admits2;
-    real VE_severe_given_infection;
+    real VE_severe_given_infection1;
+    real VE_severe_given_infection2;
     real lost_protection_infection1;
     real lost_protection_infection12;
     real frac_hosp_init;
@@ -158,14 +162,17 @@ transformed parameters {
     real frac_E2_from_S;
     real frac_E2_from_P1;
     real frac_E2_from_Rlive1;
+    real frac_hosp1;
+    real frac_hosp2;
 
-    frac_hosp2 = frac_hosp1 * frac_hosp_multiplier;
+    frac_hosp2_naive = frac_hosp1_naive * frac_hosp_multiplier;
 
-    // VE_severe_given_infection = VE_severe_given_infection_0;
-    VE_severe_given_infection = 0; //temp!
-    frac_hosp_init = frac_hosp1 * (1 - VE_severe_given_infection);
-    // avg_duration = frac_hosp_0 * duration_pre_hosp + (1 - frac_hosp_init) * duration_rec_mild;
-    avg_duration = duration_rec_mild;
+    // VE_severe_given_infection = VE_severe_given_infection_1_init;
+    VE_severe_given_infection1 = VE_severe_given_infection1_init;
+    VE_severe_given_infection2 = VE_severe_given_infection2_init;
+
+    frac_hosp_init = frac_hosp1_naive * (1 - VE_severe_given_infection1);
+    avg_duration = frac_hosp_init * duration_pre_hosp + (1 - frac_hosp_init) * duration_rec_mild;
 
     x[:,1] = rep_vector(0.0, ncompartments);
     frac_init_E = duration_latent1 / (duration_latent1 + avg_duration);
@@ -176,8 +183,8 @@ transformed parameters {
     }
     x[Ipreh1, 1] = (1 - frac_init_E) * initial_infected1 * frac_hosp_init;
     x[Hmod1, 1] = init_hosp1;
-    x[P1, 1] = npop * (VE_infection1 - VE_infection2);
-    x[P12, 1] = npop * VE_infection2;
+    x[P1, 1] = npop * (VE_infection1_init - VE_infection2_init);
+    x[P12, 1] = npop * VE_infection2_init;
 
     x[S, 1] = npop - initial_infected1 - x[P1, 1] - x[P12, 1] - x[Hmod1, 1];
 
@@ -230,7 +237,9 @@ transformed parameters {
       //
       // //increase VE_severe_given_infection for boosters
       // VE_severe_given_infection = booster_VE_severe * frac_increased_severity_protection +   VE_severe_given_infection * (1 - frac_increased_severity_protection);
-      // frac_hosp = frac_hosp_lemma * (1 - VE_severe_given_infection) * severity;
+
+      frac_hosp1 = frac_hosp1_naive * (1 - VE_severe_given_infection1);
+      frac_hosp2 = frac_hosp2_naive * (1 - VE_severe_given_infection2);
 
       //new_protected1 was subtracted from S but this seems more complicated now
       new_protected1 = 0;
@@ -318,7 +327,7 @@ model {
   }
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
-  frac_hosp1 ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_hosp1_naive ~ normal(mu_frac_hosp, sigma_frac_hosp);
   trans_multiplier ~ normal(mu_trans_multiplier, sigma_trans_multiplier);
   test_delay ~ normal(mu_test_delay, sigma_test_delay);
 
@@ -328,25 +337,29 @@ model {
   // fitting observations
   sigma_obs ~ exponential(sigma_obs_est_inv);
 
-  //deal with PUIs and NAs in R
-  for (itype in 1:nobs_types) {
-    if (nobs[itype] > 0) {
-      obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
+  if (fit_to_data) {
+    //deal with PUIs and NAs in R
+    for (itype in 1:nobs_types) {
+      if (nobs[itype] > 0) {
+        obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
+      }
     }
   }
 }
 
 generated quantities{
-  matrix<lower=0.0>[nobs_types,nt] sim_data_with_error;
+  matrix[nobs_types,nt] sim_data_with_error;
   // real<lower=0.0> Rt[nt];
 
-  for (itype in 1:nobs_types) {
-    if (nobs[itype] > 0) {
-      for (it in 1:nt) {
-        sim_data_with_error[itype, it] = fmax(0.0, normal_rng(sim_data[itype, it], sigma_obs[itype])); //can't vectorize - fmax not vectorized?
+  if (fit_to_data) {
+    for (itype in 1:nobs_types) {
+      if (nobs[itype] > 0) {
+        for (it in 1:nt) {
+          sim_data_with_error[itype, it] = fmax(0.0, normal_rng(sim_data[itype, it], sigma_obs[itype])); //can't vectorize - fmax not vectorized?
+        }
+      } else {
+        sim_data_with_error[itype] = sim_data[itype];
       }
-    } else {
-      sim_data_with_error[itype] = sim_data[itype];
     }
   }
   {
