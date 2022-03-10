@@ -129,8 +129,10 @@ transformed parameters {
   row_vector<lower=0.0>[nt] soon_positive1;
   row_vector<lower=0.0>[nt] soon_positive2;
   real<lower=0.0> beta[nt];
+  real Rt1[nt];
+  real Rt2[nt];
   // real<lower=0.0> frac_hosp_0;
-  real<lower=0.0> frac_hosp2_naive;
+  real<lower=0.0, upper=1.0> frac_hosp2_naive;
 
   for (it in 1:nt) {
     for (itype in 1:nobs_types) {
@@ -188,6 +190,9 @@ transformed parameters {
 
     x[S, 1] = npop - initial_infected1 - x[P1, 1] - x[P12, 1] - x[Hmod1, 1];
 
+// Rt1[1] = 1; //to avoid nan error
+// Rt2[1] = 1; //to avoid nan error
+
     soon_positive1[1] = 0.0;
     new_cases1[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
     if (tobs[obs_cases1, 1] == 1) {
@@ -220,8 +225,10 @@ transformed parameters {
         newE2 = initial_infected2_fraction * newE1;
       } else {
         newE2 = fmin(S2, beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
-      }
 
+      }
+      Rt1[it] = beta[it] * x[S, it] / npop * duration_rec_mild;
+      Rt2[it] = beta[it] * trans_multiplier * S2 / npop * duration_rec_mild;
 
       newI1 = x[E1, it] / duration_latent1;
       newI2 = fmin(x[E2, it], x[E2, it] / duration_latent2);
@@ -328,6 +335,7 @@ model {
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
   frac_hosp1_naive ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_hosp_multiplier ~ normal(mu_frac_hosp_multiplier, sigma_frac_hosp_multiplier);
   trans_multiplier ~ normal(mu_trans_multiplier, sigma_trans_multiplier);
   test_delay ~ normal(mu_test_delay, sigma_test_delay);
 

@@ -197,8 +197,9 @@ RunSim <- function(inputs) {
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
+  ntries <- inputs$internal.args$ntries - 1
   if (internal.args$sampling) {
-    for (itry in 0:5) {
+    for (itry in 0:ntries) {
       fit <- rstan::sampling(stanmodels$LEMMA,
                              data = seir_inputs,
                              seed = inputs$internal.args$random.seed + itry,
@@ -220,11 +221,11 @@ RunSim <- function(inputs) {
       }
     }
   } else {
-    for (itry in 0:20) {
+    for (itry in 0:ntries) {
       fit <- rstan::optimizing(stanmodels$LEMMA,
                                data = seir_inputs,
                                seed = inputs$internal.args$random.seed + itry,
-                               init = GetInit,
+                               # init = GetInit,
                                iter = inputs$internal.args$iter,
                                verbose = T,
                                as_vector = F
