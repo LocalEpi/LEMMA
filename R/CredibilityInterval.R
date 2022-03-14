@@ -434,3 +434,36 @@ CompareInputs <- function(orig.inputs, new.inputs) {
   invisible(NULL)
 }
 
+FixedParam <- function(inputs, param_name, param_init) {
+  # inputs$model.inputs$end.date <- max(inputs$obs.data$date)
+  seir_inputs <- GetStanInputs(inputs)
+  internal.args <- inputs$internal.args
+
+  GetInit <- function(chain_id) {
+    init.names <- grep("^mu_", names(seir_inputs), value = T)
+    init <- seir_inputs[init.names]
+    names(init) <- sub("mu_", "", init.names)
+    names(init) <- sub("beta_inter", "beta_multiplier", names(init))  #inconsistently named
+    names(init) <- sub("beta0", "beta_0", names(init))  #inconsistently named
+
+
+    init[param_name] <- param_init[chain_id]
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1, initial_infected2 = 1 / seir_inputs$lambda_initial_infected2))
+    return(init)
+  }
+
+
+  fit <- rstan::sampling(stanmodels$LEMMA,
+                         data = seir_inputs,
+                         seed = inputs$internal.args$random.seed,
+                         init = GetInit,
+                         verbose = F,
+                         iter = 1,
+                         warmup = 0,
+                         algorithm = "Fixed_param",
+                         chains = length(param_init)
+
+  )
+
+  return(fit)
+}

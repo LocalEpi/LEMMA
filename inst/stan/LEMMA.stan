@@ -35,8 +35,8 @@ data {
   real<lower=0.0> sigma_test_delay;
   real<lower=0.0> mu_beta0;
   real<lower=0.0> sigma_beta0;
-  real<lower=0.0> mu_frac_hosp;
-  real<lower=0.0> sigma_frac_hosp;
+  real<lower=0.0> mu_frac_hosp1_naive;
+  real<lower=0.0> sigma_frac_hosp1_naive;
   real<lower=0.0> mu_trans_multiplier;
   real<lower=0.0> sigma_trans_multiplier;
   real<lower=0.0> mu_frac_hosp_multiplier;
@@ -46,7 +46,8 @@ data {
   real<lower=0.0> sigma_duration_protection_infection;
 
   real<lower=0.0> lambda_initial_infected1;     // parameter for initial conditions of "exposed"
-  real<lower=0.0> initial_infected2_fraction;
+  real<lower=0.0> lambda_initial_infected2;     // parameter for initial conditions of "exposed"
+  // real<lower=0.0> initial_infected2_fraction;
 
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
@@ -113,6 +114,7 @@ parameters {
   real<lower=0.0, upper=1.0> frac_tested;
 
   real<lower=0.0> initial_infected1;
+  real<lower=0.0> initial_infected2;
   real<lower=0.0> sigma_obs[nobs_types];
 
   real<lower=1.0> test_delay; //days tested after exposed
@@ -222,7 +224,7 @@ transformed parameters {
       frac_E2_from_Rlive1 = 1 - (frac_E2_from_S + frac_E2_from_P1);
 
       if (it == variant2_introduction) {
-        newE2 = initial_infected2_fraction * newE1;
+        newE2 = initial_infected2;
       } else {
         newE2 = fmin(S2, beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
 
@@ -334,13 +336,14 @@ model {
   }
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
-  frac_hosp1_naive ~ normal(mu_frac_hosp, sigma_frac_hosp);
+  frac_hosp1_naive ~ normal(mu_frac_hosp1_naive, sigma_frac_hosp1_naive);
   frac_hosp_multiplier ~ normal(mu_frac_hosp_multiplier, sigma_frac_hosp_multiplier);
   trans_multiplier ~ normal(mu_trans_multiplier, sigma_trans_multiplier);
   test_delay ~ normal(mu_test_delay, sigma_test_delay);
 
   // initial_infected1 ~ exponential(lambda_initial_infected1);
   initial_infected1 ~ normal(1/lambda_initial_infected1, 0.1 * 1/lambda_initial_infected1);
+  initial_infected2 ~ normal(1/lambda_initial_infected2, 0.1 * 2/lambda_initial_infected2);
 
   //////////////////////////////////////////
   // fitting observations
