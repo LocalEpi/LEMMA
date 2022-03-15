@@ -9,6 +9,7 @@ CredibilityIntervalData <- function(inputs, fit.to.data = NULL) {
   if (is.null(fit.to.data)) {
     fit.to.data <- RunSim(inputs)
   }
+  if (isTRUE(inputs$internal.args$fit_to_data_only==1)) return(list(fit.to.data = fit.to.data))
   if (inputs$internal.args$sampling) {
     fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data))
   } else {
@@ -101,6 +102,7 @@ GetStanInputs <- function(inputs) {
       pui <- rep(0, length(pui))
     }
     frac_pui <- inputs$frac_pui[name == data.type, mu]
+    stopifnot(length(frac_pui)==1)
     combined <- conf + frac_pui * pui
     tobs <- as.numeric(date - day0)
 
@@ -193,7 +195,7 @@ RunSim <- function(inputs) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
-    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1, initial_infected2 = 1 / seir_inputs$lambda_initial_infected2))
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
@@ -225,7 +227,7 @@ RunSim <- function(inputs) {
       fit <- rstan::optimizing(stanmodels$LEMMA,
                                data = seir_inputs,
                                seed = inputs$internal.args$random.seed + itry,
-                               # init = GetInit,
+                               init = GetInit,
                                iter = inputs$internal.args$iter,
                                verbose = T,
                                as_vector = F
@@ -446,9 +448,9 @@ FixedParam <- function(inputs, param_name, param_init) {
     names(init) <- sub("beta_inter", "beta_multiplier", names(init))  #inconsistently named
     names(init) <- sub("beta0", "beta_0", names(init))  #inconsistently named
 
-
-    init[param_name] <- param_init[chain_id]
     init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1, initial_infected2 = 1 / seir_inputs$lambda_initial_infected2))
+    init[param_name] <- param_init[chain_id]
+
     return(init)
   }
 

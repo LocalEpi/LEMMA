@@ -102,26 +102,26 @@ transformed data {
 parameters {
   real<lower=1.0> duration_latent1; // duration is a minimum of 1 which is the stepsize of this model
   real<lower=1.0> duration_latent2; // duration is a minimum of 1 which is the stepsize of this model
-  real<lower=1.0> duration_rec_mild;
+  real<lower=1.0, upper = 999.0> duration_rec_mild; //was getting weird errors with duration_rec_mild=Inf
   real<lower=1.0> duration_pre_hosp;
   real<lower=1.0> duration_hosp_mod1;
   real<lower=1.0> duration_hosp_mod2;
   real<lower=1.0> duration_protection_infection;
-  real<lower=0.0, upper = 1.0> frac_hosp1_naive;
+  real<lower=0.001, upper = 1.0> frac_hosp1_naive;
 
-  real<lower=0.0> frac_hosp_multiplier;
+  real<lower=0.001> frac_hosp_multiplier;
 
-  real<lower=0.0, upper=1.0> frac_tested;
+  real<lower=0.001, upper=1.0> frac_tested;
 
-  real<lower=0.0> initial_infected1;
-  real<lower=0.0> initial_infected2;
-  real<lower=0.0> sigma_obs[nobs_types];
+  real<lower=0.001, upper=0.1*npop> initial_infected1;
+  real<lower=0.001, upper=0.1*npop> initial_infected2;
+  real<lower=0.001> sigma_obs[nobs_types];
 
   real<lower=1.0> test_delay; //days tested after exposed
 
-  real<lower=0.0> beta_0;
-  real<lower=0.0> beta_multiplier[ninter];
-  real<lower=0.0> trans_multiplier;
+  real<lower=0.001, upper=9.9> beta_0;
+  real<lower=0.001, upper=3.0> beta_multiplier[ninter];
+  real<lower=0.001, upper=3.09> trans_multiplier;
 }
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
@@ -181,6 +181,9 @@ transformed parameters {
     x[:,1] = rep_vector(0.0, ncompartments);
     frac_init_E = duration_latent1 / (duration_latent1 + avg_duration);
     x[E1, 1] = frac_init_E * initial_infected1;
+    if (is_nan(x[E1, 1])) {
+      print("x[E1, 1] is nan: ", frac_hosp1_naive, " ", VE_severe_given_infection1, " ", frac_hosp_init, " ", duration_pre_hosp, " ", duration_rec_mild, " ", avg_duration, " ", duration_latent1, " ", frac_init_E)
+    }
     x[Imild1, 1] = (1 - frac_init_E) * initial_infected1 * (1 - frac_hosp_init);
     if (x[Imild1, 1] < 0) {
       print("x[Imild1, 1]=",x[Imild1, 1]," frac_init_E=",frac_init_E," initial_infected1=", initial_infected1, " frac_hosp_init=", frac_hosp_init, " duration_latent1=",duration_latent1, " duration_rec_mild=",duration_rec_mild)
@@ -191,6 +194,10 @@ transformed parameters {
     x[P12, 1] = npop * VE_infection2_init;
 
     x[S, 1] = npop - initial_infected1 - x[P1, 1] - x[P12, 1] - x[Hmod1, 1];
+
+if (x[S, 1] < -10) {
+  print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
+}
 
 // Rt1[1] = 1; //to avoid nan error
 // Rt2[1] = 1; //to avoid nan error
@@ -301,6 +308,15 @@ transformed parameters {
             //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
             //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
             // }
+            for (ii in 1:ncompartments) {
+              if (x[ii, it + 1] < -100) {
+                print("beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop=", beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop)
+                print("beta[it]=", beta[it], " trans_multiplier=", trans_multiplier, " S2=", S2, " x[Imild2, it] + x[Ipreh2, it]=", x[Imild2, it] + x[Ipreh2, it], " npop=", npop)
+
+              reject("x[ii, it + 1] < -100: it= ", it, " ii=", ii, " variant2_introduction=",variant2_introduction,  " newE2=", newE2, " x[Imild2, it]=", x[Imild2, it]," x[Ipreh2, it]=", x[Ipreh2, it], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1]);
+            }
+            }
+
             // test
             if (fabs(sum(x[:, it + 1])-npop) > 0.01) {
               // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
@@ -343,7 +359,7 @@ model {
 
   // initial_infected1 ~ exponential(lambda_initial_infected1);
   initial_infected1 ~ normal(1/lambda_initial_infected1, 0.1 * 1/lambda_initial_infected1);
-  initial_infected2 ~ normal(1/lambda_initial_infected2, 0.1 * 2/lambda_initial_infected2);
+  initial_infected2 ~ normal(1/lambda_initial_infected2, 0.1 * 1/lambda_initial_infected2);
 
   //////////////////////////////////////////
   // fitting observations
