@@ -330,6 +330,11 @@ if (x[S, 1] < -10) {
     sim_data[obs_cases2] = new_cases2;
   }
 
+//not exactly right, avoid warning for Rt undefined value
+ Rt1[nt] = Rt1[nt - 1];
+ Rt2[nt] = Rt2[nt - 1];
+
+
   // print(x)
   // print(sim_data)
 }
