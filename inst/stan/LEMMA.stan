@@ -55,10 +55,12 @@ data {
   real<lower=0.0> VE_infection2_init;
   real<lower=0.0> init_hosp1;
 
-  // real<lower=0.0> omicron_recovered_booster_scale;
-  // real<lower=0.0> num_boosters[nt];
-  // real<lower=0.0> booster_VE_infection;
-  // real<lower=0.0> booster_VE_severe;
+  real<lower=0.0> omicron_recovered_booster_scale;
+  real<lower=0.0> num_boosters[nt];
+  real<lower=0.0> booster_VE_infection1;
+  real<lower=0.0> booster_VE_infection2;
+  real<lower=0.0> booster_VE_severe_given_infection1;
+  real<lower=0.0> booster_VE_severe_given_infection2;
   real<lower=0.0> frac_incidental1;
   real<lower=0.0> frac_incidental2;
   real<lower=0.0> VE_severe_given_infection1_init;
@@ -121,7 +123,7 @@ parameters {
 
   real<lower=0.001, upper=9.9> beta_0;
   real<lower=0.001, upper=3.0> beta_multiplier[ninter];
-  real<lower=0.001, upper=3.09> trans_multiplier;
+  real<lower=0.001, upper=3.0> trans_multiplier;
 }
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
@@ -151,8 +153,6 @@ transformed parameters {
     real frac_init_E;
     real avg_duration;
     real frac_boosters_to_susceptible;
-    real new_protected1;
-    real new_protected12;
     real increased_severity_protection;
     real frac_increased_severity_protection;
     real new_admits1;
@@ -168,8 +168,24 @@ transformed parameters {
     real frac_E2_from_Rlive1;
     real frac_hosp1;
     real frac_hosp2;
+    real frac_boosters_to_S;
+    real frac_boosters_to_P1;
+    real frac_boosters_to_Rlive1;
+    real new_P12_from_S;
+    real new_P1_from_S;
+    real new_P12_from_P1;
+    real new_P12_from_Rlive1;
+    real S_increased_severe_protection;
+    real P1_increased_severe_protection;
+    real Rlive1_increased_severe_protection;
+    real frac_increased_severity_protection1;
+    real frac_increased_severity_protection2;
+    int max_compartment;
 
     frac_hosp2_naive = frac_hosp1_naive * frac_hosp_multiplier;
+    if (frac_hosp2_naive > 1) {
+      reject("frac_hosp2_naive > 1")
+    }
 
     // VE_severe_given_infection = VE_severe_given_infection_1_init;
     VE_severe_given_infection1 = VE_severe_given_infection1_init;
@@ -195,12 +211,12 @@ transformed parameters {
 
     x[S, 1] = npop - initial_infected1 - x[P1, 1] - x[P12, 1] - x[Hmod1, 1];
 
-if (x[S, 1] < -10) {
-  print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
-}
+    if (x[S, 1] < -10) {
+      print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
+    }
 
-// Rt1[1] = 1; //to avoid nan error
-// Rt2[1] = 1; //to avoid nan error
+    // Rt1[1] = 1; //to avoid nan error
+    // Rt2[1] = 1; //to avoid nan error
 
     soon_positive1[1] = 0.0;
     new_cases1[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
@@ -211,6 +227,10 @@ if (x[S, 1] < -10) {
     new_cases2[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
     if (tobs[obs_cases2, 1] == 1) {
       reject("Minimum tobs[obs_cases, :] is 2")
+    }
+
+    if (booster_VE_infection1 - booster_VE_infection2 < 0) {
+      reject("booster_VE_infection1 - booster_VE_infection2 < 0")
     }
 
     for (it in 1:nt) {
@@ -225,10 +245,6 @@ if (x[S, 1] < -10) {
     for (it in 1:nt-1){
       newE1 = fmin(x[S, it], beta[it] * x[S, it] * (x[Imild1, it] + x[Ipreh1, it]) / npop);
       S2 = x[S, it] + x[P1, it] + x[Rlive1, it];
-
-      frac_E2_from_S = x[S, it] / S2;
-      frac_E2_from_P1 = x[P1, it] / S2;
-      frac_E2_from_Rlive1 = 1 - (frac_E2_from_S + frac_E2_from_P1);
 
       if (it == variant2_introduction) {
         newE2 = initial_infected2;
@@ -254,12 +270,35 @@ if (x[S, 1] < -10) {
       // //increase VE_severe_given_infection for boosters
       // VE_severe_given_infection = booster_VE_severe * frac_increased_severity_protection +   VE_severe_given_infection * (1 - frac_increased_severity_protection);
 
+      //boosters:
+      //S -> S or P1 or P12
+      //P1 -> P1 or P12
+      //Rlive1 -> Rlive1 or P12
+
+      //P12 -> P12
+      //Rlive12 -> Rlive12
+
+      //needs double checking and code for 0/0, making sure new_X_from_Y is not more than Y (accounting for newE)
+      frac_boosters_to_S = x[S, it] / (x[S, it] + x[P1, it] + x[P12, it] + x[Rlive1, it] + omicron_recovered_booster_scale * x[Rlive12, it]);
+      frac_boosters_to_P1 = x[P1, it] / (x[S, it] + x[P1, it] + x[P12, it] + x[Rlive1, it] + omicron_recovered_booster_scale * x[Rlive12, it]);
+      frac_boosters_to_Rlive1 = x[Rlive1, it] / (x[S, it] + x[P1, it] + x[P12, it] + x[Rlive1, it] + omicron_recovered_booster_scale * x[Rlive12, it]);
+
+      new_P12_from_S = num_boosters[it] * frac_boosters_to_S * booster_VE_infection2;
+      new_P1_from_S = num_boosters[it] * frac_boosters_to_S * (booster_VE_infection1 - booster_VE_infection2);
+      S_increased_severe_protection = num_boosters[it] * frac_boosters_to_S * (1 - booster_VE_infection1); //boosted but still susceptible to both, increased protection from severe disease
+      new_P12_from_P1 = num_boosters[it] * frac_boosters_to_P1 * booster_VE_infection2;
+      P1_increased_severe_protection = num_boosters[it] * frac_boosters_to_P1 * (1 - booster_VE_infection2) + new_P1_from_S; //boosted but still susceptible to variant2, increased protection from severe disease
+      new_P12_from_Rlive1 = num_boosters[it] * frac_boosters_to_Rlive1 * booster_VE_infection2;
+      Rlive1_increased_severe_protection = num_boosters[it] * frac_boosters_to_Rlive1 * (1 - booster_VE_infection2);
+
+      frac_increased_severity_protection1 = S_increased_severe_protection / (x[S, it] + 1e-8); //avoid divide by 0
+      frac_increased_severity_protection2 = (S_increased_severe_protection + P1_increased_severe_protection + Rlive1_increased_severe_protection) / S2;
+
+      VE_severe_given_infection1 = booster_VE_severe_given_infection1 * frac_increased_severity_protection1 +   VE_severe_given_infection1 * (1 - frac_increased_severity_protection1);
+      VE_severe_given_infection2 = booster_VE_severe_given_infection2 * frac_increased_severity_protection2 +   VE_severe_given_infection2 * (1 - frac_increased_severity_protection2);
+
       frac_hosp1 = frac_hosp1_naive * (1 - VE_severe_given_infection1);
       frac_hosp2 = frac_hosp2_naive * (1 - VE_severe_given_infection2);
-
-      //new_protected1 was subtracted from S but this seems more complicated now
-      new_protected1 = 0;
-      new_protected12 = 0;
 
       new_admits1 = x[Ipreh1, it] / duration_pre_hosp;
       new_admits2 = x[Ipreh2, it] / duration_pre_hosp;
@@ -267,61 +306,91 @@ if (x[S, 1] < -10) {
       lost_protection_infection1 = x[P1, it] / duration_protection_infection;
       lost_protection_infection12 = x[P12, it] / duration_protection_infection;
 
-      x[S, it + 1] = x[S, it] - newE1 + lost_protection_infection1 - newE2 * frac_E2_from_S;
-      x[E1, it + 1] = x[E1, it] + newE1 - newI1;
-      x[E2, it + 1] = x[E2, it] + newE2 - newI2;
+      frac_E2_from_S = x[S, it] / S2;
+      frac_E2_from_P1 = x[P1, it] / S2;
+      frac_E2_from_Rlive1 = 1 - (frac_E2_from_S + frac_E2_from_P1);
 
-      // if (it == variant2_introduction || it == (variant2_introduction+1)) {
-        //   print("it = ", it, " newE2 = ", newE2, " newI2 = ", newI2, " x[E2, it] = ", x[E2, it], " x[E2, it + 1] = ", x[E2, it + 1], " duration_latent2 = ", duration_latent2)
+      x[S, it + 1] = x[S, it] - newE1 + lost_protection_infection1 - newE2 * frac_E2_from_S - new_P12_from_S - new_P1_from_S;
+      // if (x[S, it + 1] < 0) {
+        //   newE1 = 0;
+        //   new_P12_from_S = 0;
+        //   new_P1_from_S = 0;
+        //   frac_E2_from_S = 0;
+        //
+        //   //recalculate
+        //   frac_E2_from_P1 = x[P1, it] / S2;
+        //   frac_E2_from_Rlive1 = 1 - (frac_E2_from_S + frac_E2_from_P1);
+        //   x[S, it + 1] = x[S, it] - newE1 + lost_protection_infection1 - newE2 * frac_E2_from_S - new_P12_from_S - new_P1_from_S;
         // }
+        x[E1, it + 1] = x[E1, it] + newE1 - newI1;
+        x[E2, it + 1] = x[E2, it] + newE2 - newI2;
 
-        x[Imild1, it + 1] = x[Imild1, it] + newI1 * (1 - frac_hosp1) - x[Imild1, it] / duration_rec_mild;
-        x[Imild2, it + 1] = x[Imild2, it] + newI2 * (1 - frac_hosp2) - x[Imild2, it] / duration_rec_mild;
-
-        x[Ipreh1, it + 1] = x[Ipreh1, it] + newI1 * frac_hosp1 - new_admits1;
-        x[Ipreh2, it + 1] = x[Ipreh2, it] + newI2 * frac_hosp2 - new_admits2;
-
-        x[Hmod1, it + 1] = x[Hmod1, it] + new_admits1 - x[Hmod1, it] / duration_hosp_mod1;
-        x[Hmod2, it + 1] = x[Hmod2, it] + new_admits2 - x[Hmod2, it] / duration_hosp_mod2;
-
-        x[P1, it + 1] = x[P1, it] + new_protected1 - lost_protection_infection1 +  lost_protection_infection12 - newE2 * frac_E2_from_P1;
-        x[P12, it + 1] = x[P12, it] + new_protected12 - lost_protection_infection12;
-
-        x[Rlive1, it + 1] = x[Rlive1, it] + x[Hmod1, it] / duration_hosp_mod1 + x[Imild1, it] / duration_rec_mild - newE2 * frac_E2_from_Rlive1;
-        x[Rlive12, it + 1] = x[Rlive12, it] + x[Hmod2, it] / duration_hosp_mod2 + x[Imild2, it] / duration_rec_mild;
-
-
-
-        soon_positive1[it + 1] = soon_positive1[it] + newE1 * frac_tested - soon_positive1[it] / test_delay;
-        soon_positive2[it + 1] = soon_positive2[it] + newE2 * frac_tested - soon_positive2[it] / test_delay;
-        new_cases1[it + 1] = soon_positive1[it + 1] / test_delay;
-        new_cases2[it + 1] = soon_positive2[it + 1] / test_delay;
-
-        // if (is_nan(new_cases1[it + 1])) {
-          //   print("is nan cases:")
-          //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
-          //   reject("new_cases[it+1] is nan")
+        // if (it == variant2_introduction || it == (variant2_introduction+1)) {
+          //   print("it = ", it, " newE2 = ", newE2, " newI2 = ", newI2, " x[E2, it] = ", x[E2, it], " x[E2, it + 1] = ", x[E2, it + 1], " duration_latent2 = ", duration_latent2)
           // }
 
-          // if (is_nan(sum(x[:, it + 1]))) {
-            //   print("is nan:")
-            //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
-            //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
+          x[Imild1, it + 1] = x[Imild1, it] + newI1 * (1 - frac_hosp1) - x[Imild1, it] / duration_rec_mild;
+          x[Imild2, it + 1] = x[Imild2, it] + newI2 * (1 - frac_hosp2) - x[Imild2, it] / duration_rec_mild;
+
+          x[Ipreh1, it + 1] = x[Ipreh1, it] + newI1 * frac_hosp1 - new_admits1;
+          x[Ipreh2, it + 1] = x[Ipreh2, it] + newI2 * frac_hosp2 - new_admits2;
+
+          x[Hmod1, it + 1] = x[Hmod1, it] + new_admits1 - x[Hmod1, it] / duration_hosp_mod1;
+          x[Hmod2, it + 1] = x[Hmod2, it] + new_admits2 - x[Hmod2, it] / duration_hosp_mod2;
+
+          x[P1, it + 1] = x[P1, it] - lost_protection_infection1 +  lost_protection_infection12 - newE2 * frac_E2_from_P1 + new_P1_from_S - new_P12_from_P1;
+          x[P12, it + 1] = x[P12, it] - lost_protection_infection12 + new_P12_from_S + new_P12_from_P1 + new_P12_from_Rlive1;
+
+          x[Rlive1, it + 1] = x[Rlive1, it] + x[Hmod1, it] / duration_hosp_mod1 + x[Imild1, it] / duration_rec_mild - newE2 * frac_E2_from_Rlive1 - new_P12_from_Rlive1;
+          x[Rlive12, it + 1] = x[Rlive12, it] + x[Hmod2, it] / duration_hosp_mod2 + x[Imild2, it] / duration_rec_mild;
+
+
+
+          soon_positive1[it + 1] = soon_positive1[it] + newE1 * frac_tested - soon_positive1[it] / test_delay;
+          soon_positive2[it + 1] = soon_positive2[it] + newE2 * frac_tested - soon_positive2[it] / test_delay;
+          new_cases1[it + 1] = soon_positive1[it + 1] / test_delay;
+          new_cases2[it + 1] = soon_positive2[it + 1] / test_delay;
+
+          // if (is_nan(new_cases1[it + 1])) {
+            //   print("is nan cases:")
+            //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
+            //   reject("new_cases[it+1] is nan")
             // }
-            for (ii in 1:ncompartments) {
-              if (x[ii, it + 1] < -100) {
-                print("beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop=", beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop)
-                print("beta[it]=", beta[it], " trans_multiplier=", trans_multiplier, " S2=", S2, " x[Imild2, it] + x[Ipreh2, it]=", x[Imild2, it] + x[Ipreh2, it], " npop=", npop)
 
-              reject("x[ii, it + 1] < -100: it= ", it, " ii=", ii, " variant2_introduction=",variant2_introduction,  " newE2=", newE2, " x[Imild2, it]=", x[Imild2, it]," x[Ipreh2, it]=", x[Ipreh2, it], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1]);
-            }
-            }
+            // if (is_nan(sum(x[:, it + 1]))) {
+              //   print("is nan:")
+              //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
+              //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
+              // }
+              for (ii in 1:ncompartments) {
+                if (x[ii, it + 1] < 0) {
+                  max_compartment = 1;
+                  for (ii2 in 1:ncompartments) {
+                    if (x[ii2, it + 1] > x[max_compartment, it + 1]) {
+                      max_compartment = ii2;
+                    }
+                  }
+                  if (x[ii, it + 1] < -100) {
+                    print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1])
+                  }
+                  x[max_compartment, it + 1] = x[max_compartment, it + 1] + x[ii, it + 1];
+                  x[ii, it + 1] = 0;
+                }
+              }
+              // for (ii in 1:ncompartments) {
+                //   if (x[ii, it + 1] < -100) {
+                  //     print("beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop=", beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop)
+                  //     print("beta[it]=", beta[it], " trans_multiplier=", trans_multiplier, " S2=", S2, " x[Imild2, it] + x[Ipreh2, it]=", x[Imild2, it] + x[Ipreh2, it], " npop=", npop)
+                  //
+                  //     reject("x[ii, it + 1] < -100: it= ", it, " ii=", ii, " variant2_introduction=",variant2_introduction,  " newE2=", newE2, " x[Imild2, it]=", x[Imild2, it]," x[Ipreh2, it]=", x[Ipreh2, it], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1]);
+                  //   }
+                  // }
 
-            // test
-            if (fabs(sum(x[:, it + 1])-npop) > 0.01) {
-              // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
-              reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], " ====  ", x[:, it+1]);
-            }
+                  // test
+                  if (fabs(sum(x[:, it + 1])-npop) > 0.01) {
+                    // reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop);
+                    reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], " ====  ", x[:, it+1]);
+                  }
     }
 
     // Data for fitting
@@ -330,9 +399,9 @@ if (x[S, 1] < -10) {
     sim_data[obs_cases2] = new_cases2;
   }
 
-//not exactly right, avoid warning for Rt undefined value
- Rt1[nt] = Rt1[nt - 1];
- Rt2[nt] = Rt2[nt - 1];
+  //not exactly right, avoid warning for Rt undefined value
+  Rt1[nt] = Rt1[nt - 1];
+  Rt2[nt] = Rt2[nt - 1];
 
 
   // print(x)

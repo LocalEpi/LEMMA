@@ -154,7 +154,7 @@ GetStanInputs <- function(inputs) {
   # real<lower=0.0> booster_VE_severe;
   seir_inputs <- c(seir_inputs, inputs$omicron) #temp
 
-  # seir_inputs$num_boosters <- seir_inputs$num_boosters[1:nt]
+  seir_inputs$num_boosters <- seir_inputs$num_boosters[1:nt]
 
   # lambda parameter for initial conditions of infected
   # seir_inputs[['lambda_initial_infected']] = 1 / inputs$internal.args$intial_infected
@@ -189,6 +189,7 @@ GetSimVsObs <- function(obs_data, tobs, sim_data) {
 RunSim <- function(inputs) {
   inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
+  cat("to diagnose errors in x: arrayInd(index, c(13, ", seir_inputs$nt, "))\n", sep="")
   internal.args <- inputs$internal.args
 
   GetInit <- function(chain_id) {
