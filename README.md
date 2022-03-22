@@ -1,12 +1,8 @@
 Documentation:  
 https://localepi.github.io/LEMMA/
 
-Forecasts and scenarios for California counties:  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Forecasts  
-https://github.com/LocalEpi/LEMMA-Forecasts/tree/master/Scenarios
-
-Details on waning vs booster scenarios for California counties:
-https://github.com/LocalEpi/LEMMA-Forecasts/blob/master/README.md
+Omicron forecasts for California counties:  
+https://github.com/LocalEpi/LEMMA-Forecasts
 
 ### License
  
