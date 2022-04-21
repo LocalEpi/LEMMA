@@ -55,7 +55,7 @@ data {
   real<lower=0.0> omicron_recovered_booster_scale;
   real<lower=0.0> num_boosters[nt];
   real<lower=0.0> booster_VE_infection;
-  real<lower=0.0> booster_VE_severe;
+  real<lower=0.0> booster_VE_severe_given_infection;
   real<lower=0.0> frac_incidental_omicron;
   real<lower=0.0> VE_severe_given_infection_0;
   real<lower=0.0> hosp_frac_delta_0;
@@ -192,7 +192,7 @@ transformed parameters {
       frac_increased_severity_protection = increased_severity_protection / fmax(x[S, it], 0.001); //avoid 0/0 problems
 
       //increase VE_severe_given_infection for boosters
-      VE_severe_given_infection = booster_VE_severe * frac_increased_severity_protection +   VE_severe_given_infection * (1 - frac_increased_severity_protection);
+      VE_severe_given_infection = booster_VE_severe_given_infection * frac_increased_severity_protection +   VE_severe_given_infection * (1 - frac_increased_severity_protection);
       frac_hosp = frac_hosp_lemma * (1 - VE_severe_given_infection) * severity;
       new_admits = x[Ipreh, it] / duration_pre_hosp;
 

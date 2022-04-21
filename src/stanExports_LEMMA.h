@@ -80,7 +80,7 @@ private:
         double omicron_recovered_booster_scale;
         std::vector<double> num_boosters;
         double booster_VE_infection;
-        double booster_VE_severe;
+        double booster_VE_severe_given_infection;
         double frac_incidental_omicron;
         double VE_severe_given_infection_0;
         double hosp_frac_delta_0;
@@ -455,12 +455,12 @@ public:
             booster_VE_infection = vals_r__[pos__++];
             check_greater_or_equal(function__, "booster_VE_infection", booster_VE_infection, 0.0);
             current_statement_begin__ = 58;
-            context__.validate_dims("data initialization", "booster_VE_severe", "double", context__.to_vec());
-            booster_VE_severe = double(0);
-            vals_r__ = context__.vals_r("booster_VE_severe");
+            context__.validate_dims("data initialization", "booster_VE_severe_given_infection", "double", context__.to_vec());
+            booster_VE_severe_given_infection = double(0);
+            vals_r__ = context__.vals_r("booster_VE_severe_given_infection");
             pos__ = 0;
-            booster_VE_severe = vals_r__[pos__++];
-            check_greater_or_equal(function__, "booster_VE_severe", booster_VE_severe, 0.0);
+            booster_VE_severe_given_infection = vals_r__[pos__++];
+            check_greater_or_equal(function__, "booster_VE_severe_given_infection", booster_VE_severe_given_infection, 0.0);
             current_statement_begin__ = 59;
             context__.validate_dims("data initialization", "frac_incidental_omicron", "double", context__.to_vec());
             frac_incidental_omicron = double(0);
@@ -1206,7 +1206,7 @@ public:
                 current_statement_begin__ = 192;
                 stan::math::assign(frac_increased_severity_protection, (increased_severity_protection / stan::math::fmax(get_base1(x, S, it, "x", 1), 0.001)));
                 current_statement_begin__ = 195;
-                stan::math::assign(VE_severe_given_infection, ((booster_VE_severe * frac_increased_severity_protection) + (VE_severe_given_infection * (1 - frac_increased_severity_protection))));
+                stan::math::assign(VE_severe_given_infection, ((booster_VE_severe_given_infection * frac_increased_severity_protection) + (VE_severe_given_infection * (1 - frac_increased_severity_protection))));
                 current_statement_begin__ = 196;
                 stan::math::assign(frac_hosp, ((frac_hosp_lemma * (1 - VE_severe_given_infection)) * severity));
                 current_statement_begin__ = 197;
@@ -1811,7 +1811,7 @@ public:
                 current_statement_begin__ = 192;
                 stan::math::assign(frac_increased_severity_protection, (increased_severity_protection / stan::math::fmax(get_base1(x, S, it, "x", 1), 0.001)));
                 current_statement_begin__ = 195;
-                stan::math::assign(VE_severe_given_infection, ((booster_VE_severe * frac_increased_severity_protection) + (VE_severe_given_infection * (1 - frac_increased_severity_protection))));
+                stan::math::assign(VE_severe_given_infection, ((booster_VE_severe_given_infection * frac_increased_severity_protection) + (VE_severe_given_infection * (1 - frac_increased_severity_protection))));
                 current_statement_begin__ = 196;
                 stan::math::assign(frac_hosp, ((frac_hosp_lemma * (1 - VE_severe_given_infection)) * severity));
                 current_statement_begin__ = 197;
