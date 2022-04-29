@@ -49,9 +49,6 @@ data {
   real<lower=0.0> frac_hosp_lemma;
   real<lower=0.0> VE_infection;
   real<lower=0.0> VE_infection_delta;
-  int<lower=0> holiday_start;
-  int<lower=0> holiday_end;
-  real<lower=0.0> holiday_multiplier;
   real<lower=0.0> omicron_recovered_booster_scale;
   real<lower=0.0> num_boosters[nt];
   real<lower=0.0> booster_VE_infection;
