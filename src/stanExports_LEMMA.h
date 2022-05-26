@@ -33,7 +33,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_LEMMA");
-    reader.add_event(294, 292, "end", "model_LEMMA");
+    reader.add_event(292, 290, "end", "model_LEMMA");
     return reader;
 }
 #include <stan_meta_header.hpp>
@@ -1163,7 +1163,7 @@ public:
             current_statement_begin__ = 179;
             for (int it = 1; it <= (nt - 1); ++it) {
                 current_statement_begin__ = 180;
-                stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(beta, it, "beta", 1) * get_base1(x, S, it, "x", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1))) / npop)));
+                stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(beta, it, "beta", 1) * get_base1(x, S, it, "x", 1)) * get_base1(x, Imild, it, "x", 1)) / npop)));
                 current_statement_begin__ = 181;
                 stan::math::assign(newI, (get_base1(x, E, it, "x", 1) / duration_latent));
                 current_statement_begin__ = 183;
@@ -1768,7 +1768,7 @@ public:
             current_statement_begin__ = 179;
             for (int it = 1; it <= (nt - 1); ++it) {
                 current_statement_begin__ = 180;
-                stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(beta, it, "beta", 1) * get_base1(x, S, it, "x", 1)) * (get_base1(x, Imild, it, "x", 1) + get_base1(x, Ipreh, it, "x", 1))) / npop)));
+                stan::math::assign(newE, stan::math::fmin(get_base1(x, S, it, "x", 1), (((get_base1(beta, it, "beta", 1) * get_base1(x, S, it, "x", 1)) * get_base1(x, Imild, it, "x", 1)) / npop)));
                 current_statement_begin__ = 181;
                 stan::math::assign(newI, (get_base1(x, E, it, "x", 1) / duration_latent));
                 current_statement_begin__ = 183;
@@ -1983,13 +1983,9 @@ public:
             current_statement_begin__ = 286;
             for (int it = 1; it <= nt; ++it) {
                 current_statement_begin__ = 287;
-                stan::math::assign(frac_prehosp, (((1e-10 * frac_hosp_0) + get_base1(x, Ipreh, it, "x", 1)) / ((1e-10 + get_base1(x, Ipreh, it, "x", 1)) + get_base1(x, Imild, it, "x", 1))));
-                current_statement_begin__ = 288;
-                stan::math::assign(avg_duration, ((frac_prehosp * duration_pre_hosp) + ((1 - frac_prehosp) * duration_rec_mild)));
-                current_statement_begin__ = 289;
                 stan::model::assign(Rt, 
                             stan::model::cons_list(stan::model::index_uni(it), stan::model::nil_index_list()), 
-                            (((get_base1(beta, it, "beta", 1) * avg_duration) * get_base1(x, S, it, "x", 1)) / npop), 
+                            (((get_base1(beta, it, "beta", 1) * duration_rec_mild) * get_base1(x, S, it, "x", 1)) / npop), 
                             "assigning variable Rt");
             }
             }

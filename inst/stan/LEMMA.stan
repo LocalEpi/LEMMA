@@ -177,7 +177,7 @@ transformed parameters {
     }
 
     for (it in 1:nt-1){
-      newE = fmin(x[S, it], beta[it] * x[S, it] * (x[Imild, it] + x[Ipreh, it]) / npop);
+      newE = fmin(x[S, it], beta[it] * x[S, it] * x[Imild, it] / npop);
       newI = x[E, it] / duration_latent;
 
       frac_boosters_to_susceptible = x[S, it] / (x[S, it] + omicron_recovered_booster_scale * x[Rlive, it]);
@@ -284,9 +284,7 @@ generated quantities{
     real frac_prehosp;
     real avg_duration;
     for (it in 1:nt) {
-      frac_prehosp = (1e-10 * frac_hosp_0 + x[Ipreh, it]) / (1e-10 + x[Ipreh, it] +  x[Imild, it]); //at t=1 converges to frac_hosp_0
-      avg_duration = frac_prehosp * duration_pre_hosp + (1 - frac_prehosp) * duration_rec_mild;
-      Rt[it] = beta[it] * avg_duration * x[S, it] / npop;
+      Rt[it] = beta[it] * duration_rec_mild * x[S, it] / npop;
     }
   }
 }
