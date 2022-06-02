@@ -200,7 +200,7 @@ RunSim <- function(inputs) {
                              init = GetInit,
                              verbose = F,
                              refresh = 500,
-                             cores = 4,
+                             cores = internal.args$cores,
                              iter = internal.args$iter,
                              warmup = internal.args$warmup,
                              control = list(max_treedepth = internal.args$max_treedepth,
@@ -208,10 +208,10 @@ RunSim <- function(inputs) {
       )
       rhat <- max(bayesplot::rhat(fit), na.rm=T)
       if (rhat < 1.1) {
-        ParallelLogger::logInfo("sampling converged, rhat = ", rhat)
+        ParallelLogger::logInfo(inputs$internal.args$info, " sampling converged, rhat = ", rhat)
         break
       } else {
-        ParallelLogger::logInfo("sampling did not converge, rhat = ", rhat, " itry = ", itry)
+        ParallelLogger::logInfo(inputs$internal.args$info, " sampling did not converge, rhat = ", rhat, " itry = ", itry)
       }
     }
   } else {
