@@ -125,7 +125,6 @@ transformed parameters {
     real newI;
     real frac_init_E;
     real beta_0;
-    real avg_duration;
     real frac_hosp;
     real frac_boosters_to_susceptible;
     real new_protected;
@@ -145,13 +144,12 @@ transformed parameters {
     VE_severe_given_infection = VE_severe_given_infection_0;
 
     frac_hosp_0 = frac_hosp_lemma * (1 - VE_severe_given_infection) * severity;
-    avg_duration = frac_hosp_0 * duration_pre_hosp + (1 - frac_hosp_0) * duration_rec_mild;
 
     // print(frac_hosp_0, frac_hosp_lemma, VE_severe_given_infection, severity, avg_duration, duration_pre_hosp, duration_rec_mild)
 
 
     x[:,1] = rep_vector(0.0, ncompartments);
-    frac_init_E = duration_latent / (duration_latent + avg_duration);
+    frac_init_E = duration_latent / (duration_latent + duration_rec_mild);
     x[E, 1] = frac_init_E * initial_infected;
     x[Imild, 1] = (1 - frac_init_E) * initial_infected * (1 - frac_hosp_0);
     x[Ipreh, 1] = (1 - frac_init_E) * initial_infected * frac_hosp_0;
@@ -166,7 +164,7 @@ transformed parameters {
 
     //beta_0 = omicron_trans_multiplier / avg_duration * rt_delta / (1 - VE_infection_delta);
     //for now assume rt_delta = 1
-    beta_0 = omicron_trans_multiplier / avg_duration * 1.0 / (1 - VE_infection_delta);
+    beta_0 = omicron_trans_multiplier / duration_rec_mild * 1.0 / (1 - VE_infection_delta);
     for (it in 1:nt) {
       beta[it] = beta_0;
       for (iinter in 1:ninter) {
@@ -195,12 +193,12 @@ transformed parameters {
 
       lost_protection_infection = x[P, it] / duration_protection_infection;
 
-      x[S, it + 1] = x[S, it] - new_protected - newE + lost_protection_infection;
+      x[S, it + 1] = x[S, it] - new_protected - newE + lost_protection_infection + x[Rlive, it]/duration_protection_infection;
       x[E, it + 1] = x[E, it] + newE - newI;
       x[Imild, it + 1] = x[Imild, it] + newI * (1 - frac_hosp) - x[Imild, it] / duration_rec_mild;
       x[Ipreh, it + 1] = x[Ipreh, it] + newI * frac_hosp - new_admits;
       x[Hmod, it + 1] = x[Hmod, it] + new_admits - x[Hmod, it] / duration_hosp_mod;
-      x[Rlive, it + 1] = x[Rlive, it] + x[Hmod, it] / duration_hosp_mod + x[Imild, it] / duration_rec_mild;
+      x[Rlive, it + 1] = x[Rlive, it] + x[Hmod, it] / duration_hosp_mod + x[Imild, it] / duration_rec_mild - x[Rlive, it]/duration_protection_infection;
       x[P, it + 1] = x[P, it] + new_protected - lost_protection_infection;
 
       soon_positive[it + 1] = soon_positive[it] + newE * frac_tested - soon_positive[it] / test_delay;
@@ -282,7 +280,7 @@ generated quantities{
   }
   {
     real frac_prehosp;
-    real avg_duration;
+    // real avg_duration;
     for (it in 1:nt) {
       Rt[it] = beta[it] * duration_rec_mild * x[S, it] / npop;
     }
