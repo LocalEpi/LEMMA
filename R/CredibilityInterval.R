@@ -61,10 +61,9 @@ ProjectScenario <- function(lemma.object, new.inputs) {
 }
 
 #order needs to match LEMMA.stan:
-# int obs_hosp_census = 1; //combined hospitalized
-# int obs_cases1 = 2;
-# int obs_cases2 = 3;
-DataTypes <- function() c("hosp", "cases1", "cases2")
+# int obs_hosp_census = 1;
+# int obs_cases = 2;
+DataTypes <- function() c("hosp", "cases")
 
 GetStanInputs <- function(inputs) {
   dt <- melt(inputs$params, id.vars = "name")
@@ -189,7 +188,7 @@ GetSimVsObs <- function(obs_data, tobs, sim_data) {
 RunSim <- function(inputs) {
   inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
-  cat("to diagnose errors in x: arrayInd(index, c(13, ", seir_inputs$nt, "))\n", sep="")
+  cat("to diagnose errors in x: arrayInd(index, c(11, ", seir_inputs$nt, "))\n", sep="")
   internal.args <- inputs$internal.args
 
   GetInit <- function(chain_id) {
