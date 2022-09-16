@@ -155,9 +155,6 @@ GetStanInputs <- function(inputs) {
 
   seir_inputs$num_boosters <- seir_inputs$num_boosters[1:nt]
 
-  # lambda parameter for initial conditions of infected
-  # seir_inputs[['lambda_initial_infected']] = 1 / inputs$internal.args$intial_infected
-
   # interventions
   inputs$interventions$t_inter <- as.numeric(inputs$interventions$t_inter - day0)
   seir_inputs <- c(seir_inputs, lapply(inputs$interventions, as.array)) #as.array fixes problems if only one intervention
@@ -186,7 +183,7 @@ GetSimVsObs <- function(obs_data, tobs, sim_data) {
 }
 
 RunSim <- function(inputs) {
-  inputs$model.inputs$end.date <- max(inputs$obs.data$date)
+  # inputs$model.inputs$end.date <- max(inputs$obs.data$date)
   seir_inputs <- GetStanInputs(inputs)
   cat("to diagnose errors in x: arrayInd(index, c(11, ", seir_inputs$nt, "))\n", sep="")
   internal.args <- inputs$internal.args
@@ -195,20 +192,21 @@ RunSim <- function(inputs) {
     init.names <- grep("^mu_", names(seir_inputs), value = T)
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
-    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1, initial_infected2 = 1 / seir_inputs$lambda_initial_infected2))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv))
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
   ntries <- inputs$internal.args$ntries - 1
-  if (internal.args$sampling) {
+  if (internal.args$sampling %in% c(1, "Fixed_param")) {
     for (itry in 0:ntries) {
       fit <- rstan::sampling(stanmodels$LEMMA,
                              data = seir_inputs,
                              seed = inputs$internal.args$random.seed + itry,
-                             init = GetInit,
+                             init = if (itry == 0) GetInit else "random",
                              verbose = F,
                              refresh = 500,
                              cores = 4,
+                             algorithm = if (internal.args$sampling == 1) "NUTS" else "Fixed_param",
                              iter = internal.args$iter,
                              warmup = internal.args$warmup,
                              control = list(max_treedepth = internal.args$max_treedepth,
@@ -223,6 +221,7 @@ RunSim <- function(inputs) {
       }
     }
   } else {
+    stopifnot(internal.args$sampling == 0)
     for (itry in 0:ntries) {
       fit <- rstan::optimizing(stanmodels$LEMMA,
                                data = seir_inputs,
@@ -448,7 +447,7 @@ FixedParam <- function(inputs, param_name, param_init) {
     names(init) <- sub("beta_inter", "beta_multiplier", names(init))  #inconsistently named
     names(init) <- sub("beta0", "beta_0", names(init))  #inconsistently named
 
-    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv, initial_infected1 = 1 / seir_inputs$lambda_initial_infected1, initial_infected2 = 1 / seir_inputs$lambda_initial_infected2))
+    init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv))
     init[param_name] <- param_init[chain_id]
 
     return(init)

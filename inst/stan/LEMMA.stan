@@ -33,8 +33,8 @@ data {
   real<lower=0.0> sigma_frac_tested;      // sd of infected who test positiveof infected who test positive
   real<lower=0.0> mu_test_delay;
   real<lower=0.0> sigma_test_delay;
-  real<lower=0.0> mu_beta0;
-  real<lower=0.0> sigma_beta0;
+  real<lower=0.0> mu_Rt1_init;
+  real<lower=0.0> sigma_Rt1_init;
   real<lower=0.0> mu_frac_hosp1_naive;
   real<lower=0.0> sigma_frac_hosp1_naive;
   real<lower=0.0> mu_trans_multiplier;
@@ -49,13 +49,21 @@ data {
   real<lower=0.0> mu_immune_evasion;
   real<lower=0.0> sigma_immune_evasion;
 
-  real<lower=0.0> lambda_initial_infected1;     // parameter for initial conditions of "exposed"
-  real<lower=0.0> lambda_initial_infected2;     // parameter for initial conditions of "exposed"
+  // real <lower=0.0> mu_initial_exposed1;
+  // real <lower=0.0> sigma_initial_exposed1;
+  real <lower=0.0> mu_initial_exposed2_frac;
+  real <lower=0.0> sigma_initial_exposed2_frac;
+  // real <lower=0.0> mu_initial_infected1;
+  // real <lower=0.0> sigma_initial_infected1;
+  // real <lower=0.0> mu_initial_preh1;
+  // real <lower=0.0> sigma_initial_preh1;
 
   real<lower=0.0> sigma_obs_est_inv[nobs_types];
 
   real<lower=0.0> frac_case2_growth_obs;
   real<lower=0.0> sigma_frac_case2_growth_obs;
+  real<lower=0.0> variant2_crossover_days_obs;
+  real<lower=0.0> sigma_variant2_crossover_days;
 
   real<lower=0.0> init_hosp1;
 
@@ -95,6 +103,9 @@ transformed data {
 
   int obs_hosp_census = 1; //combined hospitalized
   int obs_cases = 2; //combined cases
+
+  int days_delay_measure_growth = 5; //number of days after variant2_introduction to start calculating frac2 growth
+  int nfrac_growth = nt - (variant2_introduction + days_delay_measure_growth) + 1;
 }
 parameters {
   real<lower=1.0> duration_latent1; // duration is a minimum of 1 which is the stepsize of this model
@@ -110,13 +121,15 @@ parameters {
 
   real<lower=0.001, upper=1.0> frac_tested;
 
-  real<lower=0.001, upper=0.1*npop> initial_infected1;
-  real<lower=0.001, upper=0.1*npop> initial_infected2;
+  // real<lower=0.001, upper=0.1*npop> initial_exposed1;
+  real<lower=1e-6, upper=1> initial_exposed2_frac;
+  // real<lower=0.001, upper=0.1*npop> initial_infected1;
+  // real<lower=0.001, upper=0.1*npop> initial_preh1;
   real<lower=0.001> sigma_obs[nobs_types];
 
   real<lower=1.0> test_delay; //days tested after exposed
 
-  real<lower=0.001, upper=9.9> beta_0;
+  real<lower=0.001, upper=9.9> Rt1_init;
   real<lower=0.001, upper=3.0> trans_multiplier;
   real<lower=0.001, upper=1.0> VE_infection1;
   real<lower=0.001, upper=1.0> immune_evasion;
@@ -131,7 +144,10 @@ transformed parameters {
 
   real<lower=0.0, upper=1.0> frac_hosp2_naive;
   real frac_case2_growth;
-  vector<lower=0.0, upper=1.0>[nt] frac_case2;
+  real variant2_crossover_days;
+  vector<lower=0.0, upper=1.0>[nfrac_growth] frac_case2;
+  vector[2] frac_case2_growth_coef;
+  real<lower=0.0> beta_0;
 
   for (it in 1:nt) {
     for (itype in 1:nobs_types) {
@@ -157,6 +173,7 @@ transformed parameters {
     real lost_protection_infection1;
     real lost_protection_infection12;
     real frac_hosp_init;
+    real frac_preh_init;
     real S2;
     real frac_E2_from_S;
     real frac_E2_from_P1;
@@ -172,8 +189,9 @@ transformed parameters {
     real frac_increased_severity_protection1;
     real frac_increased_severity_protection2;
     int max_compartment;
+    int index;
     real recovered1;
-    matrix[nt, 2] X;
+    matrix[nfrac_growth, 2] X;
 
     frac_hosp2_naive = frac_hosp1_naive * frac_hosp_multiplier;
     if (frac_hosp2_naive > 1) {
@@ -184,21 +202,29 @@ transformed parameters {
     VE_severe_given_infection2 = VE_severe_given_infection2_init;
 
     frac_hosp_init = frac_hosp1_naive * (1 - VE_severe_given_infection1);
+    frac_preh_init = frac_hosp_init * duration_pre_hosp / (duration_pre_hosp + duration_rec_mild);
     avg_duration = frac_hosp_init * duration_pre_hosp + (1 - frac_hosp_init) * duration_rec_mild;
 
     x[:,1] = rep_vector(0.0, ncompartments);
     frac_init_E = duration_latent1 / (duration_latent1 + avg_duration);
-    x[E1, 1] = frac_init_E * initial_infected1;
-    x[Imild1, 1] = (1 - frac_init_E) * initial_infected1 * (1 - frac_hosp_init);
-    x[Ipreh1, 1] = (1 - frac_init_E) * initial_infected1 * frac_hosp_init;
+    x[E1, 1] = duration_latent1 / duration_hosp_mod1 * init_hosp1 / frac_hosp_init; //frac_init_E * initial_infected1;
+
+    x[Ipreh1, 1] = duration_pre_hosp / duration_hosp_mod1 * init_hosp1; //(1 - frac_init_E) * initial_infected1 * frac_preh_init;
+    x[Imild1, 1] = duration_rec_mild / (Rt1_init * duration_latent1) * x[E1, 1] - x[Ipreh1, 1]; //initial_infected1; //(1 - frac_init_E) * initial_infected1 * (1 - frac_preh_init);
     x[Hmod1, 1] = init_hosp1;
     x[P1, 1] =  npop * VE_infection1 * immune_evasion; //npop * (VE_infection1 - VE_infection2);
     x[P12, 1] = npop * VE_infection1 * (1 - immune_evasion); //npop * VE_infection2;
 
-    x[S, 1] = npop - initial_infected1 - x[P1, 1] - x[P12, 1] - x[Hmod1, 1];
+    x[S, 1] = npop - (x[E1, 1] + x[Imild1, 1] + x[Ipreh1, 1] + x[Hmod1, 1] + x[P1, 1] + x[P12, 1]);
+
+    //Rt1[it] = beta_0 * x[S, it] / npop * duration_rec_mild;
+    beta_0 = Rt1_init / (x[S, 1] / npop * duration_rec_mild);
+    if (beta_0 < 0) {
+      reject("beta_0 < 0") //beta_0 has lower=0.0 but this avoids going through the 1:nt-1 loop first
+    }
 
     if (x[S, 1] < -10) {
-      print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
+      // print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
     }
 
     soon_positive1[1] = 0.0;
@@ -209,6 +235,8 @@ transformed parameters {
     soon_positive2[1] = 0.0;
     new_cases2[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
 
+
+
     if (booster_VE_infection1 - booster_VE_infection2 < 0) {
       reject("booster_VE_infection1 - booster_VE_infection2 < 0")
     }
@@ -217,14 +245,13 @@ transformed parameters {
       newE1 = fmin(x[S, it], beta_0 * x[S, it] * (x[Imild1, it] + x[Ipreh1, it]) / npop);
       S2 = x[S, it] + x[P1, it];
 
+      newI1 = fmin(x[E1, it], x[E1, it] / duration_latent1); //fmin shouldn't be needed since duration_latent1 >= 1 but can't hurt
       if (it == variant2_introduction) {
-        newE2 = initial_infected2;
+        newE2 = (x[E1, it] + newE1 - newI1) * initial_exposed2_frac;
       } else {
         newE2 = fmin(S2, beta_0 * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
-
       }
-
-      newI1 = x[E1, it] / duration_latent1;
+      newE2 = fmax(newE2, 0.0); //fmax shouldn't be needed but can't hurt
       newI2 = fmin(x[E2, it], x[E2, it] / duration_latent2);
 
       //boosters:
@@ -303,19 +330,28 @@ transformed parameters {
             // print(newE, " ", newI, " ", frac_init_E, " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
             reject("x is nan: it = ", it, "x[, it] = ", x[:, it], " x[, it+1] = ", x[:, it + 1]);
           }
-          for (ii in 1:ncompartments) {
-            if (x[ii, it + 1] < 0) {
-              max_compartment = 1;
-              for (ii2 in 1:ncompartments) {
-                if (x[ii2, it + 1] > x[max_compartment, it + 1]) {
-                  max_compartment = ii2;
+          if (min(x[:, it]) < 0) {
+            for (ii in 1:ncompartments) {
+              if (x[ii, it + 1] < 0) {
+                max_compartment = 1;
+                for (ii2 in 1:ncompartments) {
+                  if (x[ii2, it + 1] > x[max_compartment, it + 1]) {
+                    max_compartment = ii2;
+                  }
                 }
+                if (x[ii, it + 1] < -100) {
+                  print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1])
+                  if (ii == 2) {
+                    print("duration_latent1 = ", duration_latent1, " x[E1, it+1] = ", x[E1, it+1], "x[E1, it] = ", x[E1, it], " newE1 = ", newE1, " newI1 = ", newI1)
+                    print("beta_0 = ", beta_0)
+                    print(x[, it])
+
+                  }
+                  // print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1])
+                }
+                x[max_compartment, it + 1] = x[max_compartment, it + 1] + x[ii, it + 1];
+                x[ii, it + 1] = 0;
               }
-              if (x[ii, it + 1] < -100) {
-                print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1])
-              }
-              x[max_compartment, it + 1] = x[max_compartment, it + 1] + x[ii, it + 1];
-              x[ii, it + 1] = 0;
             }
           }
           // for (ii in 1:ncompartments) {
@@ -333,10 +369,13 @@ transformed parameters {
                 reject("Model is leaking, net gain: ", sum(x[:,it+1])-npop, "it= ", it, " ", x[:, it], " ====  ", x[:, it+1]);
               }
     }
-    for (it in 1:nt) {
-      frac_case2[it] = fmin(0.999, fmax(0.001, new_cases2[it] / (new_cases1[it] + new_cases2[it] + 1e-8)));
-      X[it, 1] = 1.0;
-      X[it, 2] = it;
+
+    for (it in (variant2_introduction + days_delay_measure_growth):nt) {
+      //soon after variant2_introduction+1, new_cases2 = 0 (because not enough time to have any infected, only exposed)
+      index = it - (variant2_introduction + days_delay_measure_growth) + 1;
+      frac_case2[index] = fmin(1-1e-6, fmax(1e-6, new_cases2[it] / (new_cases1[it] + new_cases2[it] + 1e-8)));
+      X[index, 1] = 1.0;
+      X[index, 2] = it;
     }
 
     //     nt <- new_variant_frac[, .N]
@@ -345,7 +384,10 @@ transformed parameters {
     // # b <- solve(t(X) %*% X) %*% t(X) %*% y
     // b <- solve(t(X) %*% X, t(X) %*% y)
 
-    frac_case2_growth = mdivide_left_spd(X' * X, X' * logit(frac_case2))[2];
+
+    frac_case2_growth_coef = mdivide_left_spd(X' * X, X' * logit(frac_case2));
+    frac_case2_growth = frac_case2_growth_coef[2];
+    variant2_crossover_days = -frac_case2_growth_coef[1] / frac_case2_growth_coef[2];
 
     // Data for fitting
     sim_data[obs_hosp_census] = x[Hmod1] * (1 + frac_incidental1) + x[Hmod2] * (1 + frac_incidental2);
@@ -365,7 +407,7 @@ model {
   duration_hosp_mod2 ~ normal(mu_duration_hosp_mod2, sigma_duration_hosp_mod2);
   duration_protection_infection ~ normal(mu_duration_protection_infection, sigma_duration_protection_infection);
 
-  beta_0 ~ normal(mu_beta0, sigma_beta0);
+  Rt1_init ~ normal(mu_Rt1_init, sigma_Rt1_init);
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
   frac_hosp1_naive ~ normal(mu_frac_hosp1_naive, sigma_frac_hosp1_naive);
@@ -375,15 +417,16 @@ model {
   VE_infection1 ~ normal(mu_VE_infection1, sigma_VE_infection1);
   immune_evasion ~ normal(mu_immune_evasion, sigma_immune_evasion);
 
-  // initial_infected1 ~ exponential(lambda_initial_infected1);
-  initial_infected1 ~ normal(1/lambda_initial_infected1, 0.1 * 1/lambda_initial_infected1);
-  initial_infected2 ~ normal(1/lambda_initial_infected2, 0.1 * 1/lambda_initial_infected2);
+  // initial_exposed1 ~ normal(mu_initial_exposed1, sigma_initial_exposed1);
+  initial_exposed2_frac ~ normal(mu_initial_exposed2_frac, sigma_initial_exposed2_frac);
+  // initial_infected1 ~ normal(mu_initial_infected1, sigma_initial_infected1);
+  // initial_preh1 ~ normal(mu_initial_preh1, sigma_initial_preh1);
 
   //////////////////////////////////////////
   // fitting observations
 
   sigma_obs ~ exponential(sigma_obs_est_inv);
-  if (fit_to_data) {
+  if (fit_to_data == 1) {
     //deal with PUIs and NAs in R
     for (itype in 1:nobs_types) {
       if (nobs[itype] > 0) {
@@ -391,8 +434,20 @@ model {
       }
     }
     frac_case2_growth_obs ~ normal(frac_case2_growth, sigma_frac_case2_growth_obs);
-  } else {
+    variant2_crossover_days_obs ~ normal(variant2_crossover_days, sigma_variant2_crossover_days);
+  } else if (fit_to_data == 0) {
     frac_case2_growth_obs ~ normal(0, 1);
+    variant2_crossover_days_obs ~ normal(0, 1);
+  } else if (fit_to_data == 2) {
+    for (itype in 1:nobs_types) {
+      if (nobs[itype] > 0) {
+        obs_data[itype, 1:nobs[itype]] ~ normal(sim_data[itype, tobs[itype, 1:nobs[itype]]], sigma_obs[itype]);
+      }
+      frac_case2_growth_obs ~ normal(0, 1);
+      variant2_crossover_days_obs ~ normal(0, 1);
+    }
+  } else {
+    reject("bad fit_to_data")
   }
 }
 
