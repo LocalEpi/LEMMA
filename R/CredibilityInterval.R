@@ -10,7 +10,7 @@ CredibilityIntervalData <- function(inputs, fit.to.data = NULL) {
     fit.to.data <- RunSim(inputs)
   }
   if (isTRUE(inputs$internal.args$fit_to_data_only==1)) return(list(fit.to.data = fit.to.data))
-  if (inputs$internal.args$sampling) {
+  if (inputs$internal.args$sampling %in% c(1, "Fixed_param")) {
     fit.extended <- ExtendSim(list(inputs = inputs, fit.to.data = fit.to.data))
   } else {
     fit.extended <- ExtendSim_optimizing(inputs = inputs, fit.to.data = fit.to.data)
@@ -193,6 +193,7 @@ RunSim <- function(inputs) {
     init <- seir_inputs[init.names]
     names(init) <- sub("mu_", "", init.names)
     init <- c(init, list(sigma_obs = 1 / seir_inputs$sigma_obs_est_inv))
+    init$beta_multiplier <- inputs$interventions$mu_beta_inter #different name
     return(init)
   }
   # message('NOTE: You may see an error message (non-finite gradient, validate transformed params, model is leaking).\nThat is fine - LEMMA is working properly as long as it says "Optimization terminated normally"')
@@ -212,6 +213,7 @@ RunSim <- function(inputs) {
                              control = list(max_treedepth = internal.args$max_treedepth,
                                             adapt_delta = internal.args$adapt_delta)
       )
+      if (internal.args$sampling == "Fixed_param") break
       rhat <- max(bayesplot::rhat(fit), na.rm=T)
       if (rhat < 1.1) {
         ParallelLogger::logInfo("sampling converged, rhat = ", rhat)
@@ -226,7 +228,7 @@ RunSim <- function(inputs) {
       fit <- rstan::optimizing(stanmodels$LEMMA,
                                data = seir_inputs,
                                seed = inputs$internal.args$random.seed + itry,
-                               init = GetInit,
+                               init = if (itry == 0) GetInit else "random",
                                iter = inputs$internal.args$iter,
                                verbose = T,
                                as_vector = F

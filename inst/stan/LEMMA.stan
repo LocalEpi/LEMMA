@@ -79,7 +79,15 @@ data {
 
   int<lower=0> variant2_introduction;
 
+  int<lower=0> ninter;                      // number of interventions
+  real<lower=1.0> t_inter[ninter];       // mean start time of each interventions
+  real<lower=1.0> len_inter[ninter];     // mean length of each intervention
+  real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
+  real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
+
   int fit_to_data;
+  int<lower=0> start_fit_frac;
+  int<lower=0> end_fit_frac;
 }
 
 transformed data {
@@ -104,8 +112,7 @@ transformed data {
   int obs_hosp_census = 1; //combined hospitalized
   int obs_cases = 2; //combined cases
 
-  int days_delay_measure_growth = 5; //number of days after variant2_introduction to start calculating frac2 growth
-  int nfrac_growth = nt - (variant2_introduction + days_delay_measure_growth) + 1;
+  int nfrac_growth = end_fit_frac - start_fit_frac + 1;
 }
 parameters {
   real<lower=1.0> duration_latent1; // duration is a minimum of 1 which is the stepsize of this model
@@ -133,6 +140,7 @@ parameters {
   real<lower=0.001, upper=3.0> trans_multiplier;
   real<lower=0.001, upper=1.0> VE_infection1;
   real<lower=0.001, upper=1.0> immune_evasion;
+  real<lower=0.0> beta_multiplier[ninter];
 }
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
@@ -141,6 +149,7 @@ transformed parameters {
   row_vector<lower=0.0>[nt] new_cases2;
   row_vector<lower=0.0>[nt] soon_positive1;
   row_vector<lower=0.0>[nt] soon_positive2;
+  real<lower=0.0> beta[nt];
 
   real<lower=0.0, upper=1.0> frac_hosp2_naive;
   real frac_case2_growth;
@@ -195,7 +204,7 @@ transformed parameters {
 
     frac_hosp2_naive = frac_hosp1_naive * frac_hosp_multiplier;
     if (frac_hosp2_naive > 1) {
-      reject("frac_hosp2_naive > 1")
+      reject("frac_hosp2_naive > 1");
     }
 
     VE_severe_given_infection1 = VE_severe_given_infection1_init;
@@ -220,17 +229,26 @@ transformed parameters {
     //Rt1[it] = beta_0 * x[S, it] / npop * duration_rec_mild;
     beta_0 = Rt1_init / (x[S, 1] / npop * duration_rec_mild);
     if (beta_0 < 0) {
-      reject("beta_0 < 0") //beta_0 has lower=0.0 but this avoids going through the 1:nt-1 loop first
+      reject("beta_0 < 0"); //beta_0 has lower=0.0 but this avoids going through the 1:nt-1 loop first
+    }
+
+    for (it in 1:nt) {
+      beta[it] = beta_0;
+      for (iinter in 1:ninter) {
+        //k <- 2/s * qlogis(0.99)  = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
+        //f <- m ^ plogis(k * (t - (d + s/2)))
+        beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2)));
+      }
     }
 
     if (x[S, 1] < -10) {
-      // print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1])
+      // print("x[S, 1] < -10 x[S, 1]=", x[S, 1], " initial_infected1=", initial_infected1, " x= ", x[:, 1]);
     }
 
     soon_positive1[1] = 0.0;
     new_cases1[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
     if (tobs[obs_cases, 1] == 1) {
-      reject("Minimum tobs[obs_cases, :] is 2")
+      reject("Minimum tobs[obs_cases, :] is 2");
     }
     soon_positive2[1] = 0.0;
     new_cases2[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
@@ -238,18 +256,18 @@ transformed parameters {
 
 
     if (booster_VE_infection1 - booster_VE_infection2 < 0) {
-      reject("booster_VE_infection1 - booster_VE_infection2 < 0")
+      reject("booster_VE_infection1 - booster_VE_infection2 < 0");
     }
 
     for (it in 1:nt-1){
-      newE1 = fmin(x[S, it], beta_0 * x[S, it] * (x[Imild1, it] + x[Ipreh1, it]) / npop);
+      newE1 = fmin(x[S, it], beta[it] * x[S, it] * (x[Imild1, it] + x[Ipreh1, it]) / npop);
       S2 = x[S, it] + x[P1, it];
 
       newI1 = fmin(x[E1, it], x[E1, it] / duration_latent1); //fmin shouldn't be needed since duration_latent1 >= 1 but can't hurt
       if (it == variant2_introduction) {
         newE2 = (x[E1, it] + newE1 - newI1) * initial_exposed2_frac;
       } else {
-        newE2 = fmin(S2, beta_0 * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
+        newE2 = fmin(S2, beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
       }
       newE2 = fmax(newE2, 0.0); //fmax shouldn't be needed but can't hurt
       newI2 = fmin(x[E2, it], x[E2, it] / duration_latent2);
@@ -293,7 +311,7 @@ transformed parameters {
       x[E2, it + 1] = x[E2, it] + newE2 - newI2;
 
       // if (it == variant2_introduction || it == (variant2_introduction+1)) {
-        //   print("it = ", it, " newE2 = ", newE2, " newI2 = ", newI2, " x[E2, it] = ", x[E2, it], " x[E2, it + 1] = ", x[E2, it + 1], " duration_latent2 = ", duration_latent2)
+        //   print("it = ", it, " newE2 = ", newE2, " newI2 = ", newI2, " x[E2, it] = ", x[E2, it], " x[E2, it + 1] = ", x[E2, it + 1], " duration_latent2 = ", duration_latent2);
         // }
 
         x[Imild1, it + 1] = x[Imild1, it] + newI1 * (1 - frac_hosp1) - x[Imild1, it] / duration_rec_mild;
@@ -311,7 +329,7 @@ transformed parameters {
         x[P12, it + 1] = x[P12, it] - lost_protection_infection12 + new_P12_from_S + new_P12_from_P1 +  x[Hmod2, it] / duration_hosp_mod2 + x[Imild2, it] / duration_rec_mild + recovered1 * (1 - immune_evasion);
 
         if (is_nan(x[P12, it + 1])) {
-          print(x[P12, it], " ", lost_protection_infection12, " ", new_P12_from_S," ",  new_P12_from_P1, " ",  x[Hmod2, it], " ", duration_hosp_mod2," ",  x[Imild2, it], " ", duration_rec_mild, " ", recovered1, " ", immune_evasion)
+          print(x[P12, it], " ", lost_protection_infection12, " ", new_P12_from_S," ",  new_P12_from_P1, " ",  x[Hmod2, it], " ", duration_hosp_mod2," ",  x[Imild2, it], " ", duration_rec_mild, " ", recovered1, " ", immune_evasion);
         }
 
         soon_positive1[it + 1] = soon_positive1[it] + newE1 * frac_tested - soon_positive1[it] / test_delay;
@@ -320,17 +338,18 @@ transformed parameters {
         new_cases2[it + 1] = soon_positive2[it + 1] / test_delay;
 
         // if (is_nan(new_cases1[it + 1])) {
-          //   print("is nan cases:")
-          //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
-          //   reject("new_cases[it+1] is nan")
+          //   print("is nan cases:");
+          //   print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay);
+          //   reject("new_cases[it+1] is nan");
           // }
 
           if (is_nan(sum(x[:, it + 1]))) {
-            print("is nan:")
+            print("is nan:");
             // print(newE, " ", newI, " ", frac_init_E, " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
             reject("x is nan: it = ", it, "x[, it] = ", x[:, it], " x[, it+1] = ", x[:, it + 1]);
           }
           if (min(x[:, it]) < 0) {
+            reject("negative compartment");
             for (ii in 1:ncompartments) {
               if (x[ii, it + 1] < 0) {
                 max_compartment = 1;
@@ -340,14 +359,14 @@ transformed parameters {
                   }
                 }
                 if (x[ii, it + 1] < -100) {
-                  print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1])
+                  print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1]);
                   if (ii == 2) {
-                    print("duration_latent1 = ", duration_latent1, " x[E1, it+1] = ", x[E1, it+1], "x[E1, it] = ", x[E1, it], " newE1 = ", newE1, " newI1 = ", newI1)
-                    print("beta_0 = ", beta_0)
-                    print(x[, it])
+                    print("duration_latent1 = ", duration_latent1, " x[E1, it+1] = ", x[E1, it+1], "x[E1, it] = ", x[E1, it], " newE1 = ", newE1, " newI1 = ", newI1);
+                    // print("beta_0 = ", beta_0);
+                    print(x[, it]);
 
                   }
-                  // print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1])
+                  // print("negative compartment: x[", ii, ", ", it+1, "] = ", x[ii, it + 1], " moving to compartment ", max_compartment, "x[max_compartment, it + 1] = ", x[max_compartment, it + 1], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1]);
                 }
                 x[max_compartment, it + 1] = x[max_compartment, it + 1] + x[ii, it + 1];
                 x[ii, it + 1] = 0;
@@ -356,8 +375,8 @@ transformed parameters {
           }
           // for (ii in 1:ncompartments) {
             //   if (x[ii, it + 1] < -100) {
-              //     print("beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop=", beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop)
-              //     print("beta[it]=", beta[it], " trans_multiplier=", trans_multiplier, " S2=", S2, " x[Imild2, it] + x[Ipreh2, it]=", x[Imild2, it] + x[Ipreh2, it], " npop=", npop)
+              //     print("beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop=", beta[it] * trans_multiplier * S2 * (x[Imild2, it] + x[Ipreh2, it]) / npop);
+              //     print("beta[it]=", beta[it], " trans_multiplier=", trans_multiplier, " S2=", S2, " x[Imild2, it] + x[Ipreh2, it]=", x[Imild2, it] + x[Ipreh2, it], " npop=", npop);
               //
               //     reject("x[ii, it + 1] < -100: it= ", it, " ii=", ii, " variant2_introduction=",variant2_introduction,  " newE2=", newE2, " x[Imild2, it]=", x[Imild2, it]," x[Ipreh2, it]=", x[Ipreh2, it], " x[:, it]=", x[:, it], " ==== x[:, it+1]=  ", x[:, it+1]);
               //   }
@@ -370,9 +389,8 @@ transformed parameters {
               }
     }
 
-    for (it in (variant2_introduction + days_delay_measure_growth):nt) {
-      //soon after variant2_introduction+1, new_cases2 = 0 (because not enough time to have any infected, only exposed)
-      index = it - (variant2_introduction + days_delay_measure_growth) + 1;
+    for (it in start_fit_frac:end_fit_frac) {
+      index = it - start_fit_frac + 1;
       frac_case2[index] = fmin(1-1e-6, fmax(1e-6, new_cases2[it] / (new_cases1[it] + new_cases2[it] + 1e-8)));
       X[index, 1] = 1.0;
       X[index, 2] = it;
@@ -381,7 +399,7 @@ transformed parameters {
     //     nt <- new_variant_frac[, .N]
     // X <- cbind(rep(1, nt), 1:nt)
     // y <- qlogis(new_variant_frac$variant2)
-    // # b <- solve(t(X) %*% X) %*% t(X) %*% y
+    //  b <- solve(t(X) %*% X) %*% t(X) %*% y
     // b <- solve(t(X) %*% X, t(X) %*% y)
 
 
@@ -422,6 +440,10 @@ model {
   // initial_infected1 ~ normal(mu_initial_infected1, sigma_initial_infected1);
   // initial_preh1 ~ normal(mu_initial_preh1, sigma_initial_preh1);
 
+  for (iinter in 1:ninter) {
+    beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
+  }
+
   //////////////////////////////////////////
   // fitting observations
 
@@ -447,7 +469,7 @@ model {
       variant2_crossover_days_obs ~ normal(0, 1);
     }
   } else {
-    reject("bad fit_to_data")
+    reject("bad fit_to_data");
   }
 }
 
@@ -475,8 +497,8 @@ generated quantities{
     real S2;
     for (it in 1:nt) {
       S2 = x[S, it] + x[P1, it];
-      Rt1[it] = beta_0 * x[S, it] / npop * duration_rec_mild;
-      Rt2[it] = beta_0 * trans_multiplier * S2 / npop * duration_rec_mild;
+      Rt1[it] = beta[it] * x[S, it] / npop * duration_rec_mild;
+      Rt2[it] = beta[it] * trans_multiplier * S2 / npop * duration_rec_mild;
     }
   }
 }
