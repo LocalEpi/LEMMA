@@ -2,6 +2,9 @@
 // https://github.com/jpmattern/seir-covid19
 // by Jann Paul Mattern and Mikala Caton
 
+//requires:
+//install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+//see: https://mc-stan.org/r-packages/
 data {
   //////////////////////////////////////////
   // data required to run model
@@ -64,6 +67,7 @@ data {
   real<lower=1.0> len_inter[ninter];     // mean length of each intervention
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
+  real<lower=0.0> lbd_beta_inter[ninter];    // lower bound change in beta through intervention
 }
 
 transformed data {
@@ -103,7 +107,7 @@ parameters {
   // real<lower=0.0> beta_mult1;
   // real<lower=0.0> beta_mult2;
   // real<lower=0.0> beta_mult3;
-  real<lower=0.0> beta_multiplier[ninter];
+  real<lower=lbd_beta_inter> beta_multiplier[ninter];
 }
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
@@ -145,7 +149,7 @@ transformed parameters {
 
     frac_hosp_0 = frac_hosp_lemma * (1 - VE_severe_given_infection) * severity;
 
-    // print(frac_hosp_0, frac_hosp_lemma, VE_severe_given_infection, severity, avg_duration, duration_pre_hosp, duration_rec_mild)
+    // print(frac_hosp_0, frac_hosp_lemma, VE_severe_given_infection, severity, avg_duration, duration_pre_hosp, duration_rec_mild);
 
 
     x[:,1] = rep_vector(0.0, ncompartments);
@@ -159,7 +163,7 @@ transformed parameters {
     soon_positive[1] = 0.0;
     new_cases[1] = 0.0; //not correct - pass NA obs cases at t = 1 so no fitting to this
     if (tobs[obs_cases, 1] == 1) {
-      reject("Minimum tobs[obs_cases, :] is 2")
+      reject("Minimum tobs[obs_cases, :] is 2");
     }
 
     //beta_0 = omicron_trans_multiplier / avg_duration * rt_delta / (1 - VE_infection_delta);
@@ -168,7 +172,7 @@ transformed parameters {
     for (it in 1:nt) {
       beta[it] = beta_0;
       for (iinter in 1:ninter) {
-        //k <- 2/s * qlogis(0.99) # = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
+        //k <- 2/s * qlogis(0.99)  = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
         beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2)));
       }
@@ -180,7 +184,7 @@ transformed parameters {
 
       frac_boosters_to_susceptible = x[S, it] / (x[S, it] + omicron_recovered_booster_scale * x[Rlive, it]);
       new_protected = fmin(x[S, it] - newE, num_boosters[it] * frac_boosters_to_susceptible * booster_VE_infection);
-      if (new_protected < 0) reject("new_protected < 0")
+      if (new_protected < 0) reject("new_protected < 0");
 
 
       increased_severity_protection = num_boosters[it] * frac_boosters_to_susceptible * (1 - booster_VE_infection); //boosted but not Protected from infection, still susceptible
@@ -204,13 +208,13 @@ transformed parameters {
       soon_positive[it + 1] = soon_positive[it] + newE * frac_tested - soon_positive[it] / test_delay;
       new_cases[it + 1] = soon_positive[it + 1] / test_delay;
       if (is_nan(new_cases[it + 1])) {
-        print("is nan cases:")
-        print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay)
-        reject("new_cases[it+1] is nan")
+        print("is nan cases:");
+        print(it, " ", soon_positive[it], " ", soon_positive[it + 1], " ", newE, " ", frac_tested, " ", test_delay);
+        reject("new_cases[it+1] is nan");
       }
 
       // if (is_nan(sum(x[:, it + 1]))) {
-      //   print("is nan:")
+      //   print("is nan:");
       //   print(newE, " ", newI, " ", frac_init_E, " ", beta[it], " ", beta_0, " ", avg_duration, " ", frac_hosp_0, " ", frac_boosters_to_susceptible, " ", new_protected, " ", increased_severity_protection, " ", frac_increased_severity_protection, " ", frac_hosp, " ", new_admits, " ", VE_severe_given_infection, " ");
       //   reject("x is nan: it = ", it, " x[, it+1] = ", x[:, it + 1]);
       // }
@@ -226,8 +230,8 @@ transformed parameters {
     sim_data[obs_cases] = new_cases + cases_delta * case_frac_delta;
   }
 
-  // print(x)
-  // print(sim_data)
+  // print(x);
+  // print(sim_data);
 }
 
 model {
