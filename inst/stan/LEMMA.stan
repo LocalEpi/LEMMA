@@ -68,6 +68,11 @@ data {
   real<lower=0.0> mu_beta_inter[ninter];    // mean change in beta through intervention
   real<lower=0.0> sigma_beta_inter[ninter]; // sd change in beta through intervention
   real<lower=0.0> lbd_beta_inter[ninter];    // lower bound change in beta through intervention
+
+  int<lower=0> nholiday;
+  int<lower=1> t_holiday[nholiday];
+  real<lower=0.0> mu_beta_holiday;
+  real<lower=0.0> sigma_beta_holiday;
 }
 
 transformed data {
@@ -108,6 +113,7 @@ parameters {
   // real<lower=0.0> beta_mult2;
   // real<lower=0.0> beta_mult3;
   real<lower=lbd_beta_inter> beta_multiplier[ninter];
+  real<lower=1.0> beta_holiday;
 }
 transformed parameters {
   matrix<lower=0.0>[ncompartments,nt] x;
@@ -172,9 +178,15 @@ transformed parameters {
     for (it in 1:nt) {
       beta[it] = beta_0;
       for (iinter in 1:ninter) {
+        //each intervention goes from beta_multiplier ^ 0.01 on t_inter to beta_multiplier ^ 0.99 on t_inter + len_inter
         //k <- 2/s * qlogis(0.99)  = -2/s * qlogis(0.01) --> 2 * qlogis(0.99) = 9.19024
         //f <- m ^ plogis(k * (t - (d + s/2)))
         beta[it] = beta[it] * beta_multiplier[iinter] ^ inv_logit(9.19024 / len_inter[iinter] * (it - (t_inter[iinter] + len_inter[iinter] / 2)));
+      }
+      for (iholiday in 1:nholiday) {
+        if (it == t_holiday[iholiday]) {
+          beta[it] = beta[it] * beta_holiday;
+        }
       }
     }
 
@@ -247,6 +259,7 @@ model {
   for (iinter in 1:ninter) {
     beta_multiplier[iinter] ~ normal(mu_beta_inter[iinter], sigma_beta_inter[iinter]);
   }
+  beta_holiday ~ normal(mu_beta_holiday, sigma_beta_holiday);
 
   frac_tested ~ normal(mu_frac_tested, sigma_frac_tested);
   severity ~ normal(mu_severity, sigma_severity);

@@ -75,143 +75,150 @@ using stan::math::pow;
 stan::math::profile_map profiles__;
 static int current_statement__= 0;
 static const std::vector<string> locations_array__ = {" (found before start of program)",
-                                                      " (in 'LEMMA', line 76, column 2 to column 34)",
-                                                      " (in 'LEMMA', line 77, column 2 to column 36)",
-                                                      " (in 'LEMMA', line 78, column 2 to column 36)",
-                                                      " (in 'LEMMA', line 79, column 2 to column 36)",
-                                                      " (in 'LEMMA', line 80, column 2 to column 48)",
-                                                      " (in 'LEMMA', line 81, column 2 to column 41)",
-                                                      " (in 'LEMMA', line 82, column 2 to column 35)",
-                                                      " (in 'LEMMA', line 83, column 2 to column 40)",
-                                                      " (in 'LEMMA', line 84, column 2 to column 27)",
-                                                      " (in 'LEMMA', line 85, column 2 to column 43)",
-                                                      " (in 'LEMMA', line 86, column 2 to column 29)",
-                                                      " (in 'LEMMA', line 87, column 2 to column 29)",
-                                                      " (in 'LEMMA', line 88, column 2 to column 30)",
-                                                      " (in 'LEMMA', line 92, column 2 to column 53)",
-                                                      " (in 'LEMMA', line 95, column 2 to column 40)",
-                                                      " (in 'LEMMA', line 96, column 2 to column 44)",
-                                                      " (in 'LEMMA', line 97, column 2 to column 38)",
-                                                      " (in 'LEMMA', line 98, column 2 to column 42)",
-                                                      " (in 'LEMMA', line 99, column 2 to column 27)",
-                                                      " (in 'LEMMA', line 100, column 2 to column 30)",
-                                                      " (in 'LEMMA', line 103, column 6 to column 32)",
-                                                      " (in 'LEMMA', line 102, column 32 to line 104, column 5)",
-                                                      " (in 'LEMMA', line 102, column 4 to line 104, column 5)",
-                                                      " (in 'LEMMA', line 101, column 19 to line 105, column 3)",
-                                                      " (in 'LEMMA', line 101, column 2 to line 105, column 3)",
-                                                      " (in 'LEMMA', line 108, column 4 to column 14)",
-                                                      " (in 'LEMMA', line 109, column 4 to column 14)",
-                                                      " (in 'LEMMA', line 110, column 4 to column 21)",
-                                                      " (in 'LEMMA', line 111, column 4 to column 16)",
-                                                      " (in 'LEMMA', line 112, column 4 to column 19)",
-                                                      " (in 'LEMMA', line 113, column 4 to column 38)",
-                                                      " (in 'LEMMA', line 114, column 4 to column 23)",
-                                                      " (in 'LEMMA', line 115, column 4 to column 39)",
-                                                      " (in 'LEMMA', line 116, column 4 to column 44)",
-                                                      " (in 'LEMMA', line 117, column 4 to column 20)",
-                                                      " (in 'LEMMA', line 118, column 4 to column 35)",
-                                                      " (in 'LEMMA', line 119, column 4 to column 35)",
-                                                      " (in 'LEMMA', line 120, column 15 to column 17)",
-                                                      " (in 'LEMMA', line 120, column 4 to column 36)",
-                                                      " (in 'LEMMA', line 121, column 15 to column 17)",
-                                                      " (in 'LEMMA', line 121, column 4 to column 36)",
-                                                      " (in 'LEMMA', line 123, column 6 to column 83)",
-                                                      " (in 'LEMMA', line 124, column 6 to column 83)",
-                                                      " (in 'LEMMA', line 122, column 21 to line 125, column 5)",
-                                                      " (in 'LEMMA', line 122, column 4 to line 125, column 5)",
-                                                      " (in 'LEMMA', line 126, column 4 to column 60)",
-                                                      " (in 'LEMMA', line 127, column 4 to column 79)",
-                                                      " (in 'LEMMA', line 129, column 4 to column 44)",
-                                                      " (in 'LEMMA', line 130, column 4 to column 74)",
-                                                      " (in 'LEMMA', line 131, column 4 to column 45)",
-                                                      " (in 'LEMMA', line 132, column 4 to column 75)",
-                                                      " (in 'LEMMA', line 133, column 4 to column 69)",
-                                                      " (in 'LEMMA', line 134, column 4 to column 34)",
-                                                      " (in 'LEMMA', line 135, column 4 to column 48)",
-                                                      " (in 'LEMMA', line 136, column 4 to column 27)",
-                                                      " (in 'LEMMA', line 137, column 4 to column 23)",
-                                                      " (in 'LEMMA', line 139, column 6 to column 48)",
-                                                      " (in 'LEMMA', line 138, column 33 to line 140, column 5)",
-                                                      " (in 'LEMMA', line 138, column 4 to line 140, column 5)",
-                                                      " (in 'LEMMA', line 143, column 4 to column 91)",
-                                                      " (in 'LEMMA', line 145, column 6 to column 24)",
-                                                      " (in 'LEMMA', line 149, column 8 to column 146)",
-                                                      " (in 'LEMMA', line 146, column 31 to line 150, column 7)",
-                                                      " (in 'LEMMA', line 146, column 6 to line 150, column 7)",
-                                                      " (in 'LEMMA', line 144, column 21 to line 151, column 5)",
-                                                      " (in 'LEMMA', line 144, column 4 to line 151, column 5)",
-                                                      " (in 'LEMMA', line 153, column 6 to column 71)",
-                                                      " (in 'LEMMA', line 154, column 6 to column 40)",
-                                                      " (in 'LEMMA', line 155, column 6 to column 108)",
-                                                      " (in 'LEMMA', line 156, column 6 to column 116)",
-                                                      " (in 'LEMMA', line 157, column 29 to column 57)",
-                                                      " (in 'LEMMA', line 157, column 6 to column 57)",
-                                                      " (in 'LEMMA', line 158, column 6 to column 115)",
-                                                      " (in 'LEMMA', line 159, column 6 to column 97)",
-                                                      " (in 'LEMMA', line 161, column 6 to column 178)",
-                                                      " (in 'LEMMA', line 162, column 6 to column 79)",
-                                                      " (in 'LEMMA', line 163, column 6 to column 52)",
-                                                      " (in 'LEMMA', line 164, column 6 to column 75)",
-                                                      " (in 'LEMMA', line 165, column 6 to column 126)",
-                                                      " (in 'LEMMA', line 166, column 6 to column 44)",
-                                                      " (in 'LEMMA', line 167, column 6 to column 98)",
-                                                      " (in 'LEMMA', line 168, column 6 to column 70)",
-                                                      " (in 'LEMMA', line 169, column 6 to column 83)",
-                                                      " (in 'LEMMA', line 170, column 6 to column 152)",
-                                                      " (in 'LEMMA', line 171, column 6 to column 74)",
-                                                      " (in 'LEMMA', line 172, column 6 to column 102)",
-                                                      " (in 'LEMMA', line 173, column 6 to column 61)",
-                                                      " (in 'LEMMA', line 175, column 8 to column 31)",
-                                                      " (in 'LEMMA', line 176, column 8 to column 116)",
-                                                      " (in 'LEMMA', line 177, column 8 to column 41)",
-                                                      " (in 'LEMMA', line 174, column 37 to line 178, column 7)",
-                                                      " (in 'LEMMA', line 174, column 6 to line 178, column 7)",
-                                                      " (in 'LEMMA', line 186, column 8 to column 68)",
-                                                      " (in 'LEMMA', line 185, column 47 to line 188, column 7)",
-                                                      " (in 'LEMMA', line 185, column 6 to line 188, column 7)",
-                                                      " (in 'LEMMA', line 152, column 22 to line 189, column 5)",
-                                                      " (in 'LEMMA', line 152, column 4 to line 189, column 5)",
-                                                      " (in 'LEMMA', line 191, column 4 to column 103)",
-                                                      " (in 'LEMMA', line 192, column 4 to column 68)",
-                                                      " (in 'LEMMA', line 106, column 2 to line 193, column 3)",
-                                                      " (in 'LEMMA', line 227, column 2 to column 55)",
-                                                      " (in 'LEMMA', line 228, column 2 to column 25)",
-                                                      " (in 'LEMMA', line 235, column 6 to column 51)",
-                                                      " (in 'LEMMA', line 234, column 11 to line 236, column 5)",
-                                                      " (in 'LEMMA', line 232, column 8 to column 102)",
-                                                      " (in 'LEMMA', line 231, column 23 to line 233, column 7)",
-                                                      " (in 'LEMMA', line 231, column 6 to line 233, column 7)",
-                                                      " (in 'LEMMA', line 230, column 25 to line 234, column 5)",
-                                                      " (in 'LEMMA', line 230, column 4 to line 236, column 5)",
-                                                      " (in 'LEMMA', line 229, column 30 to line 237, column 3)",
-                                                      " (in 'LEMMA', line 229, column 2 to line 237, column 3)",
-                                                      " (in 'LEMMA', line 239, column 4 to column 22)",
-                                                      " (in 'LEMMA', line 242, column 6 to column 62)",
-                                                      " (in 'LEMMA', line 241, column 21 to line 243, column 5)",
-                                                      " (in 'LEMMA', line 241, column 4 to line 243, column 5)",
-                                                      " (in 'LEMMA', line 238, column 2 to line 244, column 3)",
-                                                      " (in 'LEMMA', line 201, column 2 to column 70)",
-                                                      " (in 'LEMMA', line 202, column 2 to column 76)",
-                                                      " (in 'LEMMA', line 203, column 2 to column 76)",
-                                                      " (in 'LEMMA', line 204, column 2 to column 76)",
-                                                      " (in 'LEMMA', line 205, column 2 to column 112)",
-                                                      " (in 'LEMMA', line 207, column 4 to column 86)",
-                                                      " (in 'LEMMA', line 206, column 27 to line 208, column 3)",
-                                                      " (in 'LEMMA', line 206, column 2 to line 208, column 3)",
-                                                      " (in 'LEMMA', line 209, column 2 to column 58)",
-                                                      " (in 'LEMMA', line 210, column 2 to column 49)",
-                                                      " (in 'LEMMA', line 211, column 2 to column 97)",
-                                                      " (in 'LEMMA', line 212, column 2 to column 55)",
-                                                      " (in 'LEMMA', line 213, column 2 to column 55)",
-                                                      " (in 'LEMMA', line 214, column 2 to column 58)",
-                                                      " (in 'LEMMA', line 215, column 2 to column 58)",
-                                                      " (in 'LEMMA', line 218, column 2 to column 45)",
-                                                      " (in 'LEMMA', line 222, column 6 to column 109)",
-                                                      " (in 'LEMMA', line 221, column 25 to line 223, column 5)",
-                                                      " (in 'LEMMA', line 221, column 4 to line 223, column 5)",
-                                                      " (in 'LEMMA', line 220, column 30 to line 224, column 3)",
-                                                      " (in 'LEMMA', line 220, column 2 to line 224, column 3)",
+                                                      " (in 'LEMMA', line 80, column 2 to column 34)",
+                                                      " (in 'LEMMA', line 81, column 2 to column 36)",
+                                                      " (in 'LEMMA', line 82, column 2 to column 36)",
+                                                      " (in 'LEMMA', line 83, column 2 to column 36)",
+                                                      " (in 'LEMMA', line 84, column 2 to column 48)",
+                                                      " (in 'LEMMA', line 85, column 2 to column 41)",
+                                                      " (in 'LEMMA', line 86, column 2 to column 35)",
+                                                      " (in 'LEMMA', line 87, column 2 to column 40)",
+                                                      " (in 'LEMMA', line 88, column 2 to column 27)",
+                                                      " (in 'LEMMA', line 89, column 2 to column 43)",
+                                                      " (in 'LEMMA', line 90, column 2 to column 29)",
+                                                      " (in 'LEMMA', line 91, column 2 to column 29)",
+                                                      " (in 'LEMMA', line 92, column 2 to column 30)",
+                                                      " (in 'LEMMA', line 96, column 2 to column 53)",
+                                                      " (in 'LEMMA', line 97, column 2 to column 31)",
+                                                      " (in 'LEMMA', line 100, column 2 to column 40)",
+                                                      " (in 'LEMMA', line 101, column 2 to column 44)",
+                                                      " (in 'LEMMA', line 102, column 2 to column 38)",
+                                                      " (in 'LEMMA', line 103, column 2 to column 42)",
+                                                      " (in 'LEMMA', line 104, column 2 to column 27)",
+                                                      " (in 'LEMMA', line 105, column 2 to column 30)",
+                                                      " (in 'LEMMA', line 108, column 6 to column 32)",
+                                                      " (in 'LEMMA', line 107, column 32 to line 109, column 5)",
+                                                      " (in 'LEMMA', line 107, column 4 to line 109, column 5)",
+                                                      " (in 'LEMMA', line 106, column 19 to line 110, column 3)",
+                                                      " (in 'LEMMA', line 106, column 2 to line 110, column 3)",
+                                                      " (in 'LEMMA', line 113, column 4 to column 14)",
+                                                      " (in 'LEMMA', line 114, column 4 to column 14)",
+                                                      " (in 'LEMMA', line 115, column 4 to column 21)",
+                                                      " (in 'LEMMA', line 116, column 4 to column 16)",
+                                                      " (in 'LEMMA', line 117, column 4 to column 19)",
+                                                      " (in 'LEMMA', line 118, column 4 to column 38)",
+                                                      " (in 'LEMMA', line 119, column 4 to column 23)",
+                                                      " (in 'LEMMA', line 120, column 4 to column 39)",
+                                                      " (in 'LEMMA', line 121, column 4 to column 44)",
+                                                      " (in 'LEMMA', line 122, column 4 to column 20)",
+                                                      " (in 'LEMMA', line 123, column 4 to column 35)",
+                                                      " (in 'LEMMA', line 124, column 4 to column 35)",
+                                                      " (in 'LEMMA', line 125, column 15 to column 17)",
+                                                      " (in 'LEMMA', line 125, column 4 to column 36)",
+                                                      " (in 'LEMMA', line 126, column 15 to column 17)",
+                                                      " (in 'LEMMA', line 126, column 4 to column 36)",
+                                                      " (in 'LEMMA', line 128, column 6 to column 83)",
+                                                      " (in 'LEMMA', line 129, column 6 to column 83)",
+                                                      " (in 'LEMMA', line 127, column 21 to line 130, column 5)",
+                                                      " (in 'LEMMA', line 127, column 4 to line 130, column 5)",
+                                                      " (in 'LEMMA', line 131, column 4 to column 60)",
+                                                      " (in 'LEMMA', line 132, column 4 to column 79)",
+                                                      " (in 'LEMMA', line 134, column 4 to column 44)",
+                                                      " (in 'LEMMA', line 135, column 4 to column 74)",
+                                                      " (in 'LEMMA', line 136, column 4 to column 45)",
+                                                      " (in 'LEMMA', line 137, column 4 to column 75)",
+                                                      " (in 'LEMMA', line 138, column 4 to column 69)",
+                                                      " (in 'LEMMA', line 139, column 4 to column 34)",
+                                                      " (in 'LEMMA', line 140, column 4 to column 48)",
+                                                      " (in 'LEMMA', line 141, column 4 to column 27)",
+                                                      " (in 'LEMMA', line 142, column 4 to column 23)",
+                                                      " (in 'LEMMA', line 144, column 6 to column 48)",
+                                                      " (in 'LEMMA', line 143, column 33 to line 145, column 5)",
+                                                      " (in 'LEMMA', line 143, column 4 to line 145, column 5)",
+                                                      " (in 'LEMMA', line 148, column 4 to column 91)",
+                                                      " (in 'LEMMA', line 150, column 6 to column 24)",
+                                                      " (in 'LEMMA', line 155, column 8 to column 146)",
+                                                      " (in 'LEMMA', line 151, column 31 to line 156, column 7)",
+                                                      " (in 'LEMMA', line 151, column 6 to line 156, column 7)",
+                                                      " (in 'LEMMA', line 159, column 10 to column 45)",
+                                                      " (in 'LEMMA', line 158, column 39 to line 160, column 9)",
+                                                      " (in 'LEMMA', line 158, column 8 to line 160, column 9)",
+                                                      " (in 'LEMMA', line 157, column 35 to line 161, column 7)",
+                                                      " (in 'LEMMA', line 157, column 6 to line 161, column 7)",
+                                                      " (in 'LEMMA', line 149, column 21 to line 162, column 5)",
+                                                      " (in 'LEMMA', line 149, column 4 to line 162, column 5)",
+                                                      " (in 'LEMMA', line 164, column 6 to column 71)",
+                                                      " (in 'LEMMA', line 165, column 6 to column 40)",
+                                                      " (in 'LEMMA', line 166, column 6 to column 108)",
+                                                      " (in 'LEMMA', line 167, column 6 to column 116)",
+                                                      " (in 'LEMMA', line 168, column 29 to column 57)",
+                                                      " (in 'LEMMA', line 168, column 6 to column 57)",
+                                                      " (in 'LEMMA', line 169, column 6 to column 115)",
+                                                      " (in 'LEMMA', line 170, column 6 to column 97)",
+                                                      " (in 'LEMMA', line 172, column 6 to column 178)",
+                                                      " (in 'LEMMA', line 173, column 6 to column 79)",
+                                                      " (in 'LEMMA', line 174, column 6 to column 52)",
+                                                      " (in 'LEMMA', line 175, column 6 to column 75)",
+                                                      " (in 'LEMMA', line 176, column 6 to column 126)",
+                                                      " (in 'LEMMA', line 177, column 6 to column 44)",
+                                                      " (in 'LEMMA', line 178, column 6 to column 98)",
+                                                      " (in 'LEMMA', line 179, column 6 to column 70)",
+                                                      " (in 'LEMMA', line 180, column 6 to column 83)",
+                                                      " (in 'LEMMA', line 181, column 6 to column 152)",
+                                                      " (in 'LEMMA', line 182, column 6 to column 74)",
+                                                      " (in 'LEMMA', line 183, column 6 to column 102)",
+                                                      " (in 'LEMMA', line 184, column 6 to column 61)",
+                                                      " (in 'LEMMA', line 186, column 8 to column 31)",
+                                                      " (in 'LEMMA', line 187, column 8 to column 116)",
+                                                      " (in 'LEMMA', line 188, column 8 to column 41)",
+                                                      " (in 'LEMMA', line 185, column 37 to line 189, column 7)",
+                                                      " (in 'LEMMA', line 185, column 6 to line 189, column 7)",
+                                                      " (in 'LEMMA', line 197, column 8 to column 68)",
+                                                      " (in 'LEMMA', line 196, column 47 to line 199, column 7)",
+                                                      " (in 'LEMMA', line 196, column 6 to line 199, column 7)",
+                                                      " (in 'LEMMA', line 163, column 22 to line 200, column 5)",
+                                                      " (in 'LEMMA', line 163, column 4 to line 200, column 5)",
+                                                      " (in 'LEMMA', line 202, column 4 to column 103)",
+                                                      " (in 'LEMMA', line 203, column 4 to column 68)",
+                                                      " (in 'LEMMA', line 111, column 2 to line 204, column 3)",
+                                                      " (in 'LEMMA', line 239, column 2 to column 55)",
+                                                      " (in 'LEMMA', line 240, column 2 to column 25)",
+                                                      " (in 'LEMMA', line 247, column 6 to column 51)",
+                                                      " (in 'LEMMA', line 246, column 11 to line 248, column 5)",
+                                                      " (in 'LEMMA', line 244, column 8 to column 102)",
+                                                      " (in 'LEMMA', line 243, column 23 to line 245, column 7)",
+                                                      " (in 'LEMMA', line 243, column 6 to line 245, column 7)",
+                                                      " (in 'LEMMA', line 242, column 25 to line 246, column 5)",
+                                                      " (in 'LEMMA', line 242, column 4 to line 248, column 5)",
+                                                      " (in 'LEMMA', line 241, column 30 to line 249, column 3)",
+                                                      " (in 'LEMMA', line 241, column 2 to line 249, column 3)",
+                                                      " (in 'LEMMA', line 251, column 4 to column 22)",
+                                                      " (in 'LEMMA', line 254, column 6 to column 62)",
+                                                      " (in 'LEMMA', line 253, column 21 to line 255, column 5)",
+                                                      " (in 'LEMMA', line 253, column 4 to line 255, column 5)",
+                                                      " (in 'LEMMA', line 250, column 2 to line 256, column 3)",
+                                                      " (in 'LEMMA', line 212, column 2 to column 70)",
+                                                      " (in 'LEMMA', line 213, column 2 to column 76)",
+                                                      " (in 'LEMMA', line 214, column 2 to column 76)",
+                                                      " (in 'LEMMA', line 215, column 2 to column 76)",
+                                                      " (in 'LEMMA', line 216, column 2 to column 112)",
+                                                      " (in 'LEMMA', line 218, column 4 to column 86)",
+                                                      " (in 'LEMMA', line 217, column 27 to line 219, column 3)",
+                                                      " (in 'LEMMA', line 217, column 2 to line 219, column 3)",
+                                                      " (in 'LEMMA', line 220, column 2 to column 61)",
+                                                      " (in 'LEMMA', line 221, column 2 to column 58)",
+                                                      " (in 'LEMMA', line 222, column 2 to column 49)",
+                                                      " (in 'LEMMA', line 223, column 2 to column 97)",
+                                                      " (in 'LEMMA', line 224, column 2 to column 55)",
+                                                      " (in 'LEMMA', line 225, column 2 to column 55)",
+                                                      " (in 'LEMMA', line 226, column 2 to column 58)",
+                                                      " (in 'LEMMA', line 227, column 2 to column 58)",
+                                                      " (in 'LEMMA', line 230, column 2 to column 45)",
+                                                      " (in 'LEMMA', line 234, column 6 to column 109)",
+                                                      " (in 'LEMMA', line 233, column 25 to line 235, column 5)",
+                                                      " (in 'LEMMA', line 233, column 4 to line 235, column 5)",
+                                                      " (in 'LEMMA', line 232, column 30 to line 236, column 3)",
+                                                      " (in 'LEMMA', line 232, column 2 to line 236, column 3)",
                                                       " (in 'LEMMA', line 10, column 2 to column 26)",
                                                       " (in 'LEMMA', line 11, column 20 to column 30)",
                                                       " (in 'LEMMA', line 11, column 2 to column 32)",
@@ -273,28 +280,33 @@ static const std::vector<string> locations_array__ = {" (found before start of p
                                                       " (in 'LEMMA', line 59, column 2 to column 43)",
                                                       " (in 'LEMMA', line 60, column 33 to column 39)",
                                                       " (in 'LEMMA', line 60, column 2 to column 41)",
-                                                      " (in 'LEMMA', line 64, column 2 to column 12)",
-                                                      " (in 'LEMMA', line 65, column 2 to column 12)",
-                                                      " (in 'LEMMA', line 66, column 2 to column 16)",
-                                                      " (in 'LEMMA', line 67, column 2 to column 16)",
-                                                      " (in 'LEMMA', line 68, column 2 to column 16)",
+                                                      " (in 'LEMMA', line 61, column 2 to column 24)",
+                                                      " (in 'LEMMA', line 62, column 25 to column 33)",
+                                                      " (in 'LEMMA', line 62, column 2 to column 35)",
+                                                      " (in 'LEMMA', line 63, column 2 to column 34)",
+                                                      " (in 'LEMMA', line 64, column 2 to column 37)",
+                                                      " (in 'LEMMA', line 68, column 2 to column 12)",
                                                       " (in 'LEMMA', line 69, column 2 to column 12)",
                                                       " (in 'LEMMA', line 70, column 2 to column 16)",
-                                                      " (in 'LEMMA', line 71, column 2 to column 24)",
-                                                      " (in 'LEMMA', line 72, column 2 to column 26)",
-                                                      " (in 'LEMMA', line 73, column 2 to column 20)",
-                                                      " (in 'LEMMA', line 83, column 28 to column 38)",
-                                                      " (in 'LEMMA', line 92, column 45 to column 51)",
-                                                      " (in 'LEMMA', line 95, column 20 to column 33)",
-                                                      " (in 'LEMMA', line 95, column 34 to column 36)",
-                                                      " (in 'LEMMA', line 96, column 20 to column 30)",
-                                                      " (in 'LEMMA', line 96, column 31 to column 33)",
-                                                      " (in 'LEMMA', line 97, column 24 to column 26)",
-                                                      " (in 'LEMMA', line 98, column 24 to column 26)",
-                                                      " (in 'LEMMA', line 99, column 23 to column 25)",
-                                                      " (in 'LEMMA', line 227, column 20 to column 30)",
-                                                      " (in 'LEMMA', line 227, column 31 to column 33)",
-                                                      " (in 'LEMMA', line 228, column 21 to column 23)"};
+                                                      " (in 'LEMMA', line 71, column 2 to column 16)",
+                                                      " (in 'LEMMA', line 72, column 2 to column 16)",
+                                                      " (in 'LEMMA', line 73, column 2 to column 12)",
+                                                      " (in 'LEMMA', line 74, column 2 to column 16)",
+                                                      " (in 'LEMMA', line 75, column 2 to column 24)",
+                                                      " (in 'LEMMA', line 76, column 2 to column 26)",
+                                                      " (in 'LEMMA', line 77, column 2 to column 20)",
+                                                      " (in 'LEMMA', line 87, column 28 to column 38)",
+                                                      " (in 'LEMMA', line 96, column 45 to column 51)",
+                                                      " (in 'LEMMA', line 100, column 20 to column 33)",
+                                                      " (in 'LEMMA', line 100, column 34 to column 36)",
+                                                      " (in 'LEMMA', line 101, column 20 to column 30)",
+                                                      " (in 'LEMMA', line 101, column 31 to column 33)",
+                                                      " (in 'LEMMA', line 102, column 24 to column 26)",
+                                                      " (in 'LEMMA', line 103, column 24 to column 26)",
+                                                      " (in 'LEMMA', line 104, column 23 to column 25)",
+                                                      " (in 'LEMMA', line 239, column 20 to column 30)",
+                                                      " (in 'LEMMA', line 239, column 31 to column 33)",
+                                                      " (in 'LEMMA', line 240, column 21 to column 23)"};
 #include <stan_meta_header.hpp>
 class model_LEMMA final : public model_base_crtp<model_LEMMA> {
 private:
@@ -347,6 +359,10 @@ private:
   std::vector<double> mu_beta_inter;
   std::vector<double> sigma_beta_inter;
   std::vector<double> lbd_beta_inter;
+  int nholiday;
+  std::vector<int> t_holiday;
+  double mu_beta_holiday;
+  double sigma_beta_holiday;
   int S;
   int E;
   int Imild;
@@ -384,83 +400,83 @@ public:
       pos__ = std::numeric_limits<int>::min();
       
       pos__ = 1;
-      current_statement__ = 138;
+      current_statement__ = 145;
       context__.validate_dims("data initialization","nobs_types","int",
           context__.to_vec());
       nobs_types = std::numeric_limits<int>::min();
       
-      current_statement__ = 138;
+      current_statement__ = 145;
       nobs_types = context__.vals_i("nobs_types")[(1 - 1)];
-      current_statement__ = 138;
-      current_statement__ = 138;
+      current_statement__ = 145;
+      current_statement__ = 145;
       check_greater_or_equal(function__, "nobs_types", nobs_types, 0);
-      current_statement__ = 139;
+      current_statement__ = 146;
       validate_non_negative_index("nobs", "nobs_types", nobs_types);
-      current_statement__ = 140;
+      current_statement__ = 147;
       context__.validate_dims("data initialization","nobs","int",
           context__.to_vec(nobs_types));
       nobs = std::vector<int>(nobs_types, std::numeric_limits<int>::min());
       
-      current_statement__ = 140;
+      current_statement__ = 147;
       assign(nobs, nil_index_list(), context__.vals_i("nobs"),
         "assigning variable nobs");
-      current_statement__ = 140;
+      current_statement__ = 147;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 140;
-        current_statement__ = 140;
+        current_statement__ = 147;
+        current_statement__ = 147;
         check_greater_or_equal(function__, "nobs[sym1__]",
                                nobs[(sym1__ - 1)], 0);}
-      current_statement__ = 141;
+      current_statement__ = 148;
       context__.validate_dims("data initialization","nobs_max","int",
           context__.to_vec());
       nobs_max = std::numeric_limits<int>::min();
       
-      current_statement__ = 141;
+      current_statement__ = 148;
       nobs_max = context__.vals_i("nobs_max")[(1 - 1)];
-      current_statement__ = 141;
-      current_statement__ = 141;
+      current_statement__ = 148;
+      current_statement__ = 148;
       check_greater_or_equal(function__, "nobs_max", nobs_max, 0);
-      current_statement__ = 142;
+      current_statement__ = 149;
       validate_non_negative_index("tobs", "nobs_types", nobs_types);
-      current_statement__ = 143;
+      current_statement__ = 150;
       validate_non_negative_index("tobs", "nobs_max", nobs_max);
-      current_statement__ = 144;
+      current_statement__ = 151;
       context__.validate_dims("data initialization","tobs","int",
           context__.to_vec(nobs_types, nobs_max));
       tobs = std::vector<std::vector<int>>(nobs_types, std::vector<int>(nobs_max, std::numeric_limits<int>::min()));
       
       {
         std::vector<int> tobs_flat__;
-        current_statement__ = 144;
+        current_statement__ = 151;
         assign(tobs_flat__, nil_index_list(), context__.vals_i("tobs"),
           "assigning variable tobs_flat__");
-        current_statement__ = 144;
+        current_statement__ = 151;
         pos__ = 1;
-        current_statement__ = 144;
+        current_statement__ = 151;
         for (int sym1__ = 1; sym1__ <= nobs_max; ++sym1__) {
-          current_statement__ = 144;
+          current_statement__ = 151;
           for (int sym2__ = 1; sym2__ <= nobs_types; ++sym2__) {
-            current_statement__ = 144;
+            current_statement__ = 151;
             assign(tobs,
               cons_list(index_uni(sym2__),
                 cons_list(index_uni(sym1__), nil_index_list())),
               tobs_flat__[(pos__ - 1)], "assigning variable tobs");
-            current_statement__ = 144;
+            current_statement__ = 151;
             pos__ = (pos__ + 1);}}
       }
-      current_statement__ = 144;
+      current_statement__ = 151;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 144;
+        current_statement__ = 151;
         for (int sym2__ = 1; sym2__ <= nobs_max; ++sym2__) {
-          current_statement__ = 144;
-          current_statement__ = 144;
+          current_statement__ = 151;
+          current_statement__ = 151;
           check_greater_or_equal(function__, "tobs[sym1__, sym2__]",
                                  tobs[(sym1__ - 1)][(sym2__ - 1)], -1);}}
-      current_statement__ = 145;
+      current_statement__ = 152;
       validate_non_negative_index("obs_data", "nobs_types", nobs_types);
-      current_statement__ = 146;
+      current_statement__ = 153;
       validate_non_negative_index("obs_data", "nobs_max", nobs_max);
-      current_statement__ = 147;
+      current_statement__ = 154;
       context__.validate_dims("data initialization","obs_data","double",
           context__.to_vec(nobs_types, nobs_max));
       obs_data = Eigen::Matrix<double, -1, -1>(nobs_types, nobs_max);
@@ -468,643 +484,691 @@ public:
       
       {
         std::vector<local_scalar_t__> obs_data_flat__;
-        current_statement__ = 147;
+        current_statement__ = 154;
         assign(obs_data_flat__, nil_index_list(),
           context__.vals_r("obs_data"), "assigning variable obs_data_flat__");
-        current_statement__ = 147;
+        current_statement__ = 154;
         pos__ = 1;
-        current_statement__ = 147;
+        current_statement__ = 154;
         for (int sym1__ = 1; sym1__ <= nobs_max; ++sym1__) {
-          current_statement__ = 147;
+          current_statement__ = 154;
           for (int sym2__ = 1; sym2__ <= nobs_types; ++sym2__) {
-            current_statement__ = 147;
+            current_statement__ = 154;
             assign(obs_data,
               cons_list(index_uni(sym2__),
                 cons_list(index_uni(sym1__), nil_index_list())),
               obs_data_flat__[(pos__ - 1)], "assigning variable obs_data");
-            current_statement__ = 147;
+            current_statement__ = 154;
             pos__ = (pos__ + 1);}}
       }
-      current_statement__ = 147;
+      current_statement__ = 154;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 147;
+        current_statement__ = 154;
         for (int sym2__ = 1; sym2__ <= nobs_max; ++sym2__) {
-          current_statement__ = 147;
-          current_statement__ = 147;
+          current_statement__ = 154;
+          current_statement__ = 154;
           check_greater_or_equal(function__, "obs_data[sym1__, sym2__]",
                                  rvalue(obs_data,
                                    cons_list(index_uni(sym1__),
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())), "obs_data"), 
                                  -1.0);}}
-      current_statement__ = 148;
+      current_statement__ = 155;
       context__.validate_dims("data initialization","nt","int",
           context__.to_vec());
       nt = std::numeric_limits<int>::min();
       
-      current_statement__ = 148;
+      current_statement__ = 155;
       nt = context__.vals_i("nt")[(1 - 1)];
-      current_statement__ = 148;
-      current_statement__ = 148;
+      current_statement__ = 155;
+      current_statement__ = 155;
       check_greater_or_equal(function__, "nt", nt, 0);
-      current_statement__ = 149;
+      current_statement__ = 156;
       context__.validate_dims("data initialization","npop","double",
           context__.to_vec());
       npop = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 149;
+      current_statement__ = 156;
       npop = context__.vals_r("npop")[(1 - 1)];
-      current_statement__ = 149;
-      current_statement__ = 149;
+      current_statement__ = 156;
+      current_statement__ = 156;
       check_greater_or_equal(function__, "npop", npop, 0.0);
-      current_statement__ = 150;
+      current_statement__ = 157;
       context__.validate_dims("data initialization","mu_duration_latent",
           "double",context__.to_vec());
       mu_duration_latent = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 150;
+      current_statement__ = 157;
       mu_duration_latent = context__.vals_r("mu_duration_latent")[(1 - 1)];
-      current_statement__ = 150;
-      current_statement__ = 150;
+      current_statement__ = 157;
+      current_statement__ = 157;
       check_greater_or_equal(function__, "mu_duration_latent",
                              mu_duration_latent, 1.0);
-      current_statement__ = 151;
+      current_statement__ = 158;
       context__.validate_dims("data initialization","sigma_duration_latent",
           "double",context__.to_vec());
       sigma_duration_latent = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 151;
+      current_statement__ = 158;
       sigma_duration_latent = context__.vals_r("sigma_duration_latent")[
           (1 - 1)];
-      current_statement__ = 151;
-      current_statement__ = 151;
+      current_statement__ = 158;
+      current_statement__ = 158;
       check_greater_or_equal(function__, "sigma_duration_latent",
                              sigma_duration_latent, 0.0);
-      current_statement__ = 152;
+      current_statement__ = 159;
       context__.validate_dims("data initialization","mu_duration_rec_mild",
           "double",context__.to_vec());
       mu_duration_rec_mild = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 152;
+      current_statement__ = 159;
       mu_duration_rec_mild = context__.vals_r("mu_duration_rec_mild")[
           (1 - 1)];
-      current_statement__ = 152;
-      current_statement__ = 152;
+      current_statement__ = 159;
+      current_statement__ = 159;
       check_greater_or_equal(function__, "mu_duration_rec_mild",
                              mu_duration_rec_mild, 1.0);
-      current_statement__ = 153;
+      current_statement__ = 160;
       context__.validate_dims("data initialization",
           "sigma_duration_rec_mild","double",context__.to_vec());
       sigma_duration_rec_mild = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 153;
+      current_statement__ = 160;
       sigma_duration_rec_mild = context__.vals_r("sigma_duration_rec_mild")[
           (1 - 1)];
-      current_statement__ = 153;
-      current_statement__ = 153;
+      current_statement__ = 160;
+      current_statement__ = 160;
       check_greater_or_equal(function__, "sigma_duration_rec_mild",
                              sigma_duration_rec_mild, 0.0);
-      current_statement__ = 154;
+      current_statement__ = 161;
       context__.validate_dims("data initialization","mu_duration_pre_hosp",
           "double",context__.to_vec());
       mu_duration_pre_hosp = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 154;
+      current_statement__ = 161;
       mu_duration_pre_hosp = context__.vals_r("mu_duration_pre_hosp")[
           (1 - 1)];
-      current_statement__ = 154;
-      current_statement__ = 154;
+      current_statement__ = 161;
+      current_statement__ = 161;
       check_greater_or_equal(function__, "mu_duration_pre_hosp",
                              mu_duration_pre_hosp, 1.0);
-      current_statement__ = 155;
+      current_statement__ = 162;
       context__.validate_dims("data initialization",
           "sigma_duration_pre_hosp","double",context__.to_vec());
       sigma_duration_pre_hosp = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 155;
+      current_statement__ = 162;
       sigma_duration_pre_hosp = context__.vals_r("sigma_duration_pre_hosp")[
           (1 - 1)];
-      current_statement__ = 155;
-      current_statement__ = 155;
+      current_statement__ = 162;
+      current_statement__ = 162;
       check_greater_or_equal(function__, "sigma_duration_pre_hosp",
                              sigma_duration_pre_hosp, 0.0);
-      current_statement__ = 156;
+      current_statement__ = 163;
       context__.validate_dims("data initialization","mu_duration_hosp_mod",
           "double",context__.to_vec());
       mu_duration_hosp_mod = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 156;
+      current_statement__ = 163;
       mu_duration_hosp_mod = context__.vals_r("mu_duration_hosp_mod")[
           (1 - 1)];
-      current_statement__ = 156;
-      current_statement__ = 156;
+      current_statement__ = 163;
+      current_statement__ = 163;
       check_greater_or_equal(function__, "mu_duration_hosp_mod",
                              mu_duration_hosp_mod, 1.0);
-      current_statement__ = 157;
+      current_statement__ = 164;
       context__.validate_dims("data initialization",
           "sigma_duration_hosp_mod","double",context__.to_vec());
       sigma_duration_hosp_mod = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 157;
+      current_statement__ = 164;
       sigma_duration_hosp_mod = context__.vals_r("sigma_duration_hosp_mod")[
           (1 - 1)];
-      current_statement__ = 157;
-      current_statement__ = 157;
+      current_statement__ = 164;
+      current_statement__ = 164;
       check_greater_or_equal(function__, "sigma_duration_hosp_mod",
                              sigma_duration_hosp_mod, 0.0);
-      current_statement__ = 158;
+      current_statement__ = 165;
       context__.validate_dims("data initialization","mu_frac_tested",
           "double",context__.to_vec());
       mu_frac_tested = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 158;
+      current_statement__ = 165;
       mu_frac_tested = context__.vals_r("mu_frac_tested")[(1 - 1)];
-      current_statement__ = 158;
-      current_statement__ = 158;
+      current_statement__ = 165;
+      current_statement__ = 165;
       check_greater_or_equal(function__, "mu_frac_tested", mu_frac_tested,
                              0.0);
-      current_statement__ = 159;
+      current_statement__ = 166;
       context__.validate_dims("data initialization","sigma_frac_tested",
           "double",context__.to_vec());
       sigma_frac_tested = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 159;
+      current_statement__ = 166;
       sigma_frac_tested = context__.vals_r("sigma_frac_tested")[(1 - 1)];
-      current_statement__ = 159;
-      current_statement__ = 159;
+      current_statement__ = 166;
+      current_statement__ = 166;
       check_greater_or_equal(function__, "sigma_frac_tested",
                              sigma_frac_tested, 0.0);
-      current_statement__ = 160;
+      current_statement__ = 167;
       context__.validate_dims("data initialization","mu_test_delay","double",
           context__.to_vec());
       mu_test_delay = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 160;
+      current_statement__ = 167;
       mu_test_delay = context__.vals_r("mu_test_delay")[(1 - 1)];
-      current_statement__ = 160;
-      current_statement__ = 160;
+      current_statement__ = 167;
+      current_statement__ = 167;
       check_greater_or_equal(function__, "mu_test_delay", mu_test_delay, 0.0);
-      current_statement__ = 161;
+      current_statement__ = 168;
       context__.validate_dims("data initialization","sigma_test_delay",
           "double",context__.to_vec());
       sigma_test_delay = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 161;
+      current_statement__ = 168;
       sigma_test_delay = context__.vals_r("sigma_test_delay")[(1 - 1)];
-      current_statement__ = 161;
-      current_statement__ = 161;
+      current_statement__ = 168;
+      current_statement__ = 168;
       check_greater_or_equal(function__, "sigma_test_delay",
                              sigma_test_delay, 0.0);
-      current_statement__ = 162;
+      current_statement__ = 169;
       context__.validate_dims("data initialization","mu_severity","double",
           context__.to_vec());
       mu_severity = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 162;
+      current_statement__ = 169;
       mu_severity = context__.vals_r("mu_severity")[(1 - 1)];
-      current_statement__ = 162;
-      current_statement__ = 162;
+      current_statement__ = 169;
+      current_statement__ = 169;
       check_greater_or_equal(function__, "mu_severity", mu_severity, 0.0);
-      current_statement__ = 163;
+      current_statement__ = 170;
       context__.validate_dims("data initialization","sigma_severity",
           "double",context__.to_vec());
       sigma_severity = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 163;
+      current_statement__ = 170;
       sigma_severity = context__.vals_r("sigma_severity")[(1 - 1)];
-      current_statement__ = 163;
-      current_statement__ = 163;
+      current_statement__ = 170;
+      current_statement__ = 170;
       check_greater_or_equal(function__, "sigma_severity", sigma_severity,
                              0.0);
-      current_statement__ = 164;
+      current_statement__ = 171;
       context__.validate_dims("data initialization",
           "mu_omicron_trans_multiplier","double",context__.to_vec());
       mu_omicron_trans_multiplier = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 164;
+      current_statement__ = 171;
       mu_omicron_trans_multiplier = context__.vals_r("mu_omicron_trans_multiplier")[
           (1 - 1)];
-      current_statement__ = 164;
-      current_statement__ = 164;
+      current_statement__ = 171;
+      current_statement__ = 171;
       check_greater_or_equal(function__, "mu_omicron_trans_multiplier",
                              mu_omicron_trans_multiplier, 0.0);
-      current_statement__ = 165;
+      current_statement__ = 172;
       context__.validate_dims("data initialization",
           "sigma_omicron_trans_multiplier","double",context__.to_vec());
       sigma_omicron_trans_multiplier = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 165;
+      current_statement__ = 172;
       sigma_omicron_trans_multiplier = context__.vals_r("sigma_omicron_trans_multiplier")[
           (1 - 1)];
-      current_statement__ = 165;
-      current_statement__ = 165;
+      current_statement__ = 172;
+      current_statement__ = 172;
       check_greater_or_equal(function__, "sigma_omicron_trans_multiplier",
                              sigma_omicron_trans_multiplier, 0.0);
-      current_statement__ = 166;
+      current_statement__ = 173;
       context__.validate_dims("data initialization","mu_hosp_delta","double",
           context__.to_vec());
       mu_hosp_delta = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 166;
+      current_statement__ = 173;
       mu_hosp_delta = context__.vals_r("mu_hosp_delta")[(1 - 1)];
-      current_statement__ = 166;
-      current_statement__ = 166;
+      current_statement__ = 173;
+      current_statement__ = 173;
       check_greater_or_equal(function__, "mu_hosp_delta", mu_hosp_delta, 0.0);
-      current_statement__ = 167;
+      current_statement__ = 174;
       context__.validate_dims("data initialization","sigma_hosp_delta",
           "double",context__.to_vec());
       sigma_hosp_delta = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 167;
+      current_statement__ = 174;
       sigma_hosp_delta = context__.vals_r("sigma_hosp_delta")[(1 - 1)];
-      current_statement__ = 167;
-      current_statement__ = 167;
+      current_statement__ = 174;
+      current_statement__ = 174;
       check_greater_or_equal(function__, "sigma_hosp_delta",
                              sigma_hosp_delta, 0.0);
-      current_statement__ = 168;
+      current_statement__ = 175;
       context__.validate_dims("data initialization","mu_cases_delta",
           "double",context__.to_vec());
       mu_cases_delta = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 168;
+      current_statement__ = 175;
       mu_cases_delta = context__.vals_r("mu_cases_delta")[(1 - 1)];
-      current_statement__ = 168;
-      current_statement__ = 168;
+      current_statement__ = 175;
+      current_statement__ = 175;
       check_greater_or_equal(function__, "mu_cases_delta", mu_cases_delta,
                              0.0);
-      current_statement__ = 169;
+      current_statement__ = 176;
       context__.validate_dims("data initialization","sigma_cases_delta",
           "double",context__.to_vec());
       sigma_cases_delta = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 169;
+      current_statement__ = 176;
       sigma_cases_delta = context__.vals_r("sigma_cases_delta")[(1 - 1)];
-      current_statement__ = 169;
-      current_statement__ = 169;
+      current_statement__ = 176;
+      current_statement__ = 176;
       check_greater_or_equal(function__, "sigma_cases_delta",
                              sigma_cases_delta, 0.0);
-      current_statement__ = 170;
+      current_statement__ = 177;
       context__.validate_dims("data initialization",
           "mu_duration_protection_infection","double",context__.to_vec());
       mu_duration_protection_infection = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 170;
+      current_statement__ = 177;
       mu_duration_protection_infection = context__.vals_r("mu_duration_protection_infection")[
           (1 - 1)];
-      current_statement__ = 170;
-      current_statement__ = 170;
+      current_statement__ = 177;
+      current_statement__ = 177;
       check_greater_or_equal(function__, "mu_duration_protection_infection",
                              mu_duration_protection_infection, 0.0);
-      current_statement__ = 171;
+      current_statement__ = 178;
       context__.validate_dims("data initialization",
           "sigma_duration_protection_infection","double",context__.to_vec());
       sigma_duration_protection_infection = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 171;
+      current_statement__ = 178;
       sigma_duration_protection_infection = context__.vals_r("sigma_duration_protection_infection")[
           (1 - 1)];
-      current_statement__ = 171;
-      current_statement__ = 171;
+      current_statement__ = 178;
+      current_statement__ = 178;
       check_greater_or_equal(function__,
                              "sigma_duration_protection_infection",
                              sigma_duration_protection_infection, 0.0);
-      current_statement__ = 172;
+      current_statement__ = 179;
       context__.validate_dims("data initialization",
           "lambda_initial_infected","double",context__.to_vec());
       lambda_initial_infected = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 172;
+      current_statement__ = 179;
       lambda_initial_infected = context__.vals_r("lambda_initial_infected")[
           (1 - 1)];
-      current_statement__ = 172;
-      current_statement__ = 172;
+      current_statement__ = 179;
+      current_statement__ = 179;
       check_greater_or_equal(function__, "lambda_initial_infected",
                              lambda_initial_infected, 0.0);
-      current_statement__ = 173;
+      current_statement__ = 180;
       validate_non_negative_index("sigma_obs_est_inv", "nobs_types",
                                   nobs_types);
-      current_statement__ = 174;
+      current_statement__ = 181;
       context__.validate_dims("data initialization","sigma_obs_est_inv",
           "double",context__.to_vec(nobs_types));
       sigma_obs_est_inv = std::vector<double>(nobs_types, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 174;
+      current_statement__ = 181;
       assign(sigma_obs_est_inv, nil_index_list(),
         context__.vals_r("sigma_obs_est_inv"),
         "assigning variable sigma_obs_est_inv");
-      current_statement__ = 174;
+      current_statement__ = 181;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 174;
-        current_statement__ = 174;
+        current_statement__ = 181;
+        current_statement__ = 181;
         check_greater_or_equal(function__, "sigma_obs_est_inv[sym1__]",
                                sigma_obs_est_inv[(sym1__ - 1)], 0.0);}
-      current_statement__ = 175;
+      current_statement__ = 182;
       context__.validate_dims("data initialization","frac_hosp_lemma",
           "double",context__.to_vec());
       frac_hosp_lemma = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 175;
+      current_statement__ = 182;
       frac_hosp_lemma = context__.vals_r("frac_hosp_lemma")[(1 - 1)];
-      current_statement__ = 175;
-      current_statement__ = 175;
+      current_statement__ = 182;
+      current_statement__ = 182;
       check_greater_or_equal(function__, "frac_hosp_lemma", frac_hosp_lemma,
                              0.0);
-      current_statement__ = 176;
+      current_statement__ = 183;
       context__.validate_dims("data initialization","VE_infection","double",
           context__.to_vec());
       VE_infection = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 176;
+      current_statement__ = 183;
       VE_infection = context__.vals_r("VE_infection")[(1 - 1)];
-      current_statement__ = 176;
-      current_statement__ = 176;
+      current_statement__ = 183;
+      current_statement__ = 183;
       check_greater_or_equal(function__, "VE_infection", VE_infection, 0.0);
-      current_statement__ = 177;
+      current_statement__ = 184;
       context__.validate_dims("data initialization","VE_infection_delta",
           "double",context__.to_vec());
       VE_infection_delta = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 177;
+      current_statement__ = 184;
       VE_infection_delta = context__.vals_r("VE_infection_delta")[(1 - 1)];
-      current_statement__ = 177;
-      current_statement__ = 177;
+      current_statement__ = 184;
+      current_statement__ = 184;
       check_greater_or_equal(function__, "VE_infection_delta",
                              VE_infection_delta, 0.0);
-      current_statement__ = 178;
+      current_statement__ = 185;
       context__.validate_dims("data initialization",
           "omicron_recovered_booster_scale","double",context__.to_vec());
       omicron_recovered_booster_scale = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 178;
+      current_statement__ = 185;
       omicron_recovered_booster_scale = context__.vals_r("omicron_recovered_booster_scale")[
           (1 - 1)];
-      current_statement__ = 178;
-      current_statement__ = 178;
+      current_statement__ = 185;
+      current_statement__ = 185;
       check_greater_or_equal(function__, "omicron_recovered_booster_scale",
                              omicron_recovered_booster_scale, 0.0);
-      current_statement__ = 179;
+      current_statement__ = 186;
       validate_non_negative_index("num_boosters", "nt", nt);
-      current_statement__ = 180;
+      current_statement__ = 187;
       context__.validate_dims("data initialization","num_boosters","double",
           context__.to_vec(nt));
       num_boosters = std::vector<double>(nt, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 180;
+      current_statement__ = 187;
       assign(num_boosters, nil_index_list(),
         context__.vals_r("num_boosters"), "assigning variable num_boosters");
-      current_statement__ = 180;
+      current_statement__ = 187;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
-        current_statement__ = 180;
-        current_statement__ = 180;
+        current_statement__ = 187;
+        current_statement__ = 187;
         check_greater_or_equal(function__, "num_boosters[sym1__]",
                                num_boosters[(sym1__ - 1)], 0.0);}
-      current_statement__ = 181;
+      current_statement__ = 188;
       context__.validate_dims("data initialization","booster_VE_infection",
           "double",context__.to_vec());
       booster_VE_infection = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 181;
+      current_statement__ = 188;
       booster_VE_infection = context__.vals_r("booster_VE_infection")[
           (1 - 1)];
-      current_statement__ = 181;
-      current_statement__ = 181;
+      current_statement__ = 188;
+      current_statement__ = 188;
       check_greater_or_equal(function__, "booster_VE_infection",
                              booster_VE_infection, 0.0);
-      current_statement__ = 182;
+      current_statement__ = 189;
       context__.validate_dims("data initialization",
           "booster_VE_severe_given_infection","double",context__.to_vec());
       booster_VE_severe_given_infection = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 182;
+      current_statement__ = 189;
       booster_VE_severe_given_infection = context__.vals_r("booster_VE_severe_given_infection")[
           (1 - 1)];
-      current_statement__ = 182;
-      current_statement__ = 182;
+      current_statement__ = 189;
+      current_statement__ = 189;
       check_greater_or_equal(function__, "booster_VE_severe_given_infection",
                              booster_VE_severe_given_infection, 0.0);
-      current_statement__ = 183;
+      current_statement__ = 190;
       context__.validate_dims("data initialization",
           "frac_incidental_omicron","double",context__.to_vec());
       frac_incidental_omicron = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 183;
+      current_statement__ = 190;
       frac_incidental_omicron = context__.vals_r("frac_incidental_omicron")[
           (1 - 1)];
-      current_statement__ = 183;
-      current_statement__ = 183;
+      current_statement__ = 190;
+      current_statement__ = 190;
       check_greater_or_equal(function__, "frac_incidental_omicron",
                              frac_incidental_omicron, 0.0);
-      current_statement__ = 184;
+      current_statement__ = 191;
       context__.validate_dims("data initialization",
           "VE_severe_given_infection_0","double",context__.to_vec());
       VE_severe_given_infection_0 = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 184;
+      current_statement__ = 191;
       VE_severe_given_infection_0 = context__.vals_r("VE_severe_given_infection_0")[
           (1 - 1)];
-      current_statement__ = 184;
-      current_statement__ = 184;
+      current_statement__ = 191;
+      current_statement__ = 191;
       check_greater_or_equal(function__, "VE_severe_given_infection_0",
                              VE_severe_given_infection_0, 0.0);
-      current_statement__ = 185;
+      current_statement__ = 192;
       context__.validate_dims("data initialization","hosp_frac_delta_0",
           "double",context__.to_vec());
       hosp_frac_delta_0 = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 185;
+      current_statement__ = 192;
       hosp_frac_delta_0 = context__.vals_r("hosp_frac_delta_0")[(1 - 1)];
-      current_statement__ = 185;
-      current_statement__ = 185;
+      current_statement__ = 192;
+      current_statement__ = 192;
       check_greater_or_equal(function__, "hosp_frac_delta_0",
                              hosp_frac_delta_0, 0.0);
-      current_statement__ = 186;
+      current_statement__ = 193;
       context__.validate_dims("data initialization","case_frac_delta_0",
           "double",context__.to_vec());
       case_frac_delta_0 = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 186;
+      current_statement__ = 193;
       case_frac_delta_0 = context__.vals_r("case_frac_delta_0")[(1 - 1)];
-      current_statement__ = 186;
-      current_statement__ = 186;
+      current_statement__ = 193;
+      current_statement__ = 193;
       check_greater_or_equal(function__, "case_frac_delta_0",
                              case_frac_delta_0, 0.0);
-      current_statement__ = 187;
+      current_statement__ = 194;
       context__.validate_dims("data initialization","omicron_growth",
           "double",context__.to_vec());
       omicron_growth = std::numeric_limits<double>::quiet_NaN();
       
-      current_statement__ = 187;
+      current_statement__ = 194;
       omicron_growth = context__.vals_r("omicron_growth")[(1 - 1)];
-      current_statement__ = 187;
-      current_statement__ = 187;
+      current_statement__ = 194;
+      current_statement__ = 194;
       check_greater_or_equal(function__, "omicron_growth", omicron_growth,
                              0.0);
-      current_statement__ = 188;
+      current_statement__ = 195;
       context__.validate_dims("data initialization","ninter","int",
           context__.to_vec());
       ninter = std::numeric_limits<int>::min();
       
-      current_statement__ = 188;
+      current_statement__ = 195;
       ninter = context__.vals_i("ninter")[(1 - 1)];
-      current_statement__ = 188;
-      current_statement__ = 188;
+      current_statement__ = 195;
+      current_statement__ = 195;
       check_greater_or_equal(function__, "ninter", ninter, 0);
-      current_statement__ = 189;
+      current_statement__ = 196;
       validate_non_negative_index("t_inter", "ninter", ninter);
-      current_statement__ = 190;
+      current_statement__ = 197;
       context__.validate_dims("data initialization","t_inter","double",
           context__.to_vec(ninter));
       t_inter = std::vector<double>(ninter, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 190;
+      current_statement__ = 197;
       assign(t_inter, nil_index_list(), context__.vals_r("t_inter"),
         "assigning variable t_inter");
-      current_statement__ = 190;
+      current_statement__ = 197;
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
-        current_statement__ = 190;
-        current_statement__ = 190;
+        current_statement__ = 197;
+        current_statement__ = 197;
         check_greater_or_equal(function__, "t_inter[sym1__]",
                                t_inter[(sym1__ - 1)], 1.0);}
-      current_statement__ = 191;
+      current_statement__ = 198;
       validate_non_negative_index("len_inter", "ninter", ninter);
-      current_statement__ = 192;
+      current_statement__ = 199;
       context__.validate_dims("data initialization","len_inter","double",
           context__.to_vec(ninter));
       len_inter = std::vector<double>(ninter, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 192;
+      current_statement__ = 199;
       assign(len_inter, nil_index_list(), context__.vals_r("len_inter"),
         "assigning variable len_inter");
-      current_statement__ = 192;
+      current_statement__ = 199;
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
-        current_statement__ = 192;
-        current_statement__ = 192;
+        current_statement__ = 199;
+        current_statement__ = 199;
         check_greater_or_equal(function__, "len_inter[sym1__]",
                                len_inter[(sym1__ - 1)], 1.0);}
-      current_statement__ = 193;
+      current_statement__ = 200;
       validate_non_negative_index("mu_beta_inter", "ninter", ninter);
-      current_statement__ = 194;
+      current_statement__ = 201;
       context__.validate_dims("data initialization","mu_beta_inter","double",
           context__.to_vec(ninter));
       mu_beta_inter = std::vector<double>(ninter, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 194;
+      current_statement__ = 201;
       assign(mu_beta_inter, nil_index_list(),
         context__.vals_r("mu_beta_inter"), "assigning variable mu_beta_inter");
-      current_statement__ = 194;
+      current_statement__ = 201;
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
-        current_statement__ = 194;
-        current_statement__ = 194;
+        current_statement__ = 201;
+        current_statement__ = 201;
         check_greater_or_equal(function__, "mu_beta_inter[sym1__]",
                                mu_beta_inter[(sym1__ - 1)], 0.0);}
-      current_statement__ = 195;
+      current_statement__ = 202;
       validate_non_negative_index("sigma_beta_inter", "ninter", ninter);
-      current_statement__ = 196;
+      current_statement__ = 203;
       context__.validate_dims("data initialization","sigma_beta_inter",
           "double",context__.to_vec(ninter));
       sigma_beta_inter = std::vector<double>(ninter, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 196;
+      current_statement__ = 203;
       assign(sigma_beta_inter, nil_index_list(),
         context__.vals_r("sigma_beta_inter"),
         "assigning variable sigma_beta_inter");
-      current_statement__ = 196;
+      current_statement__ = 203;
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
-        current_statement__ = 196;
-        current_statement__ = 196;
+        current_statement__ = 203;
+        current_statement__ = 203;
         check_greater_or_equal(function__, "sigma_beta_inter[sym1__]",
                                sigma_beta_inter[(sym1__ - 1)], 0.0);}
-      current_statement__ = 197;
+      current_statement__ = 204;
       validate_non_negative_index("lbd_beta_inter", "ninter", ninter);
-      current_statement__ = 198;
+      current_statement__ = 205;
       context__.validate_dims("data initialization","lbd_beta_inter",
           "double",context__.to_vec(ninter));
       lbd_beta_inter = std::vector<double>(ninter, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 198;
+      current_statement__ = 205;
       assign(lbd_beta_inter, nil_index_list(),
         context__.vals_r("lbd_beta_inter"),
         "assigning variable lbd_beta_inter");
-      current_statement__ = 198;
+      current_statement__ = 205;
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
-        current_statement__ = 198;
-        current_statement__ = 198;
+        current_statement__ = 205;
+        current_statement__ = 205;
         check_greater_or_equal(function__, "lbd_beta_inter[sym1__]",
                                lbd_beta_inter[(sym1__ - 1)], 0.0);}
-      current_statement__ = 199;
+      current_statement__ = 206;
+      context__.validate_dims("data initialization","nholiday","int",
+          context__.to_vec());
+      nholiday = std::numeric_limits<int>::min();
+      
+      current_statement__ = 206;
+      nholiday = context__.vals_i("nholiday")[(1 - 1)];
+      current_statement__ = 206;
+      current_statement__ = 206;
+      check_greater_or_equal(function__, "nholiday", nholiday, 0);
+      current_statement__ = 207;
+      validate_non_negative_index("t_holiday", "nholiday", nholiday);
+      current_statement__ = 208;
+      context__.validate_dims("data initialization","t_holiday","int",
+          context__.to_vec(nholiday));
+      t_holiday = std::vector<int>(nholiday, std::numeric_limits<int>::min());
+      
+      current_statement__ = 208;
+      assign(t_holiday, nil_index_list(), context__.vals_i("t_holiday"),
+        "assigning variable t_holiday");
+      current_statement__ = 208;
+      for (int sym1__ = 1; sym1__ <= nholiday; ++sym1__) {
+        current_statement__ = 208;
+        current_statement__ = 208;
+        check_greater_or_equal(function__, "t_holiday[sym1__]",
+                               t_holiday[(sym1__ - 1)], 1);}
+      current_statement__ = 209;
+      context__.validate_dims("data initialization","mu_beta_holiday",
+          "double",context__.to_vec());
+      mu_beta_holiday = std::numeric_limits<double>::quiet_NaN();
+      
+      current_statement__ = 209;
+      mu_beta_holiday = context__.vals_r("mu_beta_holiday")[(1 - 1)];
+      current_statement__ = 209;
+      current_statement__ = 209;
+      check_greater_or_equal(function__, "mu_beta_holiday", mu_beta_holiday,
+                             0.0);
+      current_statement__ = 210;
+      context__.validate_dims("data initialization","sigma_beta_holiday",
+          "double",context__.to_vec());
+      sigma_beta_holiday = std::numeric_limits<double>::quiet_NaN();
+      
+      current_statement__ = 210;
+      sigma_beta_holiday = context__.vals_r("sigma_beta_holiday")[(1 - 1)];
+      current_statement__ = 210;
+      current_statement__ = 210;
+      check_greater_or_equal(function__, "sigma_beta_holiday",
+                             sigma_beta_holiday, 0.0);
+      current_statement__ = 211;
       S = std::numeric_limits<int>::min();
       
-      current_statement__ = 199;
+      current_statement__ = 211;
       S = 1;
-      current_statement__ = 200;
+      current_statement__ = 212;
       E = std::numeric_limits<int>::min();
       
-      current_statement__ = 200;
+      current_statement__ = 212;
       E = 2;
-      current_statement__ = 201;
+      current_statement__ = 213;
       Imild = std::numeric_limits<int>::min();
       
-      current_statement__ = 201;
+      current_statement__ = 213;
       Imild = 3;
-      current_statement__ = 202;
+      current_statement__ = 214;
       Ipreh = std::numeric_limits<int>::min();
       
-      current_statement__ = 202;
+      current_statement__ = 214;
       Ipreh = 4;
-      current_statement__ = 203;
+      current_statement__ = 215;
       Hmod = std::numeric_limits<int>::min();
       
-      current_statement__ = 203;
+      current_statement__ = 215;
       Hmod = 5;
-      current_statement__ = 204;
+      current_statement__ = 216;
       P = std::numeric_limits<int>::min();
       
-      current_statement__ = 204;
+      current_statement__ = 216;
       P = 6;
-      current_statement__ = 205;
+      current_statement__ = 217;
       Rlive = std::numeric_limits<int>::min();
       
-      current_statement__ = 205;
+      current_statement__ = 217;
       Rlive = 7;
-      current_statement__ = 206;
+      current_statement__ = 218;
       ncompartments = std::numeric_limits<int>::min();
       
-      current_statement__ = 206;
+      current_statement__ = 218;
       ncompartments = 7;
-      current_statement__ = 207;
+      current_statement__ = 219;
       obs_hosp_census = std::numeric_limits<int>::min();
       
-      current_statement__ = 207;
+      current_statement__ = 219;
       obs_hosp_census = 1;
-      current_statement__ = 208;
+      current_statement__ = 220;
       obs_cases = std::numeric_limits<int>::min();
       
-      current_statement__ = 208;
+      current_statement__ = 220;
       obs_cases = 2;
-      current_statement__ = 209;
+      current_statement__ = 221;
       validate_non_negative_index("sigma_obs", "nobs_types", nobs_types);
-      current_statement__ = 210;
+      current_statement__ = 222;
       validate_non_negative_index("beta_multiplier", "ninter", ninter);
-      current_statement__ = 211;
+      current_statement__ = 223;
       validate_non_negative_index("x", "ncompartments", ncompartments);
-      current_statement__ = 212;
+      current_statement__ = 224;
       validate_non_negative_index("x", "nt", nt);
-      current_statement__ = 213;
+      current_statement__ = 225;
       validate_non_negative_index("sim_data", "nobs_types", nobs_types);
-      current_statement__ = 214;
+      current_statement__ = 226;
       validate_non_negative_index("sim_data", "nt", nt);
-      current_statement__ = 215;
+      current_statement__ = 227;
       validate_non_negative_index("new_cases", "nt", nt);
-      current_statement__ = 216;
+      current_statement__ = 228;
       validate_non_negative_index("soon_positive", "nt", nt);
-      current_statement__ = 217;
+      current_statement__ = 229;
       validate_non_negative_index("beta", "nt", nt);
-      current_statement__ = 218;
+      current_statement__ = 230;
       validate_non_negative_index("sim_data_with_error", "nobs_types",
                                   nobs_types);
-      current_statement__ = 219;
+      current_statement__ = 231;
       validate_non_negative_index("sim_data_with_error", "nt", nt);
-      current_statement__ = 220;
+      current_statement__ = 232;
       validate_non_negative_index("Rt", "nt", nt);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
@@ -1128,6 +1192,7 @@ public:
       num_params_r__ += 1;
       num_params_r__ += 1;
       num_params_r__ += ninter;
+      num_params_r__ += 1;
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       // Next line prevents compiler griping about no return
@@ -1366,6 +1431,19 @@ public:
               lbd_beta_inter[(sym1__ - 1)]),
             "assigning variable beta_multiplier");
         }}
+      local_scalar_t__ beta_holiday;
+      beta_holiday = DUMMY_VAR__;
+      
+      current_statement__ = 15;
+      beta_holiday = in__.scalar();
+      current_statement__ = 15;
+      if (jacobian__) {
+        current_statement__ = 15;
+        beta_holiday = stan::math::lb_constrain(beta_holiday, 1.0, lp__);
+      } else {
+        current_statement__ = 15;
+        beta_holiday = stan::math::lb_constrain(beta_holiday, 1.0);
+      }
       Eigen::Matrix<local_scalar_t__, -1, -1> x;
       x = Eigen::Matrix<local_scalar_t__, -1, -1>(ncompartments, nt);
       stan::math::fill(x, DUMMY_VAR__);
@@ -1388,11 +1466,11 @@ public:
       local_scalar_t__ frac_hosp_0;
       frac_hosp_0 = DUMMY_VAR__;
       
-      current_statement__ = 25;
+      current_statement__ = 26;
       for (int it = 1; it <= nt; ++it) {
-        current_statement__ = 23;
+        current_statement__ = 24;
         for (int itype = 1; itype <= nobs_types; ++itype) {
-          current_statement__ = 21;
+          current_statement__ = 22;
           assign(sim_data,
             cons_list(index_uni(itype),
               cons_list(index_uni(it), nil_index_list())), 0.0,
@@ -1434,65 +1512,65 @@ public:
         local_scalar_t__ lost_protection_infection;
         lost_protection_infection = DUMMY_VAR__;
         
-        current_statement__ = 38;
+        current_statement__ = 39;
         validate_non_negative_index("hosp_frac_delta", "nt", nt);
         Eigen::Matrix<local_scalar_t__, 1, -1> hosp_frac_delta;
         hosp_frac_delta = Eigen::Matrix<local_scalar_t__, 1, -1>(nt);
         stan::math::fill(hosp_frac_delta, DUMMY_VAR__);
         
-        current_statement__ = 40;
+        current_statement__ = 41;
         validate_non_negative_index("case_frac_delta", "nt", nt);
         Eigen::Matrix<local_scalar_t__, 1, -1> case_frac_delta;
         case_frac_delta = Eigen::Matrix<local_scalar_t__, 1, -1>(nt);
         stan::math::fill(case_frac_delta, DUMMY_VAR__);
         
-        current_statement__ = 45;
+        current_statement__ = 46;
         for (int it = 1; it <= nt; ++it) {
-          current_statement__ = 42;
+          current_statement__ = 43;
           assign(hosp_frac_delta, cons_list(index_uni(it), nil_index_list()),
             (1 /
               (1 +
                 (hosp_frac_delta_0 * stan::math::exp((it * omicron_growth))))),
             "assigning variable hosp_frac_delta");
-          current_statement__ = 43;
+          current_statement__ = 44;
           assign(case_frac_delta, cons_list(index_uni(it), nil_index_list()),
             (1 /
               (1 +
                 (case_frac_delta_0 * stan::math::exp((it * omicron_growth))))),
             "assigning variable case_frac_delta");}
-        current_statement__ = 46;
-        VE_severe_given_infection = VE_severe_given_infection_0;
         current_statement__ = 47;
+        VE_severe_given_infection = VE_severe_given_infection_0;
+        current_statement__ = 48;
         frac_hosp_0 = ((frac_hosp_lemma * (1 - VE_severe_given_infection)) *
                         severity);
-        current_statement__ = 48;
+        current_statement__ = 49;
         assign(x,
           cons_list(index_omni(), cons_list(index_uni(1), nil_index_list())),
           rep_vector(0.0, ncompartments), "assigning variable x");
-        current_statement__ = 49;
+        current_statement__ = 50;
         frac_init_E = (duration_latent /
                         (duration_latent + duration_rec_mild));
-        current_statement__ = 50;
+        current_statement__ = 51;
         assign(x,
           cons_list(index_uni(E), cons_list(index_uni(1), nil_index_list())),
           (frac_init_E * initial_infected), "assigning variable x");
-        current_statement__ = 51;
+        current_statement__ = 52;
         assign(x,
           cons_list(index_uni(Imild),
             cons_list(index_uni(1), nil_index_list())),
           (((1 - frac_init_E) * initial_infected) * (1 - frac_hosp_0)),
           "assigning variable x");
-        current_statement__ = 52;
+        current_statement__ = 53;
         assign(x,
           cons_list(index_uni(Ipreh),
             cons_list(index_uni(1), nil_index_list())),
           (((1 - frac_init_E) * initial_infected) * frac_hosp_0),
           "assigning variable x");
-        current_statement__ = 53;
+        current_statement__ = 54;
         assign(x,
           cons_list(index_uni(P), cons_list(index_uni(1), nil_index_list())),
           (npop * VE_infection), "assigning variable x");
-        current_statement__ = 54;
+        current_statement__ = 55;
         assign(x,
           cons_list(index_uni(S), cons_list(index_uni(1), nil_index_list())),
           ((npop - initial_infected) -
@@ -1500,30 +1578,30 @@ public:
               cons_list(index_uni(P),
                 cons_list(index_uni(1), nil_index_list())), "x")),
           "assigning variable x");
-        current_statement__ = 55;
+        current_statement__ = 56;
         assign(soon_positive, cons_list(index_uni(1), nil_index_list()), 0.0,
           "assigning variable soon_positive");
-        current_statement__ = 56;
+        current_statement__ = 57;
         assign(new_cases, cons_list(index_uni(1), nil_index_list()), 0.0,
           "assigning variable new_cases");
-        current_statement__ = 59;
+        current_statement__ = 60;
         if (logical_eq(tobs[(obs_cases - 1)][(1 - 1)], 1)) {
-          current_statement__ = 57;
+          current_statement__ = 58;
           std::stringstream errmsg_stream__;
           errmsg_stream__ << "Minimum tobs[obs_cases, :] is 2";
           throw std::domain_error(errmsg_stream__.str());
         } 
-        current_statement__ = 60;
+        current_statement__ = 61;
         beta_0 = (((omicron_trans_multiplier / duration_rec_mild) * 1.0) /
                    (1 - VE_infection_delta));
-        current_statement__ = 66;
+        current_statement__ = 72;
         for (int it = 1; it <= nt; ++it) {
-          current_statement__ = 61;
+          current_statement__ = 62;
           assign(beta, cons_list(index_uni(it), nil_index_list()), beta_0,
             "assigning variable beta");
-          current_statement__ = 64;
+          current_statement__ = 65;
           for (int iinter = 1; iinter <= ninter; ++iinter) {
-            current_statement__ = 62;
+            current_statement__ = 63;
             assign(beta, cons_list(index_uni(it), nil_index_list()),
               (beta[(it - 1)] *
                 pow(beta_multiplier[(iinter - 1)],
@@ -1532,10 +1610,18 @@ public:
                       (it -
                         (t_inter[(iinter - 1)] +
                           (len_inter[(iinter - 1)] / 2))))))),
-              "assigning variable beta");}}
-        current_statement__ = 97;
+              "assigning variable beta");}
+          current_statement__ = 70;
+          for (int iholiday = 1; iholiday <= nholiday; ++iholiday) {
+            current_statement__ = 68;
+            if (logical_eq(it, t_holiday[(iholiday - 1)])) {
+              current_statement__ = 66;
+              assign(beta, cons_list(index_uni(it), nil_index_list()),
+                (beta[(it - 1)] * beta_holiday), "assigning variable beta");
+            } }}
+        current_statement__ = 103;
         for (int it = 1; it <= (nt - 1); ++it) {
-          current_statement__ = 67;
+          current_statement__ = 73;
           newE = stan::math::fmin(
                    rvalue(x,
                      cons_list(index_uni(S),
@@ -1549,12 +1635,12 @@ public:
                         cons_list(index_uni(Imild),
                           cons_list(index_uni(it), nil_index_list())), "x"))
                      / npop));
-          current_statement__ = 68;
+          current_statement__ = 74;
           newI = (rvalue(x,
                     cons_list(index_uni(E),
                       cons_list(index_uni(it), nil_index_list())), "x") /
                    duration_latent);
-          current_statement__ = 69;
+          current_statement__ = 75;
           frac_boosters_to_susceptible = (rvalue(x,
                                             cons_list(index_uni(S),
                                               cons_list(index_uni(it),
@@ -1569,7 +1655,7 @@ public:
                                                  cons_list(index_uni(Rlive),
                                                    cons_list(index_uni(it),
                                                      nil_index_list())), "x"))));
-          current_statement__ = 70;
+          current_statement__ = 76;
           new_protected = stan::math::fmin(
                             (rvalue(x,
                                cons_list(index_uni(S),
@@ -1578,18 +1664,18 @@ public:
                             ((num_boosters[(it - 1)] *
                                frac_boosters_to_susceptible) *
                               booster_VE_infection));
-          current_statement__ = 72;
+          current_statement__ = 78;
           if (logical_lt(new_protected, 0)) {
-            current_statement__ = 71;
+            current_statement__ = 77;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "new_protected < 0";
             throw std::domain_error(errmsg_stream__.str());
           } 
-          current_statement__ = 73;
+          current_statement__ = 79;
           increased_severity_protection = ((num_boosters[(it - 1)] *
                                              frac_boosters_to_susceptible) *
                                             (1 - booster_VE_infection));
-          current_statement__ = 74;
+          current_statement__ = 80;
           frac_increased_severity_protection = (increased_severity_protection
                                                  /
                                                  stan::math::fmax(
@@ -1599,28 +1685,28 @@ public:
                                                          index_uni(it),
                                                          nil_index_list())),
                                                      "x"), 0.001));
-          current_statement__ = 75;
+          current_statement__ = 81;
           VE_severe_given_infection = ((booster_VE_severe_given_infection *
                                          frac_increased_severity_protection)
                                         +
                                         (VE_severe_given_infection *
                                           (1 -
                                             frac_increased_severity_protection)));
-          current_statement__ = 76;
+          current_statement__ = 82;
           frac_hosp = ((frac_hosp_lemma * (1 - VE_severe_given_infection)) *
                         severity);
-          current_statement__ = 77;
+          current_statement__ = 83;
           new_admits = (rvalue(x,
                           cons_list(index_uni(Ipreh),
                             cons_list(index_uni(it), nil_index_list())), "x")
                          / duration_pre_hosp);
-          current_statement__ = 78;
+          current_statement__ = 84;
           lost_protection_infection = (rvalue(x,
                                          cons_list(index_uni(P),
                                            cons_list(index_uni(it),
                                              nil_index_list())), "x") /
                                         duration_protection_infection);
-          current_statement__ = 79;
+          current_statement__ = 85;
           assign(x,
             cons_list(index_uni(S),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1632,7 +1718,7 @@ public:
                  cons_list(index_uni(Rlive),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_protection_infection)), "assigning variable x");
-          current_statement__ = 80;
+          current_statement__ = 86;
           assign(x,
             cons_list(index_uni(E),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1640,7 +1726,7 @@ public:
                 cons_list(index_uni(E),
                   cons_list(index_uni(it), nil_index_list())), "x") + newE) -
               newI), "assigning variable x");
-          current_statement__ = 81;
+          current_statement__ = 87;
           assign(x,
             cons_list(index_uni(Imild),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1652,7 +1738,7 @@ public:
                  cons_list(index_uni(Imild),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_rec_mild)), "assigning variable x");
-          current_statement__ = 82;
+          current_statement__ = 88;
           assign(x,
             cons_list(index_uni(Ipreh),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1660,7 +1746,7 @@ public:
                 cons_list(index_uni(Ipreh),
                   cons_list(index_uni(it), nil_index_list())), "x") +
                (newI * frac_hosp)) - new_admits), "assigning variable x");
-          current_statement__ = 83;
+          current_statement__ = 89;
           assign(x,
             cons_list(index_uni(Hmod),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1672,7 +1758,7 @@ public:
                  cons_list(index_uni(Hmod),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_hosp_mod)), "assigning variable x");
-          current_statement__ = 84;
+          current_statement__ = 90;
           assign(x,
             cons_list(index_uni(Rlive),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1691,7 +1777,7 @@ public:
                  cons_list(index_uni(Rlive),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_protection_infection)), "assigning variable x");
-          current_statement__ = 85;
+          current_statement__ = 91;
           assign(x,
             cons_list(index_uni(P),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -1700,24 +1786,24 @@ public:
                   cons_list(index_uni(it), nil_index_list())), "x") +
                new_protected) - lost_protection_infection),
             "assigning variable x");
-          current_statement__ = 86;
+          current_statement__ = 92;
           assign(soon_positive,
             cons_list(index_uni((it + 1)), nil_index_list()),
             ((soon_positive[(it - 1)] + (newE * frac_tested)) -
               (soon_positive[(it - 1)] / test_delay)),
             "assigning variable soon_positive");
-          current_statement__ = 87;
+          current_statement__ = 93;
           assign(new_cases, cons_list(index_uni((it + 1)), nil_index_list()),
             (soon_positive[((it + 1) - 1)] / test_delay),
             "assigning variable new_cases");
-          current_statement__ = 92;
+          current_statement__ = 98;
           if (is_nan(new_cases[((it + 1) - 1)])) {
-            current_statement__ = 88;
+            current_statement__ = 94;
             if (pstream__) {
               stan_print(pstream__, "is nan cases:");
               stan_print(pstream__, "\n");
             }
-            current_statement__ = 89;
+            current_statement__ = 95;
             if (pstream__) {
               stan_print(pstream__, it);
               stan_print(pstream__, " ");
@@ -1732,12 +1818,12 @@ public:
               stan_print(pstream__, test_delay);
               stan_print(pstream__, "\n");
             }
-            current_statement__ = 90;
+            current_statement__ = 96;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "new_cases[it+1] is nan";
             throw std::domain_error(errmsg_stream__.str());
           } 
-          current_statement__ = 95;
+          current_statement__ = 101;
           if (logical_gt(
                 stan::math::fabs(
                   (sum(
@@ -1745,7 +1831,7 @@ public:
                        cons_list(index_omni(),
                          cons_list(index_uni((it + 1)), nil_index_list())),
                        "x")) - npop)), 0.01)) {
-            current_statement__ = 93;
+            current_statement__ = 99;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "Model is leaking, net gain: ";
             errmsg_stream__ << (sum(
@@ -1755,7 +1841,7 @@ public:
                                         nil_index_list())), "x")) - npop);
             throw std::domain_error(errmsg_stream__.str());
           } }
-        current_statement__ = 98;
+        current_statement__ = 104;
         assign(sim_data,
           cons_list(index_uni(obs_hosp_census), nil_index_list()),
           add(
@@ -1764,116 +1850,120 @@ public:
               (1 + frac_incidental_omicron)),
             multiply(hosp_delta, hosp_frac_delta)),
           "assigning variable sim_data");
-        current_statement__ = 99;
+        current_statement__ = 105;
         assign(sim_data, cons_list(index_uni(obs_cases), nil_index_list()),
           add(new_cases, multiply(cases_delta, case_frac_delta)),
           "assigning variable sim_data");
       }
-      current_statement__ = 15;
+      current_statement__ = 16;
       for (int sym1__ = 1; sym1__ <= ncompartments; ++sym1__) {
-        current_statement__ = 15;
+        current_statement__ = 16;
         for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
-          current_statement__ = 15;
-          current_statement__ = 15;
+          current_statement__ = 16;
+          current_statement__ = 16;
           check_greater_or_equal(function__, "x[sym1__, sym2__]",
                                  rvalue(x,
                                    cons_list(index_uni(sym1__),
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())), "x"), 0.0);}}
-      current_statement__ = 16;
+      current_statement__ = 17;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 16;
+        current_statement__ = 17;
         for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
-          current_statement__ = 16;
-          current_statement__ = 16;
+          current_statement__ = 17;
+          current_statement__ = 17;
           check_greater_or_equal(function__, "sim_data[sym1__, sym2__]",
                                  rvalue(sim_data,
                                    cons_list(index_uni(sym1__),
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())), "sim_data"), 0.0);
         }}
-      current_statement__ = 17;
-      for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
-        current_statement__ = 17;
-        current_statement__ = 17;
-        check_greater_or_equal(function__, "new_cases[sym1__]",
-                               new_cases[(sym1__ - 1)], 0.0);}
       current_statement__ = 18;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         current_statement__ = 18;
         current_statement__ = 18;
-        check_greater_or_equal(function__, "soon_positive[sym1__]",
-                               soon_positive[(sym1__ - 1)], 0.0);}
+        check_greater_or_equal(function__, "new_cases[sym1__]",
+                               new_cases[(sym1__ - 1)], 0.0);}
       current_statement__ = 19;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         current_statement__ = 19;
         current_statement__ = 19;
+        check_greater_or_equal(function__, "soon_positive[sym1__]",
+                               soon_positive[(sym1__ - 1)], 0.0);}
+      current_statement__ = 20;
+      for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
+        current_statement__ = 20;
+        current_statement__ = 20;
         check_greater_or_equal(function__, "beta[sym1__]",
                                beta[(sym1__ - 1)], 0.0);}
-      current_statement__ = 20;
-      current_statement__ = 20;
+      current_statement__ = 21;
+      current_statement__ = 21;
       check_greater_or_equal(function__, "frac_hosp_0", frac_hosp_0, 0.0);
       {
-        current_statement__ = 117;
+        current_statement__ = 123;
         lp_accum__.add(
           normal_lpdf<propto__>(duration_latent, mu_duration_latent,
             sigma_duration_latent));
-        current_statement__ = 118;
+        current_statement__ = 124;
         lp_accum__.add(
           normal_lpdf<propto__>(duration_rec_mild, mu_duration_rec_mild,
             sigma_duration_rec_mild));
-        current_statement__ = 119;
+        current_statement__ = 125;
         lp_accum__.add(
           normal_lpdf<propto__>(duration_pre_hosp, mu_duration_pre_hosp,
             sigma_duration_pre_hosp));
-        current_statement__ = 120;
+        current_statement__ = 126;
         lp_accum__.add(
           normal_lpdf<propto__>(duration_hosp_mod, mu_duration_hosp_mod,
             sigma_duration_hosp_mod));
-        current_statement__ = 121;
+        current_statement__ = 127;
         lp_accum__.add(
           normal_lpdf<propto__>(duration_protection_infection,
             mu_duration_protection_infection,
             sigma_duration_protection_infection));
-        current_statement__ = 124;
+        current_statement__ = 130;
         for (int iinter = 1; iinter <= ninter; ++iinter) {
-          current_statement__ = 122;
+          current_statement__ = 128;
           lp_accum__.add(
             normal_lpdf<propto__>(beta_multiplier[(iinter - 1)],
               mu_beta_inter[(iinter - 1)], sigma_beta_inter[(iinter - 1)]));}
-        current_statement__ = 125;
+        current_statement__ = 131;
+        lp_accum__.add(
+          normal_lpdf<propto__>(beta_holiday, mu_beta_holiday,
+            sigma_beta_holiday));
+        current_statement__ = 132;
         lp_accum__.add(
           normal_lpdf<propto__>(frac_tested, mu_frac_tested,
             sigma_frac_tested));
-        current_statement__ = 126;
+        current_statement__ = 133;
         lp_accum__.add(
           normal_lpdf<propto__>(severity, mu_severity, sigma_severity));
-        current_statement__ = 127;
+        current_statement__ = 134;
         lp_accum__.add(
           normal_lpdf<propto__>(omicron_trans_multiplier,
             mu_omicron_trans_multiplier, sigma_omicron_trans_multiplier));
-        current_statement__ = 128;
+        current_statement__ = 135;
         lp_accum__.add(
           normal_lpdf<propto__>(test_delay, mu_test_delay, sigma_test_delay));
-        current_statement__ = 129;
+        current_statement__ = 136;
         lp_accum__.add(
           normal_lpdf<propto__>(hosp_delta, mu_hosp_delta, sigma_hosp_delta));
-        current_statement__ = 130;
+        current_statement__ = 137;
         lp_accum__.add(
           normal_lpdf<propto__>(cases_delta, mu_cases_delta,
             sigma_cases_delta));
-        current_statement__ = 131;
+        current_statement__ = 138;
         lp_accum__.add(
           exponential_lpdf<propto__>(initial_infected,
             lambda_initial_infected));
-        current_statement__ = 132;
+        current_statement__ = 139;
         lp_accum__.add(
           exponential_lpdf<propto__>(sigma_obs, sigma_obs_est_inv));
-        current_statement__ = 137;
+        current_statement__ = 144;
         for (int itype = 1; itype <= nobs_types; ++itype) {
-          current_statement__ = 135;
+          current_statement__ = 142;
           if (logical_gt(nobs[(itype - 1)], 0)) {
-            current_statement__ = 133;
+            current_statement__ = 140;
             lp_accum__.add(
               normal_lpdf<propto__>(
                 rvalue(obs_data,
@@ -2040,6 +2130,13 @@ public:
           stan::math::lb_constrain(beta_multiplier[(sym1__ - 1)],
             lbd_beta_inter[(sym1__ - 1)]),
           "assigning variable beta_multiplier");}
+      double beta_holiday;
+      beta_holiday = std::numeric_limits<double>::quiet_NaN();
+      
+      current_statement__ = 15;
+      beta_holiday = in__.scalar();
+      current_statement__ = 15;
+      beta_holiday = stan::math::lb_constrain(beta_holiday, 1.0);
       Eigen::Matrix<double, -1, -1> x;
       x = Eigen::Matrix<double, -1, -1>(ncompartments, nt);
       stan::math::fill(x, std::numeric_limits<double>::quiet_NaN());
@@ -2078,15 +2175,16 @@ public:
       vars__.emplace_back(cases_delta);
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
         vars__.emplace_back(beta_multiplier[(sym1__ - 1)]);}
+      vars__.emplace_back(beta_holiday);
       if (logical_negation((primitive_value(emit_transformed_parameters__) ||
             primitive_value(emit_generated_quantities__)))) {
         return ;
       } 
-      current_statement__ = 25;
+      current_statement__ = 26;
       for (int it = 1; it <= nt; ++it) {
-        current_statement__ = 23;
+        current_statement__ = 24;
         for (int itype = 1; itype <= nobs_types; ++itype) {
-          current_statement__ = 21;
+          current_statement__ = 22;
           assign(sim_data,
             cons_list(index_uni(itype),
               cons_list(index_uni(it), nil_index_list())), 0.0,
@@ -2128,65 +2226,65 @@ public:
         double lost_protection_infection;
         lost_protection_infection = std::numeric_limits<double>::quiet_NaN();
         
-        current_statement__ = 38;
+        current_statement__ = 39;
         validate_non_negative_index("hosp_frac_delta", "nt", nt);
         Eigen::Matrix<double, 1, -1> hosp_frac_delta;
         hosp_frac_delta = Eigen::Matrix<double, 1, -1>(nt);
         stan::math::fill(hosp_frac_delta, std::numeric_limits<double>::quiet_NaN());
         
-        current_statement__ = 40;
+        current_statement__ = 41;
         validate_non_negative_index("case_frac_delta", "nt", nt);
         Eigen::Matrix<double, 1, -1> case_frac_delta;
         case_frac_delta = Eigen::Matrix<double, 1, -1>(nt);
         stan::math::fill(case_frac_delta, std::numeric_limits<double>::quiet_NaN());
         
-        current_statement__ = 45;
+        current_statement__ = 46;
         for (int it = 1; it <= nt; ++it) {
-          current_statement__ = 42;
+          current_statement__ = 43;
           assign(hosp_frac_delta, cons_list(index_uni(it), nil_index_list()),
             (1 /
               (1 +
                 (hosp_frac_delta_0 * stan::math::exp((it * omicron_growth))))),
             "assigning variable hosp_frac_delta");
-          current_statement__ = 43;
+          current_statement__ = 44;
           assign(case_frac_delta, cons_list(index_uni(it), nil_index_list()),
             (1 /
               (1 +
                 (case_frac_delta_0 * stan::math::exp((it * omicron_growth))))),
             "assigning variable case_frac_delta");}
-        current_statement__ = 46;
-        VE_severe_given_infection = VE_severe_given_infection_0;
         current_statement__ = 47;
+        VE_severe_given_infection = VE_severe_given_infection_0;
+        current_statement__ = 48;
         frac_hosp_0 = ((frac_hosp_lemma * (1 - VE_severe_given_infection)) *
                         severity);
-        current_statement__ = 48;
+        current_statement__ = 49;
         assign(x,
           cons_list(index_omni(), cons_list(index_uni(1), nil_index_list())),
           rep_vector(0.0, ncompartments), "assigning variable x");
-        current_statement__ = 49;
+        current_statement__ = 50;
         frac_init_E = (duration_latent /
                         (duration_latent + duration_rec_mild));
-        current_statement__ = 50;
+        current_statement__ = 51;
         assign(x,
           cons_list(index_uni(E), cons_list(index_uni(1), nil_index_list())),
           (frac_init_E * initial_infected), "assigning variable x");
-        current_statement__ = 51;
+        current_statement__ = 52;
         assign(x,
           cons_list(index_uni(Imild),
             cons_list(index_uni(1), nil_index_list())),
           (((1 - frac_init_E) * initial_infected) * (1 - frac_hosp_0)),
           "assigning variable x");
-        current_statement__ = 52;
+        current_statement__ = 53;
         assign(x,
           cons_list(index_uni(Ipreh),
             cons_list(index_uni(1), nil_index_list())),
           (((1 - frac_init_E) * initial_infected) * frac_hosp_0),
           "assigning variable x");
-        current_statement__ = 53;
+        current_statement__ = 54;
         assign(x,
           cons_list(index_uni(P), cons_list(index_uni(1), nil_index_list())),
           (npop * VE_infection), "assigning variable x");
-        current_statement__ = 54;
+        current_statement__ = 55;
         assign(x,
           cons_list(index_uni(S), cons_list(index_uni(1), nil_index_list())),
           ((npop - initial_infected) -
@@ -2194,30 +2292,30 @@ public:
               cons_list(index_uni(P),
                 cons_list(index_uni(1), nil_index_list())), "x")),
           "assigning variable x");
-        current_statement__ = 55;
+        current_statement__ = 56;
         assign(soon_positive, cons_list(index_uni(1), nil_index_list()), 0.0,
           "assigning variable soon_positive");
-        current_statement__ = 56;
+        current_statement__ = 57;
         assign(new_cases, cons_list(index_uni(1), nil_index_list()), 0.0,
           "assigning variable new_cases");
-        current_statement__ = 59;
+        current_statement__ = 60;
         if (logical_eq(tobs[(obs_cases - 1)][(1 - 1)], 1)) {
-          current_statement__ = 57;
+          current_statement__ = 58;
           std::stringstream errmsg_stream__;
           errmsg_stream__ << "Minimum tobs[obs_cases, :] is 2";
           throw std::domain_error(errmsg_stream__.str());
         } 
-        current_statement__ = 60;
+        current_statement__ = 61;
         beta_0 = (((omicron_trans_multiplier / duration_rec_mild) * 1.0) /
                    (1 - VE_infection_delta));
-        current_statement__ = 66;
+        current_statement__ = 72;
         for (int it = 1; it <= nt; ++it) {
-          current_statement__ = 61;
+          current_statement__ = 62;
           assign(beta, cons_list(index_uni(it), nil_index_list()), beta_0,
             "assigning variable beta");
-          current_statement__ = 64;
+          current_statement__ = 65;
           for (int iinter = 1; iinter <= ninter; ++iinter) {
-            current_statement__ = 62;
+            current_statement__ = 63;
             assign(beta, cons_list(index_uni(it), nil_index_list()),
               (beta[(it - 1)] *
                 pow(beta_multiplier[(iinter - 1)],
@@ -2226,10 +2324,18 @@ public:
                       (it -
                         (t_inter[(iinter - 1)] +
                           (len_inter[(iinter - 1)] / 2))))))),
-              "assigning variable beta");}}
-        current_statement__ = 97;
+              "assigning variable beta");}
+          current_statement__ = 70;
+          for (int iholiday = 1; iholiday <= nholiday; ++iholiday) {
+            current_statement__ = 68;
+            if (logical_eq(it, t_holiday[(iholiday - 1)])) {
+              current_statement__ = 66;
+              assign(beta, cons_list(index_uni(it), nil_index_list()),
+                (beta[(it - 1)] * beta_holiday), "assigning variable beta");
+            } }}
+        current_statement__ = 103;
         for (int it = 1; it <= (nt - 1); ++it) {
-          current_statement__ = 67;
+          current_statement__ = 73;
           newE = stan::math::fmin(
                    rvalue(x,
                      cons_list(index_uni(S),
@@ -2243,12 +2349,12 @@ public:
                         cons_list(index_uni(Imild),
                           cons_list(index_uni(it), nil_index_list())), "x"))
                      / npop));
-          current_statement__ = 68;
+          current_statement__ = 74;
           newI = (rvalue(x,
                     cons_list(index_uni(E),
                       cons_list(index_uni(it), nil_index_list())), "x") /
                    duration_latent);
-          current_statement__ = 69;
+          current_statement__ = 75;
           frac_boosters_to_susceptible = (rvalue(x,
                                             cons_list(index_uni(S),
                                               cons_list(index_uni(it),
@@ -2263,7 +2369,7 @@ public:
                                                  cons_list(index_uni(Rlive),
                                                    cons_list(index_uni(it),
                                                      nil_index_list())), "x"))));
-          current_statement__ = 70;
+          current_statement__ = 76;
           new_protected = stan::math::fmin(
                             (rvalue(x,
                                cons_list(index_uni(S),
@@ -2272,18 +2378,18 @@ public:
                             ((num_boosters[(it - 1)] *
                                frac_boosters_to_susceptible) *
                               booster_VE_infection));
-          current_statement__ = 72;
+          current_statement__ = 78;
           if (logical_lt(new_protected, 0)) {
-            current_statement__ = 71;
+            current_statement__ = 77;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "new_protected < 0";
             throw std::domain_error(errmsg_stream__.str());
           } 
-          current_statement__ = 73;
+          current_statement__ = 79;
           increased_severity_protection = ((num_boosters[(it - 1)] *
                                              frac_boosters_to_susceptible) *
                                             (1 - booster_VE_infection));
-          current_statement__ = 74;
+          current_statement__ = 80;
           frac_increased_severity_protection = (increased_severity_protection
                                                  /
                                                  stan::math::fmax(
@@ -2293,28 +2399,28 @@ public:
                                                          index_uni(it),
                                                          nil_index_list())),
                                                      "x"), 0.001));
-          current_statement__ = 75;
+          current_statement__ = 81;
           VE_severe_given_infection = ((booster_VE_severe_given_infection *
                                          frac_increased_severity_protection)
                                         +
                                         (VE_severe_given_infection *
                                           (1 -
                                             frac_increased_severity_protection)));
-          current_statement__ = 76;
+          current_statement__ = 82;
           frac_hosp = ((frac_hosp_lemma * (1 - VE_severe_given_infection)) *
                         severity);
-          current_statement__ = 77;
+          current_statement__ = 83;
           new_admits = (rvalue(x,
                           cons_list(index_uni(Ipreh),
                             cons_list(index_uni(it), nil_index_list())), "x")
                          / duration_pre_hosp);
-          current_statement__ = 78;
+          current_statement__ = 84;
           lost_protection_infection = (rvalue(x,
                                          cons_list(index_uni(P),
                                            cons_list(index_uni(it),
                                              nil_index_list())), "x") /
                                         duration_protection_infection);
-          current_statement__ = 79;
+          current_statement__ = 85;
           assign(x,
             cons_list(index_uni(S),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2326,7 +2432,7 @@ public:
                  cons_list(index_uni(Rlive),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_protection_infection)), "assigning variable x");
-          current_statement__ = 80;
+          current_statement__ = 86;
           assign(x,
             cons_list(index_uni(E),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2334,7 +2440,7 @@ public:
                 cons_list(index_uni(E),
                   cons_list(index_uni(it), nil_index_list())), "x") + newE) -
               newI), "assigning variable x");
-          current_statement__ = 81;
+          current_statement__ = 87;
           assign(x,
             cons_list(index_uni(Imild),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2346,7 +2452,7 @@ public:
                  cons_list(index_uni(Imild),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_rec_mild)), "assigning variable x");
-          current_statement__ = 82;
+          current_statement__ = 88;
           assign(x,
             cons_list(index_uni(Ipreh),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2354,7 +2460,7 @@ public:
                 cons_list(index_uni(Ipreh),
                   cons_list(index_uni(it), nil_index_list())), "x") +
                (newI * frac_hosp)) - new_admits), "assigning variable x");
-          current_statement__ = 83;
+          current_statement__ = 89;
           assign(x,
             cons_list(index_uni(Hmod),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2366,7 +2472,7 @@ public:
                  cons_list(index_uni(Hmod),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_hosp_mod)), "assigning variable x");
-          current_statement__ = 84;
+          current_statement__ = 90;
           assign(x,
             cons_list(index_uni(Rlive),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2385,7 +2491,7 @@ public:
                  cons_list(index_uni(Rlive),
                    cons_list(index_uni(it), nil_index_list())), "x") /
                 duration_protection_infection)), "assigning variable x");
-          current_statement__ = 85;
+          current_statement__ = 91;
           assign(x,
             cons_list(index_uni(P),
               cons_list(index_uni((it + 1)), nil_index_list())),
@@ -2394,24 +2500,24 @@ public:
                   cons_list(index_uni(it), nil_index_list())), "x") +
                new_protected) - lost_protection_infection),
             "assigning variable x");
-          current_statement__ = 86;
+          current_statement__ = 92;
           assign(soon_positive,
             cons_list(index_uni((it + 1)), nil_index_list()),
             ((soon_positive[(it - 1)] + (newE * frac_tested)) -
               (soon_positive[(it - 1)] / test_delay)),
             "assigning variable soon_positive");
-          current_statement__ = 87;
+          current_statement__ = 93;
           assign(new_cases, cons_list(index_uni((it + 1)), nil_index_list()),
             (soon_positive[((it + 1) - 1)] / test_delay),
             "assigning variable new_cases");
-          current_statement__ = 92;
+          current_statement__ = 98;
           if (is_nan(new_cases[((it + 1) - 1)])) {
-            current_statement__ = 88;
+            current_statement__ = 94;
             if (pstream__) {
               stan_print(pstream__, "is nan cases:");
               stan_print(pstream__, "\n");
             }
-            current_statement__ = 89;
+            current_statement__ = 95;
             if (pstream__) {
               stan_print(pstream__, it);
               stan_print(pstream__, " ");
@@ -2426,12 +2532,12 @@ public:
               stan_print(pstream__, test_delay);
               stan_print(pstream__, "\n");
             }
-            current_statement__ = 90;
+            current_statement__ = 96;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "new_cases[it+1] is nan";
             throw std::domain_error(errmsg_stream__.str());
           } 
-          current_statement__ = 95;
+          current_statement__ = 101;
           if (logical_gt(
                 stan::math::fabs(
                   (sum(
@@ -2439,7 +2545,7 @@ public:
                        cons_list(index_omni(),
                          cons_list(index_uni((it + 1)), nil_index_list())),
                        "x")) - npop)), 0.01)) {
-            current_statement__ = 93;
+            current_statement__ = 99;
             std::stringstream errmsg_stream__;
             errmsg_stream__ << "Model is leaking, net gain: ";
             errmsg_stream__ << (sum(
@@ -2449,7 +2555,7 @@ public:
                                         nil_index_list())), "x")) - npop);
             throw std::domain_error(errmsg_stream__.str());
           } }
-        current_statement__ = 98;
+        current_statement__ = 104;
         assign(sim_data,
           cons_list(index_uni(obs_hosp_census), nil_index_list()),
           add(
@@ -2458,54 +2564,54 @@ public:
               (1 + frac_incidental_omicron)),
             multiply(hosp_delta, hosp_frac_delta)),
           "assigning variable sim_data");
-        current_statement__ = 99;
+        current_statement__ = 105;
         assign(sim_data, cons_list(index_uni(obs_cases), nil_index_list()),
           add(new_cases, multiply(cases_delta, case_frac_delta)),
           "assigning variable sim_data");
       }
-      current_statement__ = 15;
+      current_statement__ = 16;
       for (int sym1__ = 1; sym1__ <= ncompartments; ++sym1__) {
-        current_statement__ = 15;
+        current_statement__ = 16;
         for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
-          current_statement__ = 15;
-          current_statement__ = 15;
+          current_statement__ = 16;
+          current_statement__ = 16;
           check_greater_or_equal(function__, "x[sym1__, sym2__]",
                                  rvalue(x,
                                    cons_list(index_uni(sym1__),
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())), "x"), 0.0);}}
-      current_statement__ = 16;
+      current_statement__ = 17;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 16;
+        current_statement__ = 17;
         for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
-          current_statement__ = 16;
-          current_statement__ = 16;
+          current_statement__ = 17;
+          current_statement__ = 17;
           check_greater_or_equal(function__, "sim_data[sym1__, sym2__]",
                                  rvalue(sim_data,
                                    cons_list(index_uni(sym1__),
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())), "sim_data"), 0.0);
         }}
-      current_statement__ = 17;
-      for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
-        current_statement__ = 17;
-        current_statement__ = 17;
-        check_greater_or_equal(function__, "new_cases[sym1__]",
-                               new_cases[(sym1__ - 1)], 0.0);}
       current_statement__ = 18;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         current_statement__ = 18;
         current_statement__ = 18;
-        check_greater_or_equal(function__, "soon_positive[sym1__]",
-                               soon_positive[(sym1__ - 1)], 0.0);}
+        check_greater_or_equal(function__, "new_cases[sym1__]",
+                               new_cases[(sym1__ - 1)], 0.0);}
       current_statement__ = 19;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         current_statement__ = 19;
         current_statement__ = 19;
+        check_greater_or_equal(function__, "soon_positive[sym1__]",
+                               soon_positive[(sym1__ - 1)], 0.0);}
+      current_statement__ = 20;
+      for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
+        current_statement__ = 20;
+        current_statement__ = 20;
         check_greater_or_equal(function__, "beta[sym1__]",
                                beta[(sym1__ - 1)], 0.0);}
-      current_statement__ = 20;
-      current_statement__ = 20;
+      current_statement__ = 21;
+      current_statement__ = 21;
       check_greater_or_equal(function__, "frac_hosp_0", frac_hosp_0, 0.0);
       if (emit_transformed_parameters__) {
         for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
@@ -2539,13 +2645,13 @@ public:
       std::vector<double> Rt;
       Rt = std::vector<double>(nt, std::numeric_limits<double>::quiet_NaN());
       
-      current_statement__ = 111;
+      current_statement__ = 117;
       for (int itype = 1; itype <= nobs_types; ++itype) {
-        current_statement__ = 109;
+        current_statement__ = 115;
         if (logical_gt(nobs[(itype - 1)], 0)) {
-          current_statement__ = 107;
+          current_statement__ = 113;
           for (int it = 1; it <= nt; ++it) {
-            current_statement__ = 105;
+            current_statement__ = 111;
             assign(sim_data_with_error,
               cons_list(index_uni(itype),
                 cons_list(index_uni(it), nil_index_list())),
@@ -2557,7 +2663,7 @@ public:
                     "sim_data"), sigma_obs[(itype - 1)], base_rng__)),
               "assigning variable sim_data_with_error");}
         } else {
-          current_statement__ = 103;
+          current_statement__ = 109;
           assign(sim_data_with_error,
             cons_list(index_uni(itype), nil_index_list()),
             rvalue(sim_data, cons_list(index_uni(itype), nil_index_list()),
@@ -2567,9 +2673,9 @@ public:
         double frac_prehosp;
         frac_prehosp = std::numeric_limits<double>::quiet_NaN();
         
-        current_statement__ = 115;
+        current_statement__ = 121;
         for (int it = 1; it <= nt; ++it) {
-          current_statement__ = 113;
+          current_statement__ = 119;
           assign(Rt, cons_list(index_uni(it), nil_index_list()),
             (((beta[(it - 1)] * duration_rec_mild) *
                rvalue(x,
@@ -2577,12 +2683,12 @@ public:
                    cons_list(index_uni(it), nil_index_list())), "x")) / npop),
             "assigning variable Rt");}
       }
-      current_statement__ = 101;
+      current_statement__ = 107;
       for (int sym1__ = 1; sym1__ <= nobs_types; ++sym1__) {
-        current_statement__ = 101;
+        current_statement__ = 107;
         for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
-          current_statement__ = 101;
-          current_statement__ = 101;
+          current_statement__ = 107;
+          current_statement__ = 107;
           check_greater_or_equal(function__,
                                  "sim_data_with_error[sym1__, sym2__]",
                                  rvalue(sim_data_with_error,
@@ -2590,10 +2696,10 @@ public:
                                      cons_list(index_uni(sym2__),
                                        nil_index_list())),
                                    "sim_data_with_error"), 0.0);}}
-      current_statement__ = 102;
+      current_statement__ = 108;
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
-        current_statement__ = 102;
-        current_statement__ = 102;
+        current_statement__ = 108;
+        current_statement__ = 108;
         check_greater_or_equal(function__, "Rt[sym1__]", Rt[(sym1__ - 1)],
                                0.0);}
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
@@ -2787,6 +2893,16 @@ public:
           stan::math::lb_free(beta_multiplier[(sym1__ - 1)],
             lbd_beta_inter[(sym1__ - 1)]),
           "assigning variable beta_multiplier_free__");}
+      double beta_holiday;
+      beta_holiday = std::numeric_limits<double>::quiet_NaN();
+      
+      current_statement__ = 15;
+      beta_holiday = context__.vals_r("beta_holiday")[(1 - 1)];
+      double beta_holiday_free__;
+      beta_holiday_free__ = std::numeric_limits<double>::quiet_NaN();
+      
+      current_statement__ = 15;
+      beta_holiday_free__ = stan::math::lb_free(beta_holiday, 1.0);
       vars__.emplace_back(duration_latent_free__);
       vars__.emplace_back(duration_rec_mild_free__);
       vars__.emplace_back(duration_pre_hosp_free__);
@@ -2803,6 +2919,7 @@ public:
       vars__.emplace_back(cases_delta_free__);
       for (int sym1__ = 1; sym1__ <= ninter; ++sym1__) {
         vars__.emplace_back(beta_multiplier_free__[(sym1__ - 1)]);}
+      vars__.emplace_back(beta_holiday_free__);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       // Next line prevents compiler griping about no return
@@ -2827,6 +2944,7 @@ public:
     names__.emplace_back("hosp_delta");
     names__.emplace_back("cases_delta");
     names__.emplace_back("beta_multiplier");
+    names__.emplace_back("beta_holiday");
     names__.emplace_back("x");
     names__.emplace_back("sim_data");
     names__.emplace_back("new_cases");
@@ -2866,6 +2984,8 @@ public:
     dimss__.emplace_back(std::vector<size_t>{});
     
     dimss__.emplace_back(std::vector<size_t>{static_cast<size_t>(ninter)});
+    
+    dimss__.emplace_back(std::vector<size_t>{});
     
     dimss__.emplace_back(std::vector<size_t>{
                                              static_cast<size_t>(ncompartments)
@@ -2915,6 +3035,7 @@ public:
       {
         param_names__.emplace_back(std::string() + "beta_multiplier" + '.' + std::to_string(sym1__));
       }}
+    param_names__.emplace_back(std::string() + "beta_holiday");
     if (emit_transformed_parameters__) {
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         {
@@ -2987,6 +3108,7 @@ public:
       {
         param_names__.emplace_back(std::string() + "beta_multiplier" + '.' + std::to_string(sym1__));
       }}
+    param_names__.emplace_back(std::string() + "beta_holiday");
     if (emit_transformed_parameters__) {
       for (int sym1__ = 1; sym1__ <= nt; ++sym1__) {
         {
@@ -3035,13 +3157,13 @@ public:
     
   inline std::string get_constrained_sizedtypes() const {
     stringstream s__;
-    s__ << "[{\"name\":\"duration_latent\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_rec_mild\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_pre_hosp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_hosp_mod\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_protection_infection\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"frac_tested\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"initial_infected\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sigma_obs\",\"type\":{\"name\":\"array\",\"length\":" << nobs_types << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"severity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"omicron_trans_multiplier\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"test_delay\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"hosp_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"cases_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"beta_multiplier\",\"type\":{\"name\":\"array\",\"length\":" << ninter << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"x\",\"type\":{\"name\":\"matrix\",\"rows\":" << ncompartments << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"new_cases\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"soon_positive\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"frac_hosp_0\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data_with_error\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"generated_quantities\"},{\"name\":\"Rt\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"}]";
+    s__ << "[{\"name\":\"duration_latent\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_rec_mild\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_pre_hosp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_hosp_mod\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_protection_infection\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"frac_tested\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"initial_infected\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sigma_obs\",\"type\":{\"name\":\"array\",\"length\":" << nobs_types << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"severity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"omicron_trans_multiplier\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"test_delay\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"hosp_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"cases_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"beta_multiplier\",\"type\":{\"name\":\"array\",\"length\":" << ninter << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"beta_holiday\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"x\",\"type\":{\"name\":\"matrix\",\"rows\":" << ncompartments << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"new_cases\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"soon_positive\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"frac_hosp_0\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data_with_error\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"generated_quantities\"},{\"name\":\"Rt\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"}]";
     return s__.str();
     } // get_constrained_sizedtypes() 
     
   inline std::string get_unconstrained_sizedtypes() const {
     stringstream s__;
-    s__ << "[{\"name\":\"duration_latent\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_rec_mild\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_pre_hosp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_hosp_mod\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_protection_infection\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"frac_tested\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"initial_infected\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sigma_obs\",\"type\":{\"name\":\"array\",\"length\":" << nobs_types << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"severity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"omicron_trans_multiplier\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"test_delay\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"hosp_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"cases_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"beta_multiplier\",\"type\":{\"name\":\"array\",\"length\":" << ninter << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"x\",\"type\":{\"name\":\"matrix\",\"rows\":" << ncompartments << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"new_cases\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"soon_positive\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"frac_hosp_0\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data_with_error\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"generated_quantities\"},{\"name\":\"Rt\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"}]";
+    s__ << "[{\"name\":\"duration_latent\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_rec_mild\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_pre_hosp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_hosp_mod\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"duration_protection_infection\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"frac_tested\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"initial_infected\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sigma_obs\",\"type\":{\"name\":\"array\",\"length\":" << nobs_types << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"severity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"omicron_trans_multiplier\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"test_delay\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"hosp_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"cases_delta\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"beta_multiplier\",\"type\":{\"name\":\"array\",\"length\":" << ninter << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"beta_holiday\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"x\",\"type\":{\"name\":\"matrix\",\"rows\":" << ncompartments << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"new_cases\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"soon_positive\",\"type\":{\"name\":\"vector\",\"length\":" << nt << "},\"block\":\"transformed_parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"frac_hosp_0\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"sim_data_with_error\",\"type\":{\"name\":\"matrix\",\"rows\":" << nobs_types << ",\"cols\":" << nt << "},\"block\":\"generated_quantities\"},{\"name\":\"Rt\",\"type\":{\"name\":\"array\",\"length\":" << nt << ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"}]";
     return s__.str();
     } // get_unconstrained_sizedtypes() 
     
