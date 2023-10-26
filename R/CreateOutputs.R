@@ -147,23 +147,18 @@ GetRtPlot <- function(projection, inputs) {
   return(gg)
 }
 
-expansion <- function() c(0, 0, 0, 0) #fixes a problem if old ggplot version
+# expansion <- function() c(0, 0, 0, 0) #fixes a problem if old ggplot version
 
 GetPdfOutputPlots <- function(fit, projection, inputs) {
   short.term <- long.term <- list()
   for (i in DataTypes()) {
-    if (i == "seroprev" & inputs$internal.args$hide.nonpublic.data) {
-      #do not show seroprev (nonpublic)
-    } else {
-      short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
-      if (!is.null(short.term[[i]])) print(short.term[[i]])
-    }
+    short.term[[i]] <- GetProjectionPlot(short.term = T, projection = projection, data.type = i, inputs = inputs)
+    if (!is.null(short.term[[i]])) print(short.term[[i]])
     long.term[[i]] <- GetProjectionPlot(short.term = F, projection = projection, data.type = i, inputs = inputs)
     if (!is.null(long.term[[i]])) print(long.term[[i]])
   }
 
-  rt.plot <- GetRtPlot(projection, inputs)
-  return(list(short.term = short.term, long.term = long.term, rt = rt.plot))
+  return(list(short.term = short.term, long.term = long.term))
 }
 
 GetPdfOutput <- function(fit, projection, inputs) {
